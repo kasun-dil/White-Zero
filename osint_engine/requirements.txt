@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pydantic
+playwright
+asyncio
+httpx
+beautifulsoup4

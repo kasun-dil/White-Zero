@@ -1,0 +1,143 @@
+.report-container {
+  padding: 8rem 2rem 5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.report-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.report-header h1 {
+  font-size: 2.5rem;
+  margin: 1rem 0;
+}
+
+.report-header p {
+  color: var(--text-muted);
+}
+
+.chat-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+  max-height: 600px;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.message-wrapper {
+  display: flex;
+  gap: 1rem;
+  max-width: 85%;
+}
+
+.message-wrapper.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.message-content {
+  background: var(--bg-card);
+  padding: 1.25rem;
+  border-radius: 15px;
+  border: 1px solid var(--glass-border);
+}
+
+.message-wrapper.user .message-content {
+  background: var(--primary-dark);
+  border-color: var(--primary);
+}
+
+.report-guide {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.report-guide h4 {
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+.report-guide ol {
+  padding-left: 1.25rem;
+  color: var(--text-muted);
+}
+
+.report-guide li {
+  margin-bottom: 0.5rem;
+}
+
+.email-generator {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.email-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+.email-generator pre {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  margin-bottom: 1.5rem;
+  color: var(--text-muted);
+}
+
+.chat-input-area {
+  padding: 1.5rem 2rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  gap: 1rem;
+}
+
+.chat-input-area input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  color: white;
+  outline: none;
+}
+
+.chat-input-area input:focus {
+  border-color: var(--primary);
+}
