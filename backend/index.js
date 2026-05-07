@@ -779,16 +779,18 @@ app.delete('/api/users/profile/clear-history', protect, async (req, res) => {
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.googlemail.com',
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false, // Use STARTTLS
   debug: true,
   logger: true,
-  connectionTimeout: 20000, // 20 seconds
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   }
 });
+
 
 
 // Verify connection configuration
