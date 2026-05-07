@@ -803,53 +803,66 @@ const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOU
 
 app.post('/api/otp/send', async (req, res) => {
   const { email } = req.body;
+  console.log(`[OTP DEBUG] Incoming request to send code to: ${email}`);
+  
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   try {
     await OTP.deleteOne({ email });
     await OTP.create({ email, otp });
+    console.log(`[OTP DEBUG] Code ${otp} stored in database for ${email}`);
 
-    if (email) {
-      const mailOptions = {
-        from: process.env.EMAIL_USER || 'placeholder@gmail.com',
-        to: email,
-        subject: 'White Zero - Secure Verification Code',
-        html: `
-          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 40px; background-color: #050505; color: #ffffff; border-radius: 20px; border: 1px solid #10b981;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #10b981; margin: 0; font-size: 28px; letter-spacing: 2px;">WHITE ZERO</h1>
-              <p style="color: #888; font-size: 12px; margin-top: 5px;">FORENSIC INTELLIGENCE FRAMEWORK</p>
-            </div>
-            <div style="background: rgba(16, 185, 129, 0.05); padding: 30px; border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.1);">
-              <h2 style="font-size: 20px; margin-top: 0; color: #fff;">Identity Verification Required</h2>
-              <p style="line-height: 1.6; color: #ccc;">A request has been made to verify your identity for an official forensic report submission. Use the secure authorization code below to continue.</p>
-              
-              <div style="text-align: center; margin: 40px 0; padding: 25px; background: #111; border-radius: 12px; border: 1px dashed #10b981;">
-                <span style="font-size: 42px; font-weight: 800; letter-spacing: 10px; color: #10b981; font-family: 'Courier New', Courier, monospace;">${otp}</span>
-              </div>
-              
-              <p style="font-size: 13px; color: #888; text-align: center;">This code will expire in <strong style="color: #10b981;">5 minutes</strong>. If you did not request this code, please ignore this email.</p>
-            </div>
-            <div style="text-align: center; margin-top: 30px; font-size: 11px; color: #555;">
-              &copy; 2026 White Zero Intelligence. All rights reserved. <br/>
-              Secure Encryption Enabled | Digital Integrity Verified
-            </div>
+    const mailOptions = {
+      from: `"White Zero Verification" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'White Zero - Secure Verification Code',
+      html: `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 40px; background-color: #050505; color: #ffffff; border-radius: 20px; border: 1px solid #10b981;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #10b981; margin: 0; font-size: 28px; letter-spacing: 2px;">WHITE ZERO</h1>
+            <p style="color: #888; font-size: 12px; margin-top: 5px;">FORENSIC INTELLIGENCE FRAMEWORK</p>
           </div>
-        `
-      };
-      console.log(`[OTP DISPATCH]: Attempting to send secure email to ${email}...`);
-      // Send email in background to prevent timeout
-      transporter.sendMail(mailOptions)
-        .then(() => console.log(`[OTP SUCCESS]: Secure email sent to ${email}`))
-        .catch(err => console.error(`[OTP FAILURE]: Could not send email. Error: ${err.message}`));
+          <div style="background: rgba(16, 185, 129, 0.05); padding: 30px; border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.1);">
+            <h2 style="font-size: 20px; margin-top: 0; color: #fff;">Identity Verification Required</h2>
+            <p style="line-height: 1.6; color: #ccc;">A request has been made to verify your identity for an official forensic report submission. Use the secure authorization code below to continue.</p>
+            
+            <div style="text-align: center; margin: 40px 0; padding: 25px; background: #111; border-radius: 12px; border: 1px dashed #10b981;">
+              <span style="font-size: 42px; font-weight: 800; letter-spacing: 10px; color: #10b981; font-family: 'Courier New', Courier, monospace;">${otp}</span>
+            </div>
+            
+            <p style="font-size: 13px; color: #888; text-align: center;">This code will expire in <strong style="color: #10b981;">5 minutes</strong>. If you did not request this code, please ignore this email.</p>
+          </div>
+          <div style="text-align: center; margin-top: 30px; font-size: 11px; color: #555;">
+            &copy; 2026 White Zero Intelligence. All rights reserved. <br/>
+            Secure Encryption Enabled | Digital Integrity Verified
+          </div>
+        </div>
+      `
+    };
 
-    }
+    console.log(`[OTP DISPATCH]: Handing off to mail server for ${email}...`);
+    
+    // Send email in background
+    transporter.sendMail(mailOptions)
+      .then(() => console.log(`[OTP SUCCESS]: Secure email sent successfully to ${email}`))
+      .catch(err => {
+        console.error(`[MAIL ERROR]: Failed to send to ${email}. Error: ${err.message}`);
+        if (err.code === 'EAUTH') {
+          console.error(`[MAIL ERROR]: Authentication failed. Check if EMAIL_PASS is a valid App Password.`);
+        }
+      });
 
-    res.json({ success: true, message: 'OTP sent successfully' });
+    res.json({ success: true, message: 'OTP dispatch protocol initiated' });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to send OTP' });
+    console.error(`[OTP CRASH]: ${error.message}`);
+    res.status(500).json({ message: 'Failed to initiate OTP protocol' });
   }
 });
+
 
 app.post('/api/otp/verify', async (req, res) => {
   const { email, otp } = req.body;
