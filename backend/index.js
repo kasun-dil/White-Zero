@@ -838,12 +838,11 @@ app.post('/api/otp/send', async (req, res) => {
         `
       };
       console.log(`[OTP DISPATCH]: Attempting to send secure email to ${email}...`);
-      try {
-        await transporter.sendMail(mailOptions);
-        console.log(`[OTP SUCCESS]: Secure email sent to ${email}`);
-      } catch (err) {
-        console.error(`[OTP FAILURE]: Could not send email. Error: ${err.message}`);
-      }
+      // Send email in background to prevent timeout
+      transporter.sendMail(mailOptions)
+        .then(() => console.log(`[OTP SUCCESS]: Secure email sent to ${email}`))
+        .catch(err => console.error(`[OTP FAILURE]: Could not send email. Error: ${err.message}`));
+
     }
 
     res.json({ success: true, message: 'OTP sent successfully' });
