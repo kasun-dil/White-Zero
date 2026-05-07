@@ -1,4 +1,6 @@
 const express = require('express');
+const axios = require('axios');
+
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
@@ -23,6 +25,9 @@ const OTP = require('./models/OTP');
 const { protect, admin, police, policeOrAdmin } = require('./middleware/authMiddleware');
 
 dotenv.config();
+
+const OSINT_URL = process.env.OSINT_ENGINE_URL || 'http://localhost:8001';
+
 
 const app = express();
 app.use(cors());
@@ -494,8 +499,11 @@ app.post('/api/users/upload', protect, upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No image provided' });
   }
-  res.json({ imageUrl: `http://localhost:5000/uploads/${req.file.filename}` });
+  const protocol = req.protocol;
+  const host = req.get('host');
+  res.json({ imageUrl: `${protocol}://${host}/uploads/${req.file.filename}` });
 });
+
 
 // =======================
 // ACTIVITY & HISTORY ROUTES
@@ -672,13 +680,13 @@ app.post('/api/analyze-post', async (req, res) => {
 app.post('/api/osint/search', async (req, res) => {
   const { query, search_type, limit } = req.body;
   try {
-    const axios = require('axios');
-    const response = await axios.post('http://localhost:8001/search', {
+    const response = await axios.post(`${OSINT_URL}/search`, {
       query,
       search_type,
       limit: limit || 10
     });
     res.json(response.data);
+
   } catch (error) {
     console.error('[OSINT PROXY ERROR]:', error.message);
     // Return empty results if engine is down to prevent frontend crash
@@ -689,11 +697,11 @@ app.post('/api/osint/search', async (req, res) => {
 app.post('/api/osint/username', async (req, res) => {
   const { username } = req.body;
   try {
-    const axios = require('axios');
-    const response = await axios.post('http://localhost:8001/search_username', {
+    const response = await axios.post(`${OSINT_URL}/search_username`, {
       username
     });
     res.json(response.data);
+
   } catch (error) {
     console.error('[USERNAME PROXY ERROR]:', error.message);
     res.status(500).json({ message: 'Engine is offline' });
@@ -703,11 +711,11 @@ app.post('/api/osint/username', async (req, res) => {
 app.post('/api/osint/phone', async (req, res) => {
   const { phone } = req.body;
   try {
-    const axios = require('axios');
-    const response = await axios.post('http://localhost:8001/phone', {
+    const response = await axios.post(`${OSINT_URL}/phone`, {
       username: phone // Using username field in model as per engine update
     });
     res.json(response.data);
+
   } catch (error) {
     console.error('[PHONE PROXY ERROR]:', error.message);
     res.status(500).json({ message: 'Engine is offline' });
