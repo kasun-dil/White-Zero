@@ -779,6 +779,8 @@ app.delete('/api/users/profile/clear-history', protect, async (req, res) => {
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
+  debug: true,
+  logger: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
