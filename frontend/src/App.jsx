@@ -21,13 +21,15 @@ import ScrollToTop from './components/ScrollToTop';
 import FloatingAI from './components/FloatingAI';
 import IntelligenceLab from './pages/IntelligenceLab';
 import ReportCrime from './pages/ReportCrime';
+import PoliceDashboard from './pages/PoliceDashboard';
+import MyReports from './pages/MyReports';
 import { AuthProvider } from './context/AuthContext';
 import { useLocation } from 'react-router-dom';
 import './index.css';
 
 function AppContent() {
   const location = useLocation();
-  const isAdminPage = location.pathname === '/admin';
+  const isAdminPage = location.pathname === '/admin' || location.pathname === '/police-dashboard';
   const hideLayout = isAdminPage || location.pathname === '/login' || location.pathname === '/signup';
 
   return (
@@ -53,6 +55,8 @@ function AppContent() {
         <Route path="/qa-bot" element={<QABot />} />
         <Route path="/intelligence-lab" element={<IntelligenceLab />} />
         <Route path="/report-crime" element={<ReportCrime />} />
+        <Route path="/police-dashboard" element={<PoliceDashboard />} />
+        <Route path="/my-reports" element={<MyReports />} />
       </Routes>
       {!hideLayout && <Footer />}
     </>

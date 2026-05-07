@@ -30,4 +30,20 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+const police = (req, res, next) => {
+  if (req.user && req.user.role === 'police') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Not authorized as a police officer' });
+  }
+};
+
+const policeOrAdmin = (req, res, next) => {
+  if (req.user && (req.user.role === 'police' || req.user.role === 'admin')) {
+    next();
+  } else {
+    res.status(403).json({ message: 'Not authorized' });
+  }
+};
+
+module.exports = { protect, admin, police, policeOrAdmin };

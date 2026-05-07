@@ -5,7 +5,7 @@ import {
   Users, BookOpen, MessageSquare, Shield, ExternalLink, 
   Plus, Trash2, Check, X, Settings, LogOut, LayoutDashboard,
   Search, Filter, MoreVertical, Edit2, Globe, TrendingUp, Clock, Activity,
-  Eye, EyeOff, Star, Mail, Hexagon
+  Eye, EyeOff, Star, Mail, Hexagon, AlertTriangle
 } from 'lucide-react';
 import FadeInSection from '../../components/FadeInSection';
 import '../PageStyles.css';
@@ -23,6 +23,8 @@ const AdminDashboard = () => {
   const [articles, setArticles] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [policeMetadata, setPoliceMetadata] = useState([]);
+  const [policeSearchTerm, setPoliceSearchTerm] = useState('');
   
   // Form States
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user' });
@@ -39,7 +41,20 @@ const AdminDashboard = () => {
       return;
     }
     fetchDashboardData();
+    fetchPoliceMetadata();
   }, [user, navigate]);
+
+  const fetchPoliceMetadata = async () => {
+    try {
+      const res = await fetch('/api/admin/police-reports/metadata', {
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+      const data = await res.json();
+      setPoliceMetadata(data);
+    } catch (error) {
+      console.error('Error fetching police metadata', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -256,6 +271,9 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('users')} className={`admin-nav-btn ${activeTab === 'users' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'users')}>
             <Users size={18} /> User Management
           </button>
+          <button onClick={() => setActiveTab('police')} className={`admin-nav-btn ${activeTab === 'police' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'police')}>
+            <Shield size={18} /> Police Intelligence
+          </button>
           <button onClick={() => setActiveTab('articles')} className={`admin-nav-btn ${activeTab === 'articles' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'articles')}>
             <BookOpen size={18} /> Articles & Blogs
           </button>
@@ -297,6 +315,7 @@ const AdminDashboard = () => {
 
         {activeTab === 'dashboard' && renderDashboardView()}
         {activeTab === 'users' && renderUsersSection()}
+        {activeTab === 'police' && renderPoliceSection()}
         {activeTab === 'articles' && renderArticlesSection()}
         {activeTab === 'feedback' && renderFeedbackSection()}
         {activeTab === 'messages' && renderMessagesSection()}
@@ -548,6 +567,81 @@ const AdminDashboard = () => {
     );
   }
 
+  function renderPoliceSection() {
+    return (
+      <div className="glass" style={{ padding: '2rem', borderRadius: '25px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <Shield className="text-[#10b981]" /> Police Intelligence Metadata
+          </h2>
+          <div style={{ padding: '0.5rem 1rem', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontSize: '0.75rem' }}>
+            <AlertTriangle size={14} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} /> 
+            Forensic details isolated from Admin view
+          </div>
+        </div>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div className="glass" style={{ display: 'flex', alignItems: 'center', padding: '0.75rem 1.25rem', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', maxWidth: '400px' }}>
+            <Search size={18} style={{ opacity: 0.5, marginRight: '0.75rem' }} />
+            <input 
+              type="text" 
+              placeholder="Search by ID or Victim Name..." 
+              value={policeSearchTerm}
+              onChange={(e) => setPoliceSearchTerm(e.target.value)}
+              style={{ background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.9rem' }}
+            />
+          </div>
+        </div>
+
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>
+                <th style={{ padding: '1rem' }}>Reference ID</th>
+                <th style={{ padding: '1rem' }}>Victim Name</th>
+                <th style={{ padding: '1rem' }}>Contact Email</th>
+                <th style={{ padding: '1rem' }}>Incident Title</th>
+                <th style={{ padding: '1rem' }}>Submission Date</th>
+                <th style={{ padding: '1rem' }}>Status</th>
+                <th style={{ padding: '1rem' }}>Conclusion</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(policeMetadata) && policeMetadata
+                .filter(r => 
+                  r.referenceId?.toLowerCase().includes(policeSearchTerm.toLowerCase()) ||
+                  r.victimName?.toLowerCase().includes(policeSearchTerm.toLowerCase())
+                )
+                .map(r => (
+                <tr key={r._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <td style={{ padding: '1rem', color: '#00d2ff', fontWeight: 'bold', fontFamily: 'monospace' }}>{r.referenceId}</td>
+                  <td style={{ padding: '1rem' }}>{r.victimName}</td>
+                  <td style={{ padding: '1rem' }}>{r.victimEmail}</td>
+                  <td style={{ padding: '1rem' }}>{r.title}</td>
+                  <td style={{ padding: '1rem' }}>{new Date(r.createdAt).toLocaleDateString()}</td>
+                  <td style={{ padding: '1rem' }}>
+                    <span style={{ color: r.isClosed ? '#10b981' : '#f59e0b', fontSize: '0.85rem' }}>
+                      {r.isClosed ? 'Resolved' : r.status}
+                    </span>
+                  </td>
+                  <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    {r.conclusion || 'Ongoing...'}
+                  </td>
+                </tr>
+              ))}
+              {(!Array.isArray(policeMetadata) || policeMetadata.length === 0) && (
+                <tr>
+                  <td colSpan="5" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    No police reports transmitted to system metadata.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
   function renderAddUserModal() {
     return (
       <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(5px)' }}>
@@ -572,6 +666,7 @@ const AdminDashboard = () => {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Assign Role</label>
               <select value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
                 <option value="user">Standard User</option>
+                <option value="police">Police Officer</option>
                 <option value="admin">Administrator</option>
               </select>
             </div>

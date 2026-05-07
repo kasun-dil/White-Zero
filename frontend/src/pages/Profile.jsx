@@ -6,7 +6,8 @@ import {
   User, Mail, Lock, Save, Shield, Edit2, LogOut, Upload, X, 
   Search, BookOpen, MessageSquare, Check, Trash2, Trophy, 
   Zap, Calendar, Award, Info, Terminal, Activity, Globe,
-  FileText, ExternalLink, Download, Printer, ChevronLeft, ChevronRight
+  FileText, ExternalLink, Download, Printer, ChevronLeft, ChevronRight,
+  ZoomIn, ZoomOut, Move
 } from 'lucide-react';
 import './PageStyles.css';
 
@@ -46,6 +47,14 @@ const Profile = () => {
 
   const [ipAddress, setIpAddress] = useState('Detecting...');
   const [bandwidth, setBandwidth] = useState('0 Mbps');
+  
+  // Alignment States
+  const [isAligning, setIsAligning] = useState(false);
+  const [tempImage, setTempImage] = useState(null);
+  const [zoom, setZoom] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (user) {
@@ -100,30 +109,99 @@ const Profile = () => {
     navigate('/login');
   };
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setTempImage(reader.result);
+      setIsAligning(true);
+      setZoom(1);
+      setPosition({ x: 0, y: 0 });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleMouseDown = (e) => {
+    setDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragging) return;
+    setPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    });
+  };
+
+  const handleMouseUp = () => setDragging(false);
+
+  const handleSaveAlignment = async () => {
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append('image', file);
-    try {
-      const res = await fetch('/api/users/upload', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${user.token}` },
-        body: formData
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setProfileImage(data.imageUrl);
-        setMessage({ type: 'success', text: 'Image uploaded! Click Save to apply.' });
+    setIsAligning(false);
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.src = tempImage;
+
+    img.onload = async () => {
+      canvas.width = 400;
+      canvas.height = 400;
+      
+      // Calculate crop
+      const aspect = img.width / img.height;
+      let drawWidth, drawHeight;
+      
+      if (aspect > 1) {
+        drawHeight = 400 * zoom;
+        drawWidth = drawHeight * aspect;
       } else {
-        setMessage({ type: 'error', text: data.message || 'Upload failed' });
+        drawWidth = 400 * zoom;
+        drawHeight = drawWidth / aspect;
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to upload image.' });
-    } finally {
-      setIsUploading(false);
-    }
+
+      ctx.fillStyle = '#0a0b10';
+      ctx.fillRect(0, 0, 400, 400);
+      
+      // Draw circular clip
+      ctx.beginPath();
+      ctx.arc(200, 200, 200, 0, Math.PI * 2);
+      ctx.clip();
+      
+      ctx.drawImage(
+        img, 
+        200 - (drawWidth / 2) + position.x, 
+        200 - (drawHeight / 2) + position.y, 
+        drawWidth, 
+        drawHeight
+      );
+
+      canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append('image', blob, 'identity_asset.png');
+        
+        try {
+          const res = await fetch('/api/users/upload', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${user.token}` },
+            body: formData
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setProfileImage(data.imageUrl);
+            setMessage({ type: 'success', text: 'Forensic asset calibrated and archived.' });
+          } else {
+            setMessage({ type: 'error', text: 'Calibration failed.' });
+          }
+        } catch (error) {
+          setMessage({ type: 'error', text: 'Archive error.' });
+        } finally {
+          setIsUploading(false);
+        }
+      }, 'image/png');
+    };
   };
 
   const reportsScrollRef = useRef(null);
@@ -458,36 +536,200 @@ const Profile = () => {
   };
 
   const renderEditMode = () => (
-    <div className="glass" style={{ padding: '3rem', borderRadius: '30px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-        <h2>Edit Profile</h2>
-        <button onClick={() => setIsEditing(false)} className="btn-outline">Cancel</button>
+    <div className="glass" style={{ padding: '3rem', borderRadius: '30px', animation: 'fadeIn 0.5s ease' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+        <div>
+          <h2 style={{ fontSize: '2rem', fontWeight: '800' }}>Operational Identity Config</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Modify forensic persona and security credentials.</p>
+        </div>
+        <button onClick={() => setIsEditing(false)} className="btn-outline" style={{ padding: '0.8rem 1.5rem' }}>Cancel</button>
       </div>
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-          <div className="profile-titles">
-            <h1>{user.name}</h1>
-            <p className="user-role"><Shield size={14} /> Security Analyst</p>
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+        {/* Avatar Section */}
+        <div className="edit-section">
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <User size={18} className="text-[#00d2ff]" /> Forensic Persona Selection
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            {DEFAULT_AVATARS.map((avatar, i) => (
+              <div 
+                key={i} 
+                onClick={() => setProfileImage(avatar)}
+                style={{ 
+                  width: '80px', 
+                  height: '80px', 
+                  borderRadius: '15px', 
+                  cursor: 'pointer',
+                  border: profileImage === avatar ? '3px solid #00d2ff' : '1px solid rgba(255,255,255,0.1)',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                  transform: profileImage === avatar ? 'scale(1.05)' : 'scale(1)',
+                  boxShadow: profileImage === avatar ? '0 0 20px rgba(0, 210, 255, 0.3)' : 'none'
+                }}
+              >
+                <img src={avatar} alt={`Avatar ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            ))}
           </div>
-          <div className="form-group">
-            <label>Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} required />
-          </div>
-          <div className="form-group">
-            <label>Bio</label>
-            <textarea value={bio} onChange={e => setBio(e.target.value)} rows="3" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button 
+              type="button" 
+              onClick={() => fileInputRef.current.click()}
+              className="btn-outline" 
+              style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
+            >
+              <Upload size={14} style={{ marginRight: '0.5rem' }} /> Custom Identity Upload
+            </button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+              style={{ display: 'none' }} 
+              accept="image/*"
+            />
+            {isUploading && <span style={{ fontSize: '0.8rem', color: '#00d2ff' }}>Uploading forensic asset...</span>}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={handleClearHistory} className="btn-outline" style={{ borderColor: 'rgba(255, 77, 77, 0.3)', color: '#ff4d4d', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Trash2 size={18} /> Clear Forensic History
-          </button>
-          <button onClick={logout} className="logout-btn">
-            <LogOut size={18} /> Logout
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
+          {/* General Info */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <Edit2 size={18} className="text-[#a855f7]" /> Personal Metadata
+            </h3>
+            <div className="form-group">
+              <label>Operative Name</label>
+              <input 
+                type="text" 
+                value={name} 
+                onChange={e => setName(e.target.value)} 
+                placeholder="Full Name"
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label>Intelligence Bio</label>
+              <textarea 
+                value={bio} 
+                onChange={e => setBio(e.target.value)} 
+                placeholder="Briefly describe your forensic specialization..."
+                rows="4" 
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
+              />
+            </div>
+          </div>
+
+          {/* Security Credentials */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <Lock size={18} className="text-[#f59e0b]" /> Security Synchronization
+            </h3>
+            <div className="form-group">
+              <label>Current Credentials (Required for Password Change)</label>
+              <input 
+                type="password" 
+                value={oldPassword} 
+                onChange={e => setOldPassword(e.target.value)}
+                placeholder="••••••••"
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>New Access Code</label>
+              <input 
+                type="password" 
+                value={newPassword} 
+                onChange={e => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>Confirm Access Code</label>
+              <input 
+                type="password" 
+                value={confirmPassword} 
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {message.text && (
+          <div className={`message ${message.type}`} style={{ padding: '1rem', borderRadius: '10px', background: message.type === 'error' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', color: message.type === 'error' ? '#ef4444' : '#10b981', border: `1px solid ${message.type === 'error' ? '#ef4444' : '#10b981'}` }}>
+            {message.text}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem' }}>
+          <button type="submit" className="btn-primary" style={{ flex: 1, padding: '1.2rem', fontSize: '1rem', fontWeight: 'bold' }}>
+            Synchronize Profile
           </button>
         </div>
-        <button type="submit" className="btn-primary" style={{ marginTop: '2rem', width: '100%' }}>Save Changes</button>
       </form>
+    </div>
+  );
+
+  const renderAlignerModal = () => (
+    <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.95)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div className="glass" style={{ width: '100%', maxWidth: '600px', padding: '3rem', borderRadius: '40px', textAlign: 'center' }}>
+        <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>Forensic Asset Calibration</h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Align and zoom the identity asset within the viewfinder.</p>
+        
+        <div 
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{ 
+            width: '350px', 
+            height: '350px', 
+            margin: '0 auto 2rem', 
+            borderRadius: '50%', 
+            border: '4px solid #00d2ff',
+            overflow: 'hidden',
+            position: 'relative',
+            cursor: dragging ? 'grabbing' : 'grab',
+            background: `#0a0b10 url(${tempImage}) no-repeat`,
+            backgroundSize: `${zoom * 100}%`,
+            backgroundPosition: `calc(50% + ${position.x}px) calc(50% + ${position.y}px)`,
+            boxShadow: '0 0 40px rgba(0, 210, 255, 0.2)',
+            transition: dragging ? 'none' : 'background-position 0.1s ease, background-size 0.1s ease'
+          }}
+        >
+          {/* Viewfinder crosshair */}
+          <div style={{ position: 'absolute', top: 0, left: '50%', width: '1px', height: '100%', background: 'rgba(0, 210, 255, 0.2)', pointerEvents: 'none' }}></div>
+          <div style={{ position: 'absolute', top: '50%', left: 0, width: '100%', height: '1px', background: 'rgba(0, 210, 255, 0.2)', pointerEvents: 'none' }}></div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center' }}>
+            <ZoomOut size={20} color="var(--text-muted)" />
+            <input 
+              type="range" 
+              min="0.1" 
+              max="5" 
+              step="0.05" 
+              value={zoom} 
+              onChange={(e) => setZoom(parseFloat(e.target.value))}
+              style={{ width: '200px' }}
+            />
+            <ZoomIn size={20} color="#00d2ff" />
+          </div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            Zoom Level: {Math.round(zoom * 100)}% | Click and drag to position
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '1.5rem' }}>
+          <button onClick={() => setIsAligning(false)} className="btn-outline" style={{ flex: 1 }}>Discard</button>
+          <button onClick={handleSaveAlignment} className="btn-primary" style={{ flex: 1 }}>Confirm Calibration</button>
+        </div>
+      </div>
     </div>
   );
 
@@ -495,6 +737,7 @@ const Profile = () => {
 
   return (
     <div className="page-container">
+      {isAligning && renderAlignerModal()}
       <FadeInSection direction="down">
         <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '4rem' }}>
           {isEditing ? renderEditMode() : renderViewMode()}

@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
+const nodemailer = require('nodemailer');
+const twilio = require('twilio');
 
 // Models & Middleware
 const User = require('./models/User');
@@ -16,7 +18,9 @@ const SearchHistory = require('./models/SearchHistory');
 const ReadHistory = require('./models/ReadHistory');
 const Message = require('./models/Message');
 const Report = require('./models/Report');
-const { protect, admin } = require('./middleware/authMiddleware');
+const PoliceReport = require('./models/PoliceReport');
+const OTP = require('./models/OTP');
+const { protect, admin, police, policeOrAdmin } = require('./middleware/authMiddleware');
 
 dotenv.config();
 
@@ -317,7 +321,7 @@ app.get('/api/articles', async (req, res) => {
   }
 });
 
-app.post('/api/articles', protect, admin, async (req, res) => {
+app.post('/api/articles', protect, policeOrAdmin, async (req, res) => {
   const { title, category, excerpt, content, image, link } = req.body;
   try {
     const article = await Article.create({
@@ -329,7 +333,7 @@ app.post('/api/articles', protect, admin, async (req, res) => {
   }
 });
 
-app.delete('/api/articles/:id', protect, admin, async (req, res) => {
+app.delete('/api/articles/:id', protect, policeOrAdmin, async (req, res) => {
   try {
     const article = await Article.findByIdAndDelete(req.params.id);
     if (article) res.json({ message: 'Article removed' });
@@ -339,7 +343,7 @@ app.delete('/api/articles/:id', protect, admin, async (req, res) => {
   }
 });
 
-app.put('/api/articles/:id', protect, admin, async (req, res) => {
+app.put('/api/articles/:id', protect, policeOrAdmin, async (req, res) => {
   const { title, category, excerpt, content, image, link } = req.body;
   try {
     const article = await Article.findById(req.params.id);
@@ -361,7 +365,7 @@ app.put('/api/articles/:id', protect, admin, async (req, res) => {
   }
 });
 
-app.patch('/api/articles/:id/visibility', protect, admin, async (req, res) => {
+app.patch('/api/articles/:id/visibility', protect, policeOrAdmin, async (req, res) => {
   try {
     const article = await Article.findById(req.params.id);
     if (article) {
@@ -761,19 +765,348 @@ app.delete('/api/users/profile/clear-history', protect, async (req, res) => {
   }
 });
 
-app.delete('/api/reports/:id', protect, async (req, res) => {
+// =======================
+// OTP & VERIFICATION ROUTES
+// =======================
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, 
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Verify connection configuration
+transporter.verify(function(error, success) {
+  if (error) {
+    console.error('[MAIL ERROR]: SMTP connection failed. Check EMAIL_USER and EMAIL_PASS (App Password required for Gmail).');
+    console.error(error);
+  } else {
+    console.log('[MAIL SUCCESS]: Server is ready to take our messages');
+  }
+});
+
+const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) 
+  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN) 
+  : null;
+
+app.post('/api/otp/send', async (req, res) => {
+  const { email } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
   try {
-    const report = await Report.findById(req.params.id);
-    if (!report) {
-      return res.status(404).json({ message: 'Report not found' });
+    await OTP.deleteOne({ email });
+    await OTP.create({ email, otp });
+
+    if (email) {
+      const mailOptions = {
+        from: process.env.EMAIL_USER || 'placeholder@gmail.com',
+        to: email,
+        subject: 'White Zero - Secure Verification Code',
+        html: `
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 40px; background-color: #050505; color: #ffffff; border-radius: 20px; border: 1px solid #10b981;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #10b981; margin: 0; font-size: 28px; letter-spacing: 2px;">WHITE ZERO</h1>
+              <p style="color: #888; font-size: 12px; margin-top: 5px;">FORENSIC INTELLIGENCE FRAMEWORK</p>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.05); padding: 30px; border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.1);">
+              <h2 style="font-size: 20px; margin-top: 0; color: #fff;">Identity Verification Required</h2>
+              <p style="line-height: 1.6; color: #ccc;">A request has been made to verify your identity for an official forensic report submission. Use the secure authorization code below to continue.</p>
+              
+              <div style="text-align: center; margin: 40px 0; padding: 25px; background: #111; border-radius: 12px; border: 1px dashed #10b981;">
+                <span style="font-size: 42px; font-weight: 800; letter-spacing: 10px; color: #10b981; font-family: 'Courier New', Courier, monospace;">${otp}</span>
+              </div>
+              
+              <p style="font-size: 13px; color: #888; text-align: center;">This code will expire in <strong style="color: #10b981;">5 minutes</strong>. If you did not request this code, please ignore this email.</p>
+            </div>
+            <div style="text-align: center; margin-top: 30px; font-size: 11px; color: #555;">
+              &copy; 2026 White Zero Intelligence. All rights reserved. <br/>
+              Secure Encryption Enabled | Digital Integrity Verified
+            </div>
+          </div>
+        `
+      };
+      console.log(`[OTP DISPATCH]: Attempting to send secure email to ${email}...`);
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log(`[OTP SUCCESS]: Secure email sent to ${email}`);
+      } catch (err) {
+        console.error(`[OTP FAILURE]: Could not send email. Error: ${err.message}`);
+      }
     }
-    if (report.user.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ message: 'Not authorized to delete this report' });
+
+    res.json({ success: true, message: 'OTP sent successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to send OTP' });
+  }
+});
+
+app.post('/api/otp/verify', async (req, res) => {
+  const { email, otp } = req.body;
+  try {
+    const record = await OTP.findOne({ email, otp });
+    if (record) {
+      await OTP.deleteOne({ _id: record._id });
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ message: 'Invalid or expired OTP' });
     }
-    await report.deleteOne();
-    res.json({ message: 'Report permanently removed from archive' });
+  } catch (error) {
+    res.status(500).json({ message: 'Verification error' });
+  }
+});
+
+// =======================
+// POLICE REPORT ROUTES
+// =======================
+
+app.post('/api/police-reports', protect, async (req, res) => {
+  const { victimName, victimEmail, title, description, evidenceLinks } = req.body;
+  try {
+    const referenceId = `POL-${Math.floor(Math.random() * 900000) + 100000}`;
+    const report = await PoliceReport.create({
+      user: req.user._id,
+      victimName,
+      victimEmail,
+      title,
+      description,
+      evidenceLinks,
+      referenceId,
+      contactVerified: true
+    });
+
+    // Send confirmation email to user
+    const mailOptions = {
+      from: `"White Zero Intelligence" <${process.env.EMAIL_USER}>`,
+      to: victimEmail,
+      subject: `Case Received: ${referenceId}`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; background: #050505; color: white; border-radius: 15px; border: 1px solid #10b981;">
+          <h2 style="color: #10b981;">Investigation Initialized</h2>
+          <p>Your forensic report has been successfully transmitted to the White Zero Intelligence Network.</p>
+          <div style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+            <strong>Reference ID:</strong> ${referenceId}<br/>
+            <strong>Incident:</strong> ${title}
+          </div>
+          <p style="font-size: 13px; color: #888; margin-top: 20px;">An officer will review your case shortly. You will receive email notifications for any updates.</p>
+        </div>
+      `
+    };
+    
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`[MAIL] Confirmation sent to reporter: ${victimEmail}`);
+    } catch (err) {
+      console.error('[MAIL ERROR] Reporter confirmation failed:', err.message);
+    }
+
+    // Notify Police Team
+    const policeMailOptions = {
+      from: `"White Zero System Alert" <${process.env.EMAIL_USER}>`,
+      to: 'whitezero.lk@gmail.com',
+      subject: `[NEW CASE] Forensic Investigation Initialized: ${referenceId}`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; background: #050505; color: white; border-radius: 15px; border: 1px solid #10b981;">
+          <h2 style="color: #10b981;">Urgent: New Investigation Report</h2>
+          <div style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+            <strong>Reference ID:</strong> ${referenceId}<br/>
+            <strong>Reporter:</strong> ${victimName} (${victimEmail})<br/>
+            <strong>Title:</strong> ${title}
+          </div>
+          <p><strong>Description Preview:</strong></p>
+          <p style="font-size: 14px; opacity: 0.8;">${description.substring(0, 200)}...</p>
+          <p style="font-size: 13px; color: #888; margin-top: 20px;">Log in to the Police Portal to review evidence and begin forensic analysis.</p>
+        </div>
+      `
+    };
+    try {
+      await transporter.sendMail(policeMailOptions);
+      console.log(`[MAIL] Intelligence alert sent to Police: whitezero.lk@gmail.com`);
+    } catch (err) {
+      console.error('[MAIL ERROR] Police notification failed:', err.message);
+    }
+
+    res.status(201).json(report);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+app.get('/api/police/reports', protect, policeOrAdmin, async (req, res) => {
+  try {
+    const reports = await PoliceReport.find({}).populate('user', 'name email').sort({ createdAt: -1 });
+    res.json(reports);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/police/reports/:id/respond', protect, policeOrAdmin, async (req, res) => {
+  const { message } = req.body;
+  try {
+    const report = await PoliceReport.findById(req.params.id);
+    if (report) {
+      if (report.isClosed) return res.status(400).json({ message: 'Case is closed' });
+      
+      report.responses.push({
+        sender: req.user._id,
+        role: req.user.role,
+        message
+      });
+      report.status = 'In Progress';
+      report.isReadByUser = false; // Mark as unread for the user
+      await report.save();
+
+      // Notify user via email
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: report.victimEmail,
+        subject: `New Update: Case ${report.referenceId}`,
+        html: `
+          <div style="font-family: sans-serif; padding: 20px; background: #050505; color: white; border-radius: 15px; border: 1px solid #10b981;">
+            <h2 style="color: #10b981;">Official Transmission Received</h2>
+            <p>A police officer has responded to your investigation.</p>
+            <div style="padding: 15px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; margin: 20px 0;">
+              "${message}"
+            </div>
+            <p>Please log in to the White Zero portal to view full details and reply.</p>
+          </div>
+        `
+      };
+      transporter.sendMail(mailOptions).catch(err => console.error('Email failed:', err));
+      
+      res.json(report);
+    } else {
+      res.status(404).json({ message: 'Report not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// User reply to police
+app.post('/api/police-reports/:id/reply', protect, async (req, res) => {
+  const { message } = req.body;
+  console.log(`[REPLY ATTEMPT] User: ${req.user._id}, Report: ${req.params.id}`);
+  try {
+    const report = await PoliceReport.findById(req.params.id);
+    if (report) {
+      if (report.user.toString() !== req.user._id.toString()) {
+        console.error(`[REPLY DENIED] ID mismatch. Report Owner: ${report.user}, Requestor: ${req.user._id}`);
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      if (report.isClosed) return res.status(400).json({ message: 'Case is closed' });
+
+      report.responses.push({
+        sender: req.user._id,
+        role: 'user',
+        message
+      });
+      report.isReadByPolice = false; // Mark as unread for police
+      await report.save();
+      console.log(`[REPLY SUCCESS] Message added to case ${report.referenceId}`);
+      res.json(report);
+    } else {
+      console.error(`[REPLY ERROR] Report ${req.params.id} not found`);
+      res.status(404).json({ message: 'Report not found' });
+    }
+  } catch (error) {
+    console.error(`[REPLY CRASH] Error: ${error.message}`);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Close Case
+app.post('/api/reports/police/:id/close', protect, async (req, res) => {
+  const { reason } = req.body;
+  try {
+    const report = await PoliceReport.findById(req.params.id);
+    if (report) {
+      // Both user and police/admin can close
+      const isAuthorized = report.user.toString() === req.user._id.toString() || req.user.role === 'admin' || req.user.role === 'police';
+      if (!isAuthorized) return res.status(401).json({ message: 'Unauthorized' });
+
+      report.isClosed = true;
+      report.conclusion = reason;
+      report.status = 'Resolved';
+      await report.save();
+      res.json(report);
+    } else {
+      res.status(404).json({ message: 'Report not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/admin/police-reports/metadata', protect, admin, async (req, res) => {
+  try {
+    const reports = await PoliceReport.find({})
+      .select('victimName victimEmail title createdAt isClosed conclusion status referenceId')
+      .sort({ createdAt: -1 });
+    res.json(reports);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/reports/police/my', protect, async (req, res) => {
+  try {
+    const reports = await PoliceReport.find({ user: req.user._id }).sort({ createdAt: -1 });
+    res.json(reports);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Mark report as read
+app.patch('/api/police-reports/:id/read', protect, async (req, res) => {
+  try {
+    const report = await PoliceReport.findById(req.params.id);
+    if (report) {
+      if (req.user.role === 'police' || req.user.role === 'admin') {
+        report.isReadByPolice = true;
+      } else {
+        report.isReadByUser = true;
+      }
+      await report.save();
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ message: 'Report not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get unread counts and notifications
+app.get('/api/police-reports/unread-count', protect, async (req, res) => {
+  try {
+    let query = {};
+    if (req.user.role === 'police' || req.user.role === 'admin') {
+      query = { isReadByPolice: false };
+    } else {
+      query = { user: req.user._id, isReadByUser: false };
+    }
+    const count = await PoliceReport.countDocuments(query);
+    const totalCount = await PoliceReport.countDocuments(req.user.role === 'user' ? { user: req.user._id } : {});
+    
+    // Show 5 most recent reports in the dropdown, not just unread ones
+    const notificationsQuery = req.user.role === 'police' || req.user.role === 'admin' 
+      ? {} 
+      : { user: req.user._id };
+      
+    const notifications = await PoliceReport.find(notificationsQuery)
+      .sort({ updatedAt: -1 })
+      .limit(5);
+    
+    console.log(`[NOTIF DEBUG] User: ${req.user._id}, Unread Badge: ${count}, Items in Dropdown: ${notifications.length}`);
+    res.json({ count, notifications, totalCount });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -782,6 +1115,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal Server Error', error: err.message });
 });
 
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`Server running on http://127.0.0.1:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
