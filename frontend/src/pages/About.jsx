@@ -57,7 +57,7 @@ const CapabilityCard = ({ icon, title, desc, steps, color }) => {
 const About = () => {
   return (
     <div style={{ minHeight: '100vh', background: 'radial-gradient(circle at 50% 0%, #0a1128 0%, #050505 100%)', width: '100%', position: 'relative' }}>
-      <div className="page-container fade-in" style={{ paddingBottom: '80px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div className="page-container fade-in" style={{ paddingBottom: '80px', maxWidth: '1400px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
         <FadeInSection direction="down">
           <div className="page-header" style={{ marginBottom: '4rem' }}>
             <h1 style={{ fontSize: '3.5rem' }}>The <span className="text-gradient">White Zero</span> Framework</h1>
@@ -71,7 +71,7 @@ const About = () => {
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
           {/* Intelligence Mission Section */}
-          <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '4rem', alignItems: 'center', marginBottom: '8rem' }}>
+          <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '4rem', alignItems: 'center', marginBottom: '8rem' }}>
             <FadeInSection direction="right">
               <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', background: 'linear-gradient(90deg, #fff, #00d2ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Digital Justice Through Intelligence</h2>
               <p style={{ fontSize: '1.05rem', lineHeight: '1.8', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
@@ -107,7 +107,7 @@ const About = () => {
               <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '4rem' }}>Professional manual for executing high-impact investigations.</p>
             </FadeInSection>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2rem' }}>
               <FadeInSection delay={0.1}>
                 <CapabilityCard 
                   icon={<Search size={32} className="text-[#00d2ff]" />}

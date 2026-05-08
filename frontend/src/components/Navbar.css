@@ -163,15 +163,16 @@
 }
 
 .btn-try-osint {
-  background: rgba(0, 210, 255, 0.05);
+  background: linear-gradient(135deg, #004e92 0%, #002f6c 100%);
   border: 1px solid rgba(0, 210, 255, 0.3);
   color: white;
 }
 
 .btn-try-osint:hover {
-  background: rgba(0, 210, 255, 0.15);
-  border-color: #00d2ff;
-  box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+  color: #000;
+  border-color: #fff;
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
   transform: translateY(-1px);
 }
 
@@ -287,10 +288,10 @@
 .drawer-links {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem 1rem;
+  padding: 0.5rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.1rem;
 }
 
 .drawer-section-title {
@@ -298,13 +299,13 @@
   font-weight: 800;
   color: rgba(255, 255, 255, 0.3);
   letter-spacing: 1.5px;
-  margin: 1.5rem 0 0.5rem 0.5rem;
+  margin: 1rem 0 0.25rem 0.5rem;
 }
 
 .drawer-link {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1.25rem;
+  padding: 0.6rem 1.25rem;
   text-decoration: none;
   color: #ccc;
   font-size: 0.95rem;

@@ -74,7 +74,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'About', path: '/about', icon: <Info size={18} /> },
-    { name: 'Features', path: '/features', icon: <Cpu size={18} /> },
+    { name: 'Tactical Suite', path: '/features', icon: <Cpu size={18} /> },
     { name: 'Blog', path: '/blog', icon: <Layout size={18} /> },
     { name: 'Articles', path: '/articles', icon: <FileText size={18} /> },
     { name: 'Contact', path: '/contact', icon: <Mail size={18} /> },
@@ -206,7 +206,7 @@ const Navbar = () => {
                 <span className="desktop-only">{user.name.split(' ')[0]}</span>
               </Link>
             ) : (
-              <Link to="/login" className="btn-try-osint desktop-only" style={{ background: 'linear-gradient(135deg, #004e92, #002f6c)', border: '1px solid rgba(255,255,255,0.1)' }}>Login</Link>
+              <Link to="/login" className="btn-try-osint desktop-only">Login</Link>
             )}
           </div>
 
@@ -230,6 +230,7 @@ const Navbar = () => {
             <div className="drawer-section-title">INTELLIGENCE ASSETS</div>
             {navLinks.map((link) => (
               <Link key={link.name} to={link.path} className="drawer-link" onClick={() => setIsOpen(false)}>
+                <span style={{ marginRight: '1rem', color: '#00d2ff' }}>{link.icon}</span>
                 <span>{link.name}</span>
               </Link>
             ))}
@@ -237,21 +238,25 @@ const Navbar = () => {
             <div className="drawer-section-title">OPERATIONAL PORTALS</div>
             {user?.role === 'admin' && (
               <Link to="/admin" className="drawer-link portal-link-admin" onClick={() => setIsOpen(false)}>
+                <span style={{ marginRight: '1rem', color: '#00d2ff' }}><Shield size={18} /></span>
                 <span>Admin Portal</span>
               </Link>
             )}
             {user?.role === 'police' && (
               <Link to="/police-dashboard" className="drawer-link portal-link-police" onClick={() => setIsOpen(false)}>
+                <span style={{ marginRight: '1rem', color: '#10b981' }}><Shield size={18} /></span>
                 <span>Police Portal</span>
               </Link>
             )}
             {user && (
               <Link to="/my-reports" className="drawer-link portal-link-user" onClick={() => setIsOpen(false)}>
+                <span style={{ marginRight: '1rem', color: '#00d2ff' }}><FileText size={18} /></span>
                 <span>My Reports</span>
               </Link>
             )}
             
             <Link to="/osint-trial" className="drawer-link" onClick={() => setIsOpen(false)}>
+              <span style={{ marginRight: '1rem', color: '#00d2ff' }}><Search size={18} /></span>
               <span>Live OSINT Scan</span>
             </Link>
 
@@ -259,14 +264,17 @@ const Navbar = () => {
             {user ? (
               <>
                 <Link to="/profile" className="drawer-link" onClick={() => setIsOpen(false)}>
+                  <span style={{ marginRight: '1rem', color: '#00d2ff' }}><UserIcon size={18} /></span>
                   <span>Profile Settings</span>
                 </Link>
                 <button onClick={handleLogout} className="drawer-link logout-btn" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
+                  <span style={{ marginRight: '1rem', color: '#ef4444' }}><LogOut size={18} /></span>
                   <span>Logout</span>
                 </button>
               </>
             ) : (
               <Link to="/login" className="drawer-link login-btn-mobile" onClick={() => setIsOpen(false)}>
+                <span style={{ marginRight: '1rem', color: '#00d2ff' }}><UserIcon size={18} /></span>
                 <span>Sign In / Login</span>
               </Link>
             )}

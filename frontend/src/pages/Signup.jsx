@@ -42,7 +42,7 @@ const Signup = () => {
   return (
     <div className="page-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
       <FadeInSection direction="up">
-        <div className="glass auth-card" style={{ width: '100%', maxWidth: '550px', padding: 'var(--auth-padding, 3rem 2rem)', borderRadius: '20px' }}>
+        <div className="glass auth-card" style={{ width: '100%', maxWidth: '900px', padding: 'var(--auth-padding, 4rem 5rem)', borderRadius: '30px' }}>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{ position: 'relative', width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
               <Hexagon size={64} className="text-[#00d2ff]" style={{ position: 'absolute' }} />
