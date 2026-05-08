@@ -1,16 +1,19 @@
 .osint-container {
   display: flex;
   height: 100vh;
-  padding-top: 80px;
-  background: #020202;
+  padding-top: 110px; /* Increased to fix navbar overlap */
+  background: #050505;
 }
 
 .osint-sidebar {
-  width: 350px;
+  width: 360px;
   border-right: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.01);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .osint-logo {
@@ -58,10 +61,19 @@
 
 .osint-search-box {
   display: flex;
-  background: var(--bg-card);
-  border: 1px solid var(--glass-border);
-  border-radius: 10px;
-  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 0.6rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.osint-search-box:focus-within {
+  background: rgba(0, 210, 255, 0.05);
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.15), inset 0 2px 4px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
 }
 
 .osint-search-box input {
@@ -601,10 +613,11 @@
 }
 
 .search-type-selector button.active {
-  background: rgba(0, 210, 255, 0.1);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
   border-color: var(--primary);
   color: white;
-  box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+  box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+  font-weight: 700;
 }
 
 .search-type-selector button.disabled-btn {
