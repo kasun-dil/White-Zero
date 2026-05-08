@@ -211,39 +211,69 @@ async def search_username(query: UsernameQuery):
     return {"username": query.username, "results": results}
 
 async def check_platform(platform, url):
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"}
-    if platform in ["Facebook", "Instagram", "Twitter", "LinkedIn"]:
+    """
+    High-fidelity verification using deep-content fingerprints.
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    
+    # 404 Signatures for 2024/2025
+    NOT_FOUND_SIGNATURES = [
+        "page not found", "content not found", "user not found", "doesn't exist", 
+        "couldn't find this account", "page is not available", "not_found", 
+        "404", "account_not_found", "this user is not available",
+        "sorry, that page doesn't exist", "this page isn't available",
+        "can't find this page", "this profile is not available"
+    ]
+
+    try:
+        # Use Playwright for platforms that hide content behind JS or redirects
         async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            context = await browser.new_context(user_agent=headers["User-Agent"])
+            page = await context.new_page()
+            
+            # Navigate and wait for a realistic human-like timeout
             try:
-                browser = await p.chromium.launch(headless=True)
-                page = await browser.new_page(user_agent=headers["User-Agent"])
-                await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                await asyncio.sleep(4)
+                response = await page.goto(url, wait_until="networkidle", timeout=20000)
+                if not response: return {"platform": platform, "status": "Not Found", "link": url}
                 
-                title = (await page.title()).lower()
-                content = (await page.content()).lower()
-                username_lower = url.split('/')[-1].split('?')[0].lower()
-                
-                # Heuristic
-                not_found = ["page not found", "content not found", "user not found", "doesn't exist", "404"]
-                if any(x in content for x in not_found):
+                # Check 1: HTTP Status Code
+                if response.status >= 400:
                     return {"platform": platform, "status": "Not Found", "link": url}
+
+                # Check 2: Redirect Protection (Did we get kicked to a login or home page?)
+                final_url = page.url.lower()
+                if "login" in final_url or "signup" in final_url or "home" in final_url:
+                    if platform.lower() not in final_url: # Allow redirections within the same platform if it's still a profile
+                         return {"platform": platform, "status": "Not Found", "link": url}
+
+                # Check 3: Content Signature Analysis
+                content = (await page.content()).lower()
+                title = (await page.title()).lower()
                 
-                if username_lower in title or username_lower in content or username_lower in page.url.lower():
+                # If any "Not Found" marker is visible, it's a false positive
+                if any(sig in content for sig in NOT_FOUND_SIGNATURES) or any(sig in title for sig in NOT_FOUND_SIGNATURES):
+                    return {"platform": platform, "status": "Not Found", "link": url}
+
+                # Check 4: Positive Verification (Platform-specific markers)
+                username_part = url.split('/')[-1].replace('@', '').lower()
+                
+                # Broad match check
+                if username_part in content or username_part in title or username_part in final_url:
                     return {"platform": platform, "status": "Found", "link": url}
                 
                 return {"platform": platform, "status": "Not Found", "link": url}
-            except:
+                
+            except Exception as e:
                 return {"platform": platform, "status": "Not Found", "link": url}
             finally:
-                if 'browser' in locals(): await browser.close()
-    else:
-        try:
-            async with httpx.AsyncClient(headers=headers, follow_redirects=True, timeout=10.0) as client:
-                response = await client.get(url)
-                return {"platform": platform, "status": "Found" if response.status_code == 200 else "Not Found", "link": url}
-        except:
-            return {"platform": platform, "status": "Not Found", "link": url}
+                await browser.close()
+                
+    except Exception as e:
+        return {"platform": platform, "status": "Not Found", "link": url}
 
 if __name__ == "__main__":
     import uvicorn
