@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
-const { Resend } = require('resend');
+const sgMail = require('@sendgrid/mail');
 
 const twilio = require('twilio');
 
@@ -778,8 +778,8 @@ app.delete('/api/users/profile/clear-history', protect, async (req, res) => {
 // OTP & VERIFICATION ROUTES
 // =======================
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY || 're_ApGPi5Uq_5aCnQJDqGgWhaBnNrDyRY1pJ');
+// Initialize SendGrid
+sgMail.setApiKey(process.env.SENDGRID_API_KEY || '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');
 
 const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) 
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN) 
@@ -806,12 +806,12 @@ app.post('/api/otp/send', async (req, res) => {
     console.log(`VERIFICATION CODE: ${otp}`);
     console.log(`==========================================\n`);
 
-    console.log(`[OTP DISPATCH]: Attempting background transmission via Resend API to ${email}...`);
+    console.log(`[OTP DISPATCH] Attempting transmission via SendGrid API to ${email}...`);
     
-    // Send email using Resend API (HTTP based, not blocked by Render)
-    resend.emails.send({
-      from: 'White Zero <onboarding@resend.dev>',
+    // Send email using SendGrid API
+    const msg = {
       to: email,
+      from: 'whitezero.lk@gmail.com', // MUST match your verified SendGrid sender
       subject: 'White Zero - Secure Verification Code',
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 40px; background-color: #050505; color: #ffffff; border-radius: 20px; border: 1px solid #10b981;">
@@ -834,9 +834,12 @@ app.post('/api/otp/send', async (req, res) => {
             Secure Encryption Enabled | Digital Integrity Verified
           </div>
         </div>
-      `
-    }).then(() => console.log(`[RESEND SUCCESS]: OTP delivered to ${email}`))
-      .catch(err => console.error(`[RESEND ERROR]: ${err.message}`));
+      `,
+    };
+
+    sgMail.send(msg)
+      .then(() => console.log(`[SENDGRID SUCCESS] OTP sent to ${email}`))
+      .catch(err => console.error(`[SENDGRID ERROR] ${err.message}`));
 
     // Always return success so the frontend continues
     res.json({ 
@@ -904,15 +907,15 @@ app.post('/api/police-reports', protect, async (req, res) => {
     };
     
     try {
-      await resend.emails.send({
-        from: 'White Zero <onboarding@resend.dev>',
+      await sgMail.send({
         to: victimEmail,
+        from: 'whitezero.lk@gmail.com',
         subject: `[CONFIRMED] Intelligence Submission: ${referenceId}`,
         html: mailOptions.html
       });
-      console.log(`[RESEND] Confirmation sent to reporter: ${victimEmail}`);
+      console.log(`[SENDGRID] Confirmation sent to reporter: ${victimEmail}`);
     } catch (err) {
-      console.error('[RESEND ERROR] Reporter confirmation failed:', err.message);
+      console.error('[SENDGRID ERROR] Reporter confirmation failed:', err.message);
     }
 
     // Notify Police Team
@@ -935,15 +938,15 @@ app.post('/api/police-reports', protect, async (req, res) => {
       `
     };
     try {
-      await resend.emails.send({
-        from: 'White Zero Alert <onboarding@resend.dev>',
+      await sgMail.send({
         to: 'whitezero.lk@gmail.com',
+        from: 'whitezero.lk@gmail.com',
         subject: `[NEW CASE] Forensic Investigation Initialized: ${referenceId}`,
         html: policeMailOptions.html
       });
-      console.log(`[RESEND] Intelligence alert sent to Police: whitezero.lk@gmail.com`);
+      console.log(`[SENDGRID] Intelligence alert sent to Police: whitezero.lk@gmail.com`);
     } catch (err) {
-      console.error('[RESEND ERROR] Police notification failed:', err.message);
+      console.error('[SENDGRID ERROR] Police notification failed:', err.message);
     }
 
     res.status(201).json(report);
@@ -993,12 +996,12 @@ app.post('/api/police/reports/:id/respond', protect, policeOrAdmin, async (req, 
           </div>
         `
       };
-      resend.emails.send({
-        from: 'White Zero <onboarding@resend.dev>',
+      sgMail.send({
         to: report.victimEmail,
+        from: 'whitezero.lk@gmail.com',
         subject: `New Update: Case ${report.referenceId}`,
         html: mailOptions.html
-      }).catch(err => console.error('Resend failed:', err));
+      }).catch(err => console.error('SendGrid failed:', err));
       
       res.json(report);
     } else {
