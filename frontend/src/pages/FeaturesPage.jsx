@@ -71,20 +71,20 @@ const FeaturesPage = () => {
         </div>
       </FadeInSection>
 
-      <div className="responsive-grid" style={{ gap: '2.5rem', alignItems: 'stretch' }}>
+      <div className="responsive-grid" style={{ gap: '2rem', alignItems: 'stretch' }}>
         {features.map((f, i) => (
           <FadeInSection key={f.id} delay={i * 0.1}>
             <div className={`feature-detail-card glass ${f.locked ? 'locked-feature' : ''}`} style={{ 
               height: '100%', 
               display: 'flex', 
               flexDirection: 'column', 
-              justifyContent: 'space-between', /* Ensures buttons are aligned at bottom */
+              justifyContent: 'space-between',
               alignItems: 'flex-start', 
               textAlign: 'left',
-              padding: '2.5rem',
+              padding: '2rem', /* Reduced for professional look */
               position: 'relative',
               overflow: 'hidden',
-              borderRadius: '28px',
+              borderRadius: '24px',
               border: f.locked ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0, 210, 255, 0.2)',
               transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
               background: f.locked ? 'rgba(5, 5, 10, 0.4)' : 'rgba(10, 10, 15, 0.8)',

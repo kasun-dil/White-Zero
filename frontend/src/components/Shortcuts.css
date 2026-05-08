@@ -1,6 +1,6 @@
 .shortcuts-container {
   max-width: 1400px;
-  margin: -6rem auto 5rem;
+  margin: 3rem auto 6rem; /* Removed negative margin to push it down */
   padding: 0 2rem;
   position: relative;
   z-index: 100;
@@ -18,6 +18,7 @@
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+  align-items: stretch;
 }
 
 .shortcut-card {
