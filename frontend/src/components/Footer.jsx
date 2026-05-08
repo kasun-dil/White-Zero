@@ -7,16 +7,14 @@ const Footer = () => {
     <footer className="footer">
       <div className="footer-container">
         <div className="footer-brand">
-          <div className="nav-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', marginBottom: '1.5rem' }}>
-            <div style={{ position: 'relative', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Hexagon size={36} className="text-[#00d2ff]" style={{ position: 'absolute' }} />
-              <Shield size={18} color="white" style={{ position: 'absolute', zIndex: 1 }} />
+          <div className="nav-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', marginBottom: '1.5rem', justifyContent: 'inherit' }}>
+            <div className="logo-icon-container" style={{ position: 'relative', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Hexagon size={36} className="logo-hexagon" style={{ position: 'absolute' }} />
+              <Shield size={18} className="logo-shield" style={{ position: 'absolute', zIndex: 1 }} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: '1.1' }}>
-              <span style={{ fontSize: '1.4rem', fontWeight: '800', letterSpacing: '1px', background: 'linear-gradient(90deg, #fff, #00d2ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                WHITE ZERO
-              </span>
-              <span style={{ fontSize: '0.6rem', color: '#00d2ff', letterSpacing: '2px', fontWeight: '600' }}>OSINT FRAMEWORK</span>
+            <div className="logo-text-wrapper">
+              <span className="logo-brand" style={{ fontSize: '1.4rem' }}>WHITE ZERO</span>
+              <span className="logo-sub">OSINT FRAMEWORK</span>
             </div>
           </div>
           <p>The next generation OSINT framework and digital safety platform for Sri Lanka.</p>

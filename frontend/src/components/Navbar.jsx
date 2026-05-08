@@ -222,7 +222,6 @@ const Navbar = () => {
         {/* RIGHT SIDE TACTICAL DRAWER */}
         <div className={`mobile-menu-drawer ${isOpen ? 'open' : ''}`}>
           <div className="drawer-header">
-            <Shield size={20} className="text-[#00d2ff]" />
             <span>COMMAND MENU</span>
             <X size={24} onClick={() => setIsOpen(false)} style={{ cursor: 'pointer', marginLeft: 'auto' }} />
           </div>

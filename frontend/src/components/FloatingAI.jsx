@@ -54,8 +54,8 @@ const FloatingAI = () => {
           position: 'absolute', 
           bottom: '5rem', 
           right: '0', 
-          width: '380px', 
-          height: '550px',
+          width: 'min(calc(100vw - 2.5rem), 380px)', 
+          height: 'min(calc(100vh - 12rem), 550px)',
           borderRadius: '24px',
           display: 'flex',
           flexDirection: 'column',
@@ -64,7 +64,8 @@ const FloatingAI = () => {
           border: '1px solid rgba(0, 210, 255, 0.4)',
           background: 'rgba(5, 5, 10, 0.95)',
           backdropFilter: 'blur(40px)',
-          WebkitBackdropFilter: 'blur(40px)'
+          WebkitBackdropFilter: 'blur(40px)',
+          transformOrigin: 'bottom right'
         }}>
           {/* Header */}
           <div style={{ padding: '1rem', background: 'rgba(0, 210, 255, 0.1)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
