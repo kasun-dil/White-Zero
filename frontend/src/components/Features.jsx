@@ -5,6 +5,7 @@ import { ShieldCheck, MessageSquare, Newspaper, Search } from 'lucide-react';
 import './Features.css';
 
 const features = [
+  {
     title: "AI Sentinel",
     description: "Verify the authenticity of social media posts using advanced AI algorithms specifically tuned for local content.",
     icon: <Newspaper size={32} />,
