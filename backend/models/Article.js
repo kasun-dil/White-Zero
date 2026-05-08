@@ -8,6 +8,8 @@ const ArticleSchema = new mongoose.Schema({
   content: { type: String, required: true },
   link: { type: String, default: '#' },
   author: { type: String, default: 'Admin' },
+  authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  authorRole: { type: String, enum: ['admin', 'police'], default: 'admin' },
   isHidden: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });

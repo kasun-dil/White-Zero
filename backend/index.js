@@ -319,7 +319,16 @@ app.post('/api/admin/users', protect, admin, async (req, res) => {
 
 app.get('/api/articles', async (req, res) => {
   try {
-    const query = req.query.all === 'true' ? {} : { isHidden: { $ne: true } };
+    let query = req.query.all === 'true' ? {} : { isHidden: { $ne: true } };
+    
+    // Role-based filtering for dashboards
+    if (req.query.role) {
+      query.authorRole = req.query.role;
+    }
+    if (req.query.authorId) {
+      query.authorId = req.query.authorId;
+    }
+
     const articles = await Article.find(query).sort({ createdAt: -1 });
     res.json(articles);
   } catch (error) {
@@ -331,7 +340,15 @@ app.post('/api/articles', protect, policeOrAdmin, async (req, res) => {
   const { title, category, excerpt, content, image, link } = req.body;
   try {
     const article = await Article.create({
-      title, category, excerpt, content, image, link
+      title, 
+      category, 
+      excerpt, 
+      content, 
+      image, 
+      link,
+      author: req.user.name,
+      authorId: req.user._id,
+      authorRole: req.user.role
     });
     res.status(201).json(article);
   } catch (error) {
@@ -1088,9 +1105,17 @@ app.get('/api/reports/police/my', protect, async (req, res) => {
 });
 
 // Mark report as read
+app.patch('/api/police-reports/:id/read', protect, async (req, res) => {
+  try {
+    const report = await PoliceReport.findById(req.params.id);
+    if (report) {
+      if (req.user.role === 'police' || req.user.role === 'admin') {
+        report.isReadByPolice = true;
+      } else {
+        report.isReadByUser = true;
       }
       await report.save();
-      res.json(report);
+      res.json({ success: true });
     } else {
       res.status(404).json({ message: 'Report not found' });
     }
@@ -1105,14 +1130,6 @@ app.delete('/api/police/reports/:id', protect, policeOrAdmin, async (req, res) =
     const report = await PoliceReport.findByIdAndDelete(req.params.id);
     if (report) {
       res.json({ message: 'Forensic record permanently purged.' });
-    } else {
-      res.status(404).json({ message: 'Report not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-      res.json({ success: true });
     } else {
       res.status(404).json({ message: 'Report not found' });
     }

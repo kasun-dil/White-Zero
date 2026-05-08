@@ -13,13 +13,13 @@
 
 .page-header {
   text-align: center;
-  margin-bottom: 4rem;
+  margin-bottom: 2.5rem;
 }
 
 .page-header h1 {
-  font-size: 3.5rem;
+  font-size: 2.8rem;
   font-weight: 800;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .page-header p {
@@ -38,12 +38,12 @@
 .features-page-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .feature-detail-card {
-  padding: 3rem 2rem;
-  border-radius: 30px;
+  padding: 2rem 1.5rem;
+  border-radius: 24px;
   text-align: center;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -59,8 +59,8 @@
 }
 
 .feature-detail-card h2 {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
+  font-size: 1.6rem;
+  margin-bottom: 0.75rem;
 }
 
 .feature-detail-card p {
@@ -112,7 +112,7 @@
 .blog-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .blog-card {
@@ -156,12 +156,12 @@
 .contact-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .contact-info, .contact-form {
-  padding: 3rem;
-  border-radius: 30px;
+  padding: 2rem;
+  border-radius: 24px;
 }
 
 .info-items {

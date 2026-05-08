@@ -242,14 +242,33 @@ const PoliceDashboard = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
             {/* List */}
             <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', height: 'fit-content' }}>
-              <div className="search-box glass" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.8rem 1rem', borderRadius: '12px', marginBottom: '2rem' }}>
-                <Search size={18} className="text-[#10b981]" />
+              <div className="osint-search-box" style={{ 
+                marginBottom: '2rem',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                background: 'rgba(255, 255, 255, 0.02)',
+                borderRadius: '16px',
+                padding: '0.4rem 1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                transition: 'all 0.3s ease',
+                boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5)'
+              }}>
+                <Search size={18} className="text-[#10b981] animate-pulse" />
                 <input 
                   type="text" 
-                  placeholder="Search forensic records..." 
+                  placeholder="Scan forensic archive..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.9rem' }}
+                  style={{ 
+                    background: 'transparent', 
+                    border: 'none', 
+                    color: 'white', 
+                    outline: 'none', 
+                    width: '100%', 
+                    fontSize: '0.9rem',
+                    padding: '0.6rem 0'
+                  }}
                 />
               </div>
               
