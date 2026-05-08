@@ -107,6 +107,24 @@ const PoliceDashboard = () => {
     }
   };
 
+  const handleDeleteReport = async (id) => {
+    if (!window.confirm('CRITICAL WARNING: You are about to permanently purge this forensic record. This action cannot be undone. Proceed?')) return;
+
+    try {
+      const res = await fetch(`/api/police/reports/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        toast.success('Investigation purged.');
+        setSelectedReport(null);
+        fetchReports();
+      }
+    } catch (error) {
+      toast.error('Failed to purge investigation');
+    }
+  };
+
   const handleAddArticle = async (e) => {
     e.preventDefault();
     try {
@@ -287,7 +305,17 @@ const PoliceDashboard = () => {
                       <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{selectedReport.title}</h2>
                       <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Case ID: {selectedReport.referenceId} | Transmitted: {new Date(selectedReport.createdAt).toLocaleString()}</p>
                     </div>
-                    <span style={{ padding: '0.6rem 1.2rem', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontWeight: 'bold' }}>{selectedReport.status}</span>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      <span style={{ padding: '0.6rem 1.2rem', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontWeight: 'bold' }}>{selectedReport.status}</span>
+                      <button 
+                        onClick={() => handleDeleteReport(selectedReport._id)}
+                        className="btn-outline" 
+                        style={{ padding: '0.6rem', borderRadius: '10px', borderColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}
+                        title="Purge Record"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2.5rem' }}>

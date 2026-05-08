@@ -1088,16 +1088,30 @@ app.get('/api/reports/police/my', protect, async (req, res) => {
 });
 
 // Mark report as read
-app.patch('/api/police-reports/:id/read', protect, async (req, res) => {
-  try {
-    const report = await PoliceReport.findById(req.params.id);
-    if (report) {
-      if (req.user.role === 'police' || req.user.role === 'admin') {
-        report.isReadByPolice = true;
-      } else {
-        report.isReadByUser = true;
       }
       await report.save();
+      res.json(report);
+    } else {
+      res.status(404).json({ message: 'Report not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Purge Police Report
+app.delete('/api/police/reports/:id', protect, policeOrAdmin, async (req, res) => {
+  try {
+    const report = await PoliceReport.findByIdAndDelete(req.params.id);
+    if (report) {
+      res.json({ message: 'Forensic record permanently purged.' });
+    } else {
+      res.status(404).json({ message: 'Report not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
       res.json({ success: true });
     } else {
       res.status(404).json({ message: 'Report not found' });
