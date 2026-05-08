@@ -60,10 +60,6 @@ const About = () => {
       <div className="page-container fade-in" style={{ paddingBottom: '80px', maxWidth: '1400px', margin: '0 auto' }}>
         <FadeInSection direction="down">
           <div className="page-header" style={{ marginBottom: '4rem' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0, 210, 255, 0.1)', padding: '0.5rem 1rem', borderRadius: '30px', border: '1px solid rgba(0, 210, 255, 0.2)', marginBottom: '1.5rem' }}>
-              <Shield size={14} className="text-[#00d2ff]" />
-              <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#00d2ff', letterSpacing: '2px' }}>FORENSIC OPERATIONAL GUIDE v1.0</span>
-            </div>
             <h1 style={{ fontSize: '3.5rem' }}>The <span className="text-gradient">White Zero</span> Framework</h1>
             <p style={{ maxWidth: '800px', margin: '1rem auto', fontSize: '1.1rem', lineHeight: '1.7', opacity: 0.8 }}>
               White Zero is an elite Cyber Intelligence and OSINT framework engineered to provide high-authority digital forensics, 
@@ -99,12 +95,7 @@ const About = () => {
             </FadeInSection>
             <FadeInSection direction="left">
               <div style={{ position: 'relative' }}>
-                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80" alt="Forensic Analysis" style={{ width: '100%', borderRadius: '24px', border: '1px solid rgba(0, 210, 255, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }} />
-                <div style={{ position: 'absolute', bottom: '-20px', right: '-20px', background: 'rgba(5,5,5,0.9)', padding: '1.2rem 1.5rem', borderRadius: '16px', border: '1px solid rgba(0, 210, 255, 0.3)', backdropFilter: 'blur(10px)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#10b981', fontWeight: 'bold', fontSize: '0.75rem', letterSpacing: '1px' }}>
-                    <Terminal size={14} /> LIVE_FEED_VERIFIED
-                  </div>
-                </div>
+                <img src="/forensic_command_center_hero_1778246820381.png" alt="Forensic Analysis" style={{ width: '100%', borderRadius: '24px', border: '1px solid rgba(0, 210, 255, 0.2)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }} />
               </div>
             </FadeInSection>
           </section>
