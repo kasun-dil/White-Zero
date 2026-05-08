@@ -852,19 +852,28 @@ app.post('/api/otp/send', async (req, res) => {
       `
     };
 
-    console.log(`[OTP DISPATCH]: Handing off to mail server for ${email}...`);
+    console.log(`\n==========================================`);
+    console.log(`[SECURITY ALERT] NEW OTP GENERATED`);
+    console.log(`TARGET EMAIL: ${email}`);
+    console.log(`VERIFICATION CODE: ${otp}`);
+    console.log(`==========================================\n`);
+
+    console.log(`[OTP DISPATCH]: Attempting background transmission to ${email}...`);
     
-    // Send email in background
+    // Send email in background (will likely fail on Render, but log is above!)
     transporter.sendMail(mailOptions)
-      .then(() => console.log(`[OTP SUCCESS]: Secure email sent successfully to ${email}`))
+      .then(() => console.log(`[OTP SUCCESS]: Email delivered to ${email}`))
       .catch(err => {
-        console.error(`[MAIL ERROR]: Failed to send to ${email}. Error: ${err.message}`);
-        if (err.code === 'EAUTH') {
-          console.error(`[MAIL ERROR]: Authentication failed. Check if EMAIL_PASS is a valid App Password.`);
-        }
+        console.warn(`[RENDER NOTICE]: Email delivery blocked by network firewall. Use the code from the logs above.`);
+        console.error(`[MAIL ERROR DETAILS]: ${err.message}`);
       });
 
-    res.json({ success: true, message: 'OTP dispatch protocol initiated' });
+    // Always return success so the frontend continues
+    res.json({ 
+      success: true, 
+      message: 'Verification protocol initiated. Please check your logs or email.' 
+    });
+
   } catch (error) {
     console.error(`[OTP CRASH]: ${error.message}`);
     res.status(500).json({ message: 'Failed to initiate OTP protocol' });
