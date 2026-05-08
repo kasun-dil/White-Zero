@@ -102,6 +102,8 @@ const ReportCrime = () => {
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleNext = () => {
     if (reportType === 'social') {
       if (step === 1 && (!formData.victimName || !formData.victimEmail)) {
@@ -185,6 +187,7 @@ const ReportCrime = () => {
   };
 
   const submitPoliceReport = async () => {
+    setIsSubmitting(true);
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
       const token = userInfo?.token;
@@ -202,9 +205,14 @@ const ReportCrime = () => {
         window.dispatchEvent(new Event('reportSubmitted'));
         alert('Police Report Submitted Successfully. Reference ID will be mailed to you.');
         setStep(5); // Success step
+      } else {
+        const data = await res.json();
+        alert('ERROR: ' + (data.message || 'Submission failed'));
       }
     } catch (error) {
-      alert('Submission failed');
+      alert('Submission failed: Network error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -561,8 +569,19 @@ Official Documentation by White Zero Intelligence Framework
                       <div style={{ fontSize: '0.9rem' }}><strong>Status:</strong> Awaiting Verified Submission</div>
                     </div>
                   </div>
-                  <button className="btn-nav-next" style={{ width: '100%', marginTop: '2rem', background: '#ef4444', color: 'white' }} onClick={submitPoliceReport}>
-                    Submit Official Police Report
+                  <button 
+                    className="btn-nav-next" 
+                    style={{ 
+                      width: '100%', 
+                      marginTop: '2rem', 
+                      background: isSubmitting ? '#555' : '#ef4444', 
+                      color: 'white',
+                      cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                    }} 
+                    onClick={submitPoliceReport}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Transmitting Forensic Data...' : 'Submit Official Police Report'}
                   </button>
                 </div>
               )}
