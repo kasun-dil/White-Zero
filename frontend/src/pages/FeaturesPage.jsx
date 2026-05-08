@@ -30,8 +30,8 @@ const FeaturesPage = () => {
       icon: <Cpu size={40} className="text-[#00d2ff]" />,
       desc: 'Real-time global threat mapping, neural analysis of vulnerability trends, and advanced OSINT forecasting.',
       link: '/intelligence-lab',
-      category: 'Coming Soon',
-      locked: true
+      category: 'Intelligence Hub',
+      locked: false
     },
     {
       id: 'sentinel',
@@ -39,8 +39,8 @@ const FeaturesPage = () => {
       icon: <ShieldCheck size={40} className="text-[#00d2ff]" />,
       desc: 'Advanced forensic auditing of social media content using neural heuristics to verify integrity and detect misinformation.',
       link: '/content-sentinel',
-      category: 'Coming Soon',
-      locked: true
+      category: 'Forensic Tool',
+      locked: false
     },
     {
       id: 'qa-bot',
@@ -48,8 +48,8 @@ const FeaturesPage = () => {
       icon: <MessageSquare size={40} className="text-[#f59e0b]" />,
       desc: 'Instant access to a specialized security expert to answer your safety and privacy questions 24/7.',
       link: '/qa-bot',
-      category: 'Coming Soon',
-      locked: true
+      category: 'Expert Node',
+      locked: false
     },
     {
       id: 'report-assist',
@@ -57,8 +57,8 @@ const FeaturesPage = () => {
       icon: <ShieldAlert size={40} className="text-[#004e92]" />,
       desc: 'Guided assistance for securing compromised profiles and generating step-by-step reporting instructions.',
       link: '/report-assistant',
-      category: 'Coming Soon',
-      locked: true
+      category: 'Recovery Asset',
+      locked: false
     }
   ];
 
@@ -66,7 +66,7 @@ const FeaturesPage = () => {
     <div className="page-container fade-in">
       <FadeInSection direction="down">
         <div className="page-header" style={{ marginBottom: '5rem', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '3.5rem', fontWeight: '800', letterSpacing: '-2px' }}>Forensic Intelligence <span className="text-gradient">Hub</span></h1>
+          <h1 style={{ fontSize: '3.5rem', fontWeight: '800', letterSpacing: '-2px' }}>Tactical Intelligence <span className="text-gradient">Suite</span></h1>
           <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)', maxWidth: '800px', margin: '1rem auto' }}>Deploy specialized modules for high-impact forensic analysis, automated intelligence gathering, and digital truth verification.</p>
         </div>
       </FadeInSection>
@@ -134,7 +134,7 @@ const FeaturesPage = () => {
                     ACCESS CLASSIFIED
                   </div>
                 ) : (
-                  <Link to={f.link} className="btn-primary" style={{ width: '100%', textAlign: 'center', borderRadius: '14px', boxShadow: '0 4px 15px rgba(0, 210, 255, 0.2)' }}>
+                  <Link to={f.link} className="btn-glass" style={{ width: '100%', textAlign: 'center', borderRadius: '14px' }}>
                     Launch Module
                   </Link>
                 )}

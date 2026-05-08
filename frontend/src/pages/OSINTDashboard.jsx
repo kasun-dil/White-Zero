@@ -213,16 +213,16 @@ const OSINTDashboard = () => {
 
           <div className="search-section">
             <div className="search-type-selector">
-              <button className="disabled-btn" title="Intelligence Node Pending..." disabled>
+              <button className={searchType === 'post' ? 'active' : ''} onClick={() => setSearchType('post')}>
                 <User size={16} /> Posts
               </button>
-              <button className="disabled-btn" title="Intelligence Node Pending..." disabled>
+              <button className={searchType === 'people' ? 'active' : ''} onClick={() => setSearchType('people')}>
                 <User size={16} /> People
               </button>
-              <button className="disabled-btn" title="Intelligence Node Pending..." disabled>
+              <button className={searchType === 'page' ? 'active' : ''} onClick={() => setSearchType('page')}>
                 <Flag size={16} /> Pages
               </button>
-              <button className="disabled-btn" title="Intelligence Node Pending..." disabled>
+              <button className={searchType === 'group' ? 'active' : ''} onClick={() => setSearchType('group')}>
                 <Users size={16} /> Groups
               </button>
               <button className={searchType === 'phone' ? 'active' : ''} onClick={() => setSearchType('phone')}>

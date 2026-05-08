@@ -112,6 +112,34 @@ body {
   transform: translateY(0) scale(0.98);
 }
 
+.btn-glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: white;
+  padding: 12px 28px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 210, 255, 0.2);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+}
+
+.btn-glass:hover {
+  transform: translateY(-2px);
+  background: rgba(0, 210, 255, 0.1);
+  border-color: #00d2ff;
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.2);
+  color: #fff;
+}
+
 .btn-outline {
   background: transparent;
   color: white;

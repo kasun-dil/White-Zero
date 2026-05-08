@@ -1,8 +1,8 @@
 .footer {
   background: #000;
   border-top: 1px solid var(--glass-border);
-  padding: 6rem 2rem 2rem;
-  margin-top: 5rem;
+  padding: 4rem 2rem 2rem;
+  margin-top: 1rem;
 }
 
 .footer-container {
@@ -26,6 +26,10 @@
   color: var(--text-muted);
   font-size: 0.95rem;
   margin-bottom: 2rem;
+  text-align: justify;
+  text-align-last: left;
+  max-width: 450px;
+  line-height: 1.6;
 }
 
 .social-links {
