@@ -232,7 +232,7 @@ const OSINTDashboard = () => {
                 <User size={16} /> Username
               </button>
             </div>
-            <div className="osint-search-box">
+            <div className={`osint-search-box ${loading ? 'scanning' : ''}`}>
               <input
                 type="text"
                 placeholder={`Forensic Search ${searchType}...`}
