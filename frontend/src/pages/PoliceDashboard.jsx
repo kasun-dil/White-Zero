@@ -201,9 +201,9 @@ const PoliceDashboard = () => {
   });
 
   return (
-    <div className="admin-container" style={{ display: 'flex', minHeight: '100vh', background: '#050505', color: 'white' }}>
-      <aside className="glass" style={{ width: '280px', borderRight: '1px solid rgba(255,255,255,0.05)', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem', position: 'sticky', top: 0, height: '100vh', zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+    <div className="admin-container">
+      <aside className="glass">
+        <div className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
           <div style={{ position: 'relative', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Hexagon size={36} className="text-[#10b981]" style={{ position: 'absolute' }} />
             <Shield size={18} color="white" style={{ position: 'absolute', zIndex: 1 }} />
@@ -216,16 +216,16 @@ const PoliceDashboard = () => {
           </div>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <nav>
           <button onClick={() => setActiveTab('reports')} style={navBtnStyle(activeTab === 'reports')}>
-            <LayoutDashboard size={18} /> Incident Reports
+            <LayoutDashboard size={18} /> <span>Incident Reports</span>
           </button>
           <button onClick={() => setActiveTab('articles')} style={navBtnStyle(activeTab === 'articles')}>
-            <BookOpen size={18} /> Intelligence Blogs
+            <BookOpen size={18} /> <span>Intelligence Blogs</span>
           </button>
         </nav>
 
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="desktop-only" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <Link to="/" style={{ textDecoration: 'none' }}>
             <button className="btn-outline" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
               <Globe size={18} /> Return to Home
@@ -237,7 +237,7 @@ const PoliceDashboard = () => {
         </div>
       </aside>
 
-      <main style={{ flex: 1, padding: '3rem', overflowY: 'auto' }}>
+      <main>
         {activeTab === 'reports' ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
             {/* List */}

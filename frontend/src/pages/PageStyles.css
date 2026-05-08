@@ -183,23 +183,104 @@
   border-radius: 12px;
 }
 
-/* Premium Blog Card */
-.premium-blog-card {
-  transition: all 0.5s ease !important;
+/* Global Responsive Grid System */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 2rem;
+  align-items: start;
 }
 
-.premium-blog-card:hover {
-  transform: translateY(-10px) scale(1.02) !important;
-  border-color: #00d2ff !important;
-  box-shadow: 0 10px 40px rgba(0, 210, 255, 0.15), 0 0 20px rgba(0, 210, 255, 0.1) !important;
+@media (max-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .responsive-grid > div:first-child {
+    position: static !important;
+    margin-bottom: 2rem;
+  }
+}
+
+/* Admin/Police Dashboard Mobile Hardening */
+@media (max-width: 992px) {
+  .admin-container {
+    flex-direction: column !important;
+  }
+  
+  .admin-container aside {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    padding: 1.25rem !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    gap: 1.5rem !important;
+    display: flex !important;
+  }
+  
+  .admin-container aside nav {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    padding-bottom: 0.5rem !important;
+    gap: 0.75rem !important;
+    flex: 1;
+  }
+  
+  .admin-container aside nav button {
+    white-space: nowrap !important;
+    padding: 0.75rem 1.25rem !important;
+    font-size: 0.8rem !important;
+    width: auto !important;
+  }
+  
+  .admin-container main {
+    padding: 1.5rem !important;
+  }
+  
+  .admin-container main > div {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.admin-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.admin-profile-badge {
+  padding: 0.75rem 1.5rem;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 @media (max-width: 768px) {
+  .admin-header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  
+  .admin-profile-badge {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .contact-grid {
     grid-template-columns: 1fr;
   }
+  
+  .page-header h1 {
+    font-size: 2.2rem;
+  }
 }
+
 .modern-scroll-container::-webkit-scrollbar { height: 6px; }
 .modern-scroll-container::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); border-radius: 10px; }
 .modern-scroll-container::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.2); border-radius: 10px; }
 .modern-scroll-container { scrollbar-width: thin; scrollbar-color: rgba(245, 158, 11, 0.2) rgba(255, 255, 255, 0.02); }
+

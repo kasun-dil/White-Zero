@@ -250,10 +250,10 @@ const AdminDashboard = () => {
   if (!user || user.role !== 'admin') return null;
 
   return (
-    <div className="admin-container" style={{ display: 'flex', minHeight: '100vh', background: '#0a0b10', color: 'white' }}>
+    <div className="admin-container">
       {/* Sidebar */}
-      <aside className="glass" style={{ width: '280px', borderRight: '1px solid rgba(255,255,255,0.05)', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem', position: 'sticky', top: 0, height: '100vh' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+      <aside className="glass">
+        <div className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
           <div style={{ position: 'relative', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Hexagon size={36} className="text-[#00d2ff]" style={{ position: 'absolute' }} />
             <Shield size={18} color="white" style={{ position: 'absolute', zIndex: 1 }} />
@@ -266,28 +266,28 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <nav>
           <button onClick={() => setActiveTab('dashboard')} className={`admin-nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'dashboard')}>
-            <LayoutDashboard size={18} /> Dashboard
+            <LayoutDashboard size={18} /> <span>Dashboard</span>
           </button>
           <button onClick={() => setActiveTab('users')} className={`admin-nav-btn ${activeTab === 'users' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'users')}>
-            <Users size={18} /> User Management
+            <Users size={18} /> <span>Users</span>
           </button>
           <button onClick={() => setActiveTab('police')} className={`admin-nav-btn ${activeTab === 'police' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'police')}>
-            <Shield size={18} /> Police Intelligence
+            <Shield size={18} /> <span>Police</span>
           </button>
           <button onClick={() => setActiveTab('articles')} className={`admin-nav-btn ${activeTab === 'articles' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'articles')}>
-            <BookOpen size={18} /> Articles & Blogs
+            <BookOpen size={18} /> <span>Articles</span>
           </button>
           <button onClick={() => setActiveTab('feedback')} className={`admin-nav-btn ${activeTab === 'feedback' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'feedback')}>
-            <MessageSquare size={18} /> Feedback {stats.pendingFeedback > 0 && <span style={{ marginLeft: 'auto', background: '#f59e0b', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.pendingFeedback}</span>}
+            <MessageSquare size={18} /> <span>Feedback</span> {stats.pendingFeedback > 0 && <span style={{ marginLeft: 'auto', background: '#f59e0b', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.pendingFeedback}</span>}
           </button>
           <button onClick={() => setActiveTab('messages')} className={`admin-nav-btn ${activeTab === 'messages' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'messages')}>
-            <Mail size={18} /> Messages {stats.unreadMessages > 0 && <span style={{ marginLeft: 'auto', background: '#00d2ff', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.unreadMessages}</span>}
+            <Mail size={18} /> <span>Messages</span> {stats.unreadMessages > 0 && <span style={{ marginLeft: 'auto', background: '#00d2ff', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.unreadMessages}</span>}
           </button>
         </nav>
 
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="desktop-only" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <Link to="/" style={{ textDecoration: 'none' }}>
             <button className="btn-outline" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
               <Globe size={18} /> Go to Website
@@ -300,14 +300,14 @@ const AdminDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '3rem', overflowY: 'auto' }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+      <main>
+        <header className="admin-header-flex">
           <div>
             <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontWeight: '800' }}>WhiteZero <span className="text-gradient">Admin Hub</span></h1>
             <p style={{ color: 'var(--text-muted)' }}>Real-time platform insights and moderation controls.</p>
           </div>
-          <div className="glass" style={{ padding: '0.75rem 1.5rem', borderRadius: '15px', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ textAlign: 'right' }}>
+          <div className="glass admin-profile-badge">
+            <div className="desktop-only" style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{user.name}</div>
               <div style={{ fontSize: '0.75rem', color: '#00d2ff' }}>Super Administrator</div>
             </div>
