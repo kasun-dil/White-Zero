@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Shield, MessageSquare, Send, Clock, CheckCircle, X, AlertTriangle, Bell } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const MyReports = () => {
   const { user } = useContext(AuthContext);
@@ -82,10 +83,10 @@ const MyReports = () => {
         fetchMyReports();
       } else {
         const errorData = await res.json();
-        alert(`Transmission Error: ${errorData.message || 'Unknown forensic failure'}`);
+        toast.error(`Transmission Error: ${errorData.message || 'Unknown failure'}`);
       }
     } catch (error) {
-      alert(`Network Error: ${error.message}`);
+      toast.error(`Network Error: ${error.message}`);
     }
   };
 
@@ -102,10 +103,11 @@ const MyReports = () => {
       if (res.ok) {
         const updated = await res.json();
         setSelectedReport(updated);
+        toast.success('Investigation Closed Successfully.');
         fetchMyReports();
       }
     } catch (error) {
-      alert('Failed to close investigation');
+      toast.error('Failed to close investigation');
     }
   };
 

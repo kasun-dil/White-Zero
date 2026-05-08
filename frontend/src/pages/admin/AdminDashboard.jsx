@@ -8,6 +8,7 @@ import {
   Eye, EyeOff, Star, Mail, Hexagon, AlertTriangle
 } from 'lucide-react';
 import FadeInSection from '../../components/FadeInSection';
+import { toast } from 'react-hot-toast';
 import '../PageStyles.css';
 
 const AdminDashboard = () => {
@@ -197,10 +198,11 @@ const AdminDashboard = () => {
       });
       if (res.ok) {
         setArticles(prev => prev.map(a => a._id === id ? { ...a, isHidden: !a.isHidden } : a));
+        toast.success('Visibility synchronized.');
         fetchDashboardData();
       } else {
         const errorData = await res.json();
-        alert(`Failed to toggle visibility: ${errorData.message || 'Unknown error'}`);
+        toast.error(`Failed: ${errorData.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error toggling visibility', error);
@@ -239,7 +241,7 @@ const AdminDashboard = () => {
       setNewArticle({ ...newArticle, image: imageUrl });
     } catch (error) {
       console.error('Upload failed', error);
-      alert('Image upload failed');
+      toast.error('Image upload failed');
     } finally {
       setUploading(false);
     }

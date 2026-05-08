@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 import FadeInSection from '../components/FadeInSection';
 import { 
@@ -231,14 +232,14 @@ const Profile = () => {
       if (response.ok) {
         console.log('[PURGE SUCCESS]: Intelligence purged.');
         setReports(prev => prev.filter(r => r._id !== reportId));
-        alert('SUCCESS: Forensic report has been permanently removed from the security archive.');
+        toast.success('SUCCESS: Forensic report removed from archive.');
       } else {
         console.error('[PURGE FAILED]:', data.message);
-        alert('PURGE FAILED: ' + (data.message || 'The security server rejected the deletion request.'));
+        toast.error('PURGE FAILED: ' + (data.message || 'Access Denied.'));
       }
     } catch (error) {
       console.error('[NETWORK ERROR]:', error);
-      alert('CONNECTION ERROR: Could not reach the security server. Please ensure the backend is active.');
+      toast.error('CONNECTION ERROR: Security server unreachable.');
     }
   };
 
@@ -254,13 +255,13 @@ const Profile = () => {
       if (response.ok) {
         setReports([]);
         setActivity({ searches: [], bookmarks: [] });
-        alert('FULL ARCHIVE PURGE COMPLETE: All forensic records and intelligence history have been removed.');
+        toast.success('FULL ARCHIVE PURGE COMPLETE.');
       } else {
-        alert('Failed to clear forensic history.');
+        toast.error('Failed to clear forensic history.');
       }
     } catch (error) {
       console.error('Clear history error:', error);
-      alert('Network error: Could not reach the security node.');
+      toast.error('Network error: Could not reach security node.');
     }
   };
 

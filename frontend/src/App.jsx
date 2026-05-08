@@ -63,9 +63,48 @@ function AppContent() {
   );
 }
 
+import { Toaster } from 'react-hot-toast';
+
 function App() {
   return (
     <AuthProvider>
+      <Toaster 
+        position="top-center"
+        reverseOrder={false}
+        gutter={8}
+        toastOptions={{
+          style: {
+            background: 'rgba(10, 10, 15, 0.95)',
+            color: '#fff',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(0, 210, 255, 0.2)',
+            borderRadius: '12px',
+            padding: '16px',
+            fontSize: '14px',
+            maxWidth: '450px'
+          },
+          success: {
+            iconTheme: {
+              primary: '#00d2ff',
+              secondary: '#fff',
+            },
+            style: {
+              border: '1px solid rgba(0, 210, 255, 0.5)',
+              boxShadow: '0 0 15px rgba(0, 210, 255, 0.2)'
+            }
+          },
+          error: {
+            iconTheme: {
+              primary: '#ff3d71',
+              secondary: '#fff',
+            },
+            style: {
+              border: '1px solid rgba(255, 61, 113, 0.5)',
+              boxShadow: '0 0 15px rgba(255, 61, 113, 0.2)'
+            }
+          }
+        }}
+      />
       <Router>
         <AppContent />
       </Router>

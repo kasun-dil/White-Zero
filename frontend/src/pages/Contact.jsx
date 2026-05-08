@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Mail, MapPin, Phone, Star, MessageSquare } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 import FadeInSection from '../components/FadeInSection';
 import './PageStyles.css';
@@ -44,14 +45,14 @@ const Contact = () => {
         body: JSON.stringify({ name: contactName, email: contactEmail, message: contactMessage })
       });
       if (res.ok) {
-        alert('Message sent successfully! Our team will review it shortly.');
+        toast.success('Message sent successfully!');
         setContactMessage('');
       } else {
-        alert('Failed to send message.');
+        toast.error('Failed to send message.');
       }
     } catch (error) {
       console.error('Contact error', error);
-      alert('Error connecting to server.');
+      toast.error('Error connecting to server.');
     } finally {
       setIsSubmitting(false);
     }
@@ -60,7 +61,7 @@ const Contact = () => {
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
-      alert('Please login to submit feedback');
+      toast.error('Please login to submit feedback');
       return;
     }
 
@@ -78,11 +79,11 @@ const Contact = () => {
       });
       const data = await res.json();
       
-      alert('Feedback submitted and pending approval!');
+      toast.success('Feedback submitted and pending approval!');
       setNewReviewText('');
     } catch (error) {
       console.error('Error submitting feedback', error);
-      alert('Failed to submit feedback');
+      toast.error('Failed to submit feedback');
     }
   };
 

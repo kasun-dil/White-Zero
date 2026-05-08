@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import FadeInSection from '../components/FadeInSection';
 import { AuthContext } from '../context/AuthContext';
 import { ArrowLeft, Calendar, User, Clock, Share2, Bookmark } from 'lucide-react';
@@ -66,7 +67,7 @@ const ArticleDetail = () => {
   }, [id, user]);
 
   const handleBookmark = async () => {
-    if (!user) return alert('Please login to save articles');
+    if (!user) return toast.error('Please login to save articles');
     if (togglingBookmark) return;
 
     setTogglingBookmark(true);
@@ -80,13 +81,13 @@ const ArticleDetail = () => {
       
       if (res.ok) {
         setIsBookmarked(data.isBookmarked);
-        alert(data.isBookmarked ? 'Success: Article saved to your profile.' : 'Success: Article removed from your profile.');
+        toast.success(data.isBookmarked ? 'Article saved.' : 'Article removed.');
       } else {
-        alert('Error: Could not update bookmarks.');
+        toast.error('Could not update bookmarks.');
       }
     } catch (error) {
       console.error('[BOOKMARK CLIENT ERROR]:', error);
-      alert(`Network Error: ${error.message}. Please check if the security server (port 5000) is running.`);
+      toast.error('Network Error: Server unreachable.');
     } finally {
       setTogglingBookmark(false);
     }
@@ -94,7 +95,7 @@ const ArticleDetail = () => {
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    alert('Link copied to clipboard!');
+    toast.success('Link copied to clipboard!');
   };
 
   if (loading) return (

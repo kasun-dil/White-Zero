@@ -6,6 +6,7 @@ import {
   Copy, Sparkles, Info, ExternalLink, Globe, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import FadeInSection from '../components/FadeInSection';
 import './ReportCrime.css';
 
@@ -107,17 +108,17 @@ const ReportCrime = () => {
   const handleNext = () => {
     if (reportType === 'social') {
       if (step === 1 && (!formData.victimName || !formData.victimEmail)) {
-        alert('CRITICAL DATA MISSING: Please provide the Legal Name and Contact Email.');
+        toast.error('CRITICAL DATA MISSING: Please provide the Legal Name and Contact Email.');
         return;
       }
       setStep(s => Math.min(s + 1, 4));
     } else {
       if (step === 1 && (!policeData.victimName || !policeData.victimEmail)) {
-        alert('All contact fields are required for police submission.');
+        toast.error('All contact fields are required for police submission.');
         return;
       }
       if (step === 2 && !otpVerified) {
-        alert('Please verify your contact information via OTP first.');
+        toast.error('Please verify your contact information via OTP first.');
         return;
       }
       setStep(s => Math.min(s + 1, 4));
@@ -136,7 +137,7 @@ const ReportCrime = () => {
 
   const sendOtp = async () => {
     if (!policeData.victimEmail) {
-      alert('CRITICAL: Email address required for identity verification.');
+      toast.error('CRITICAL: Email address required for identity verification.');
       return;
     }
     setSendingOtp(true);
@@ -149,12 +150,12 @@ const ReportCrime = () => {
       const data = await res.json();
       if (res.ok) {
         setOtpSent(true);
-        alert('SUCCESS: Verification OTP has been dispatched. Please check your email inbox.');
+        toast.success('SUCCESS: Verification OTP has been dispatched.');
       } else {
-        alert('ERROR: ' + (data.message || 'Failed to dispatch OTP.'));
+        toast.error('ERROR: ' + (data.message || 'Failed to dispatch OTP.'));
       }
     } catch (error) {
-      alert('NETWORK ERROR: Could not reach the security server.');
+      toast.error('NETWORK ERROR: Could not reach the security server.');
     } finally {
       setSendingOtp(false);
     }
@@ -162,7 +163,7 @@ const ReportCrime = () => {
 
   const verifyOtp = async () => {
     if (!otpCode) {
-      alert('Please enter the 6-digit code.');
+      toast.error('Please enter the 6-digit code.');
       return;
     }
     setVerifyingOtp(true);
@@ -175,12 +176,12 @@ const ReportCrime = () => {
       const data = await res.json();
       if (res.ok) {
         setOtpVerified(true);
-        alert('IDENTITY VERIFIED: You may now proceed with the official report.');
+        toast.success('IDENTITY VERIFIED: Protocol authorized.');
       } else {
-        alert('INVALID CODE: ' + (data.message || 'The OTP entered is incorrect or expired.'));
+        toast.error('INVALID CODE: ' + (data.message || 'The OTP entered is incorrect.'));
       }
     } catch (error) {
-      alert('VERIFICATION FAILED: Network issues detected.');
+      toast.error('VERIFICATION FAILED: Network issues detected.');
     } finally {
       setVerifyingOtp(false);
     }
@@ -203,14 +204,14 @@ const ReportCrime = () => {
       
       if (res.ok) {
         window.dispatchEvent(new Event('reportSubmitted'));
-        alert('Police Report Submitted Successfully. Reference ID will be mailed to you.');
+        toast.success('Report Submitted Successfully.');
         setStep(5); // Success step
       } else {
         const data = await res.json();
-        alert('ERROR: ' + (data.message || 'Submission failed'));
+        toast.error('ERROR: ' + (data.message || 'Submission failed'));
       }
     } catch (error) {
-      alert('Submission failed: Network error');
+      toast.error('Submission failed: Network error');
     } finally {
       setIsSubmitting(false);
     }
@@ -282,7 +283,7 @@ Official Documentation by White Zero Intelligence Framework
       const token = userInfo?.token;
 
       if (!token) {
-        alert('Security Alert: You must be logged in.');
+        toast.error('Security Alert: You must be logged in.');
         return;
       }
 
@@ -304,16 +305,16 @@ Official Documentation by White Zero Intelligence Framework
       });
 
       if (response.ok) {
-        alert('SUCCESS: Forensic Intelligence Report has been archived.');
+        toast.success('SUCCESS: Report archived.');
       }
     } catch (error) {
-      alert('ARCHIVE FAILED');
+      toast.error('ARCHIVE FAILED');
     }
   };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedReport);
-    alert('Report copied!');
+    toast.success('Report copied!');
   };
 
   const handleAIPolish = () => {

@@ -6,6 +6,7 @@ import {
   BookOpen, Trash2, Edit3, X, Plus, LogOut, Globe, Hexagon, Star
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import FadeInSection from '../components/FadeInSection';
 
 const PoliceDashboard = () => {
@@ -98,10 +99,11 @@ const PoliceDashboard = () => {
         const updated = await res.json();
         setSelectedReport(updated);
         setResponse('');
+        toast.success('Response transmitted.');
         fetchReports();
       }
     } catch (error) {
-      alert('Failed to send response');
+      toast.error('Failed to send response');
     }
   };
 
