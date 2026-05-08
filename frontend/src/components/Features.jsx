@@ -5,11 +5,10 @@ import { ShieldCheck, MessageSquare, Newspaper, Search } from 'lucide-react';
 import './Features.css';
 
 const features = [
-  {
-    title: "Fake News Detector",
+    title: "AI Sentinel",
     description: "Verify the authenticity of social media posts using advanced AI algorithms specifically tuned for local content.",
     icon: <Newspaper size={32} />,
-    path: "/fake-news-detector"
+    path: "/content-sentinel"
   },
   {
     title: "AI Report Assistant",

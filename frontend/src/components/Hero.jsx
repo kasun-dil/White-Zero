@@ -26,7 +26,7 @@ const slides = [
     subtitle: "Identify fake news and social media manipulation with our specialized NLP engine.",
     image: "/hero/detection_pro.png",
     color: "#8b5cf6",
-    link: "/fake-news-detector"
+    link: "/content-sentinel"
   }
 ];
 
