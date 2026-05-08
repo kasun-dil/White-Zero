@@ -71,7 +71,14 @@ const FeaturesPage = () => {
         </div>
       </FadeInSection>
 
-      <div className="responsive-grid" style={{ gap: '2rem', alignItems: 'stretch' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+        gap: '2.5rem', 
+        alignItems: 'stretch',
+        maxWidth: '1200px',
+        margin: '0 auto'
+      }}>
         {features.map((f, i) => (
           <FadeInSection key={f.id} delay={i * 0.1}>
             <div className={`feature-detail-card glass ${f.locked ? 'locked-feature' : ''}`} style={{ 
