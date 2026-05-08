@@ -9,7 +9,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+
 const twilio = require('twilio');
 
 // Models & Middleware
@@ -777,27 +778,8 @@ app.delete('/api/users/profile/clear-history', protect, async (req, res) => {
 // OTP & VERIFICATION ROUTES
 // =======================
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
-
-
-
-
-// Verify connection configuration
-transporter.verify(function(error, success) {
-  if (error) {
-    console.error('[MAIL ERROR]: SMTP connection failed. Check EMAIL_USER and EMAIL_PASS (App Password required for Gmail).');
-    console.error(error);
-  } else {
-    console.log('[MAIL SUCCESS]: Server is ready to take our messages');
-  }
-});
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY || 're_ApGPi5Uq_5aCnQJDqGgWhaBnNrDyRY1pJ');
 
 const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) 
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN) 
@@ -818,8 +800,17 @@ app.post('/api/otp/send', async (req, res) => {
     await OTP.create({ email, otp });
     console.log(`[OTP DEBUG] Code ${otp} stored in database for ${email}`);
 
-    const mailOptions = {
-      from: `"White Zero Verification" <${process.env.EMAIL_USER}>`,
+    console.log(`\n==========================================`);
+    console.log(`[SECURITY ALERT] NEW OTP GENERATED`);
+    console.log(`TARGET EMAIL: ${email}`);
+    console.log(`VERIFICATION CODE: ${otp}`);
+    console.log(`==========================================\n`);
+
+    console.log(`[OTP DISPATCH]: Attempting background transmission via Resend API to ${email}...`);
+    
+    // Send email using Resend API (HTTP based, not blocked by Render)
+    resend.emails.send({
+      from: 'White Zero <onboarding@resend.dev>',
       to: email,
       subject: 'White Zero - Secure Verification Code',
       html: `
@@ -844,23 +835,8 @@ app.post('/api/otp/send', async (req, res) => {
           </div>
         </div>
       `
-    };
-
-    console.log(`\n==========================================`);
-    console.log(`[SECURITY ALERT] NEW OTP GENERATED`);
-    console.log(`TARGET EMAIL: ${email}`);
-    console.log(`VERIFICATION CODE: ${otp}`);
-    console.log(`==========================================\n`);
-
-    console.log(`[OTP DISPATCH]: Attempting background transmission to ${email}...`);
-    
-    // Send email in background (will likely fail on Render, but log is above!)
-    transporter.sendMail(mailOptions)
-      .then(() => console.log(`[OTP SUCCESS]: Email delivered to ${email}`))
-      .catch(err => {
-        console.warn(`[RENDER NOTICE]: Email delivery blocked by network firewall. Use the code from the logs above.`);
-        console.error(`[MAIL ERROR DETAILS]: ${err.message}`);
-      });
+    }).then(() => console.log(`[RESEND SUCCESS]: OTP delivered to ${email}`))
+      .catch(err => console.error(`[RESEND ERROR]: ${err.message}`));
 
     // Always return success so the frontend continues
     res.json({ 
@@ -928,10 +904,15 @@ app.post('/api/police-reports', protect, async (req, res) => {
     };
     
     try {
-      await transporter.sendMail(mailOptions);
-      console.log(`[MAIL] Confirmation sent to reporter: ${victimEmail}`);
+      await resend.emails.send({
+        from: 'White Zero <onboarding@resend.dev>',
+        to: victimEmail,
+        subject: `[CONFIRMED] Intelligence Submission: ${referenceId}`,
+        html: mailOptions.html
+      });
+      console.log(`[RESEND] Confirmation sent to reporter: ${victimEmail}`);
     } catch (err) {
-      console.error('[MAIL ERROR] Reporter confirmation failed:', err.message);
+      console.error('[RESEND ERROR] Reporter confirmation failed:', err.message);
     }
 
     // Notify Police Team
@@ -954,10 +935,15 @@ app.post('/api/police-reports', protect, async (req, res) => {
       `
     };
     try {
-      await transporter.sendMail(policeMailOptions);
-      console.log(`[MAIL] Intelligence alert sent to Police: whitezero.lk@gmail.com`);
+      await resend.emails.send({
+        from: 'White Zero Alert <onboarding@resend.dev>',
+        to: 'whitezero.lk@gmail.com',
+        subject: `[NEW CASE] Forensic Investigation Initialized: ${referenceId}`,
+        html: policeMailOptions.html
+      });
+      console.log(`[RESEND] Intelligence alert sent to Police: whitezero.lk@gmail.com`);
     } catch (err) {
-      console.error('[MAIL ERROR] Police notification failed:', err.message);
+      console.error('[RESEND ERROR] Police notification failed:', err.message);
     }
 
     res.status(201).json(report);
@@ -1007,7 +993,12 @@ app.post('/api/police/reports/:id/respond', protect, policeOrAdmin, async (req, 
           </div>
         `
       };
-      transporter.sendMail(mailOptions).catch(err => console.error('Email failed:', err));
+      resend.emails.send({
+        from: 'White Zero <onboarding@resend.dev>',
+        to: report.victimEmail,
+        subject: `New Update: Case ${report.referenceId}`,
+        html: mailOptions.html
+      }).catch(err => console.error('Resend failed:', err));
       
       res.json(report);
     } else {
