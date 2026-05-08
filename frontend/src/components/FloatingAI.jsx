@@ -54,14 +54,17 @@ const FloatingAI = () => {
           position: 'absolute', 
           bottom: '5rem', 
           right: '0', 
-          width: '350px', 
-          height: '500px',
-          borderRadius: '20px',
+          width: '380px', 
+          height: '550px',
+          borderRadius: '24px',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-          border: '1px solid rgba(0, 210, 255, 0.2)'
+          boxShadow: '0 25px 60px rgba(0,0,0,0.8)',
+          border: '1px solid rgba(0, 210, 255, 0.4)',
+          background: 'rgba(5, 5, 10, 0.95)',
+          backdropFilter: 'blur(40px)',
+          WebkitBackdropFilter: 'blur(40px)'
         }}>
           {/* Header */}
           <div style={{ padding: '1rem', background: 'rgba(0, 210, 255, 0.1)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -80,14 +83,15 @@ const FloatingAI = () => {
               <div key={idx} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
                 <div className="ai-message-content" style={{ 
                   padding: '0.8rem 1rem', 
-                  borderRadius: '15px', 
-                  background: msg.role === 'user' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                  borderRadius: '18px', 
+                  background: msg.role === 'user' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
                   color: msg.role === 'user' ? 'black' : 'white',
                   fontSize: '0.9rem',
                   lineHeight: '1.5',
-                  borderBottomRightRadius: msg.role === 'user' ? '0' : '15px',
-                  borderBottomLeftRadius: msg.role === 'assistant' ? '0' : '15px',
-                  wordBreak: 'break-word'
+                  borderBottomRightRadius: msg.role === 'user' ? '0' : '18px',
+                  borderBottomLeftRadius: msg.role === 'assistant' ? '0' : '18px',
+                  wordBreak: 'break-word',
+                  border: msg.role === 'assistant' ? '1px solid rgba(255,255,255,0.05)' : 'none'
                 }}>
                   <ReactMarkdown 
                     components={{
