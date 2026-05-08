@@ -402,7 +402,7 @@ const Profile = () => {
                 ))}
               </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+      <div className="responsive-grid">
         {/* Forensic Reports Section */}
         <div className="glass" style={{ padding: '2rem', borderRadius: '25px', gridColumn: '1 / -1', position: 'relative' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -443,7 +443,8 @@ const Profile = () => {
           }}>
             {reports.map((report) => (
               <div key={report._id} className="glass premium-card" style={{ 
-                minWidth: 'calc(33.33% - 1rem)', 
+                minWidth: '280px', 
+                flex: '1 0 30%',
                 flexShrink: 0, 
                 padding: '1.5rem', 
                 borderRadius: '20px', 
@@ -593,7 +594,7 @@ const Profile = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
+        <div className="responsive-grid" style={{ gap: '2rem' }}>
           {/* General Info */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>

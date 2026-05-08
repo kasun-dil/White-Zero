@@ -139,10 +139,10 @@ const MyReports = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '2rem' }}>
+        <div className="responsive-grid">
           
           {/* Sidebar - Case History */}
-          <div className="glass fade-in" style={{ borderRadius: '24px', padding: '1.5rem', height: 'fit-content', position: 'sticky', top: '120px' }}>
+          <div className="glass fade-in" style={{ borderRadius: '24px', padding: '1.5rem', height: 'fit-content', position: 'sticky', top: '120px', zIndex: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               <Clock size={18} className="text-[#00d2ff]" />
               <h2 style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>Case Archive</h2>
@@ -230,7 +230,7 @@ const MyReports = () => {
                     display: 'flex', 
                     flexDirection: 'column', 
                     gap: '1.2rem', 
-                    maxHeight: '500px', 
+                    maxHeight: 'calc(100vh - 400px)', 
                     overflowY: 'auto', 
                     padding: '1rem',
                     background: 'rgba(0,0,0,0.2)',

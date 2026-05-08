@@ -12,7 +12,7 @@ const Home = () => {
 
       {/* Features Grid */}
       <div style={{ position: 'relative' }}>
-        <div style={{ position: 'absolute', top: '10%', left: '-10%', width: '40%', height: '80%', background: 'radial-gradient(circle, rgba(0,210,255,0.15) 0%, rgba(0,0,0,0) 70%)', zIndex: 0 }}></div>
+        <div className="neon-glow-bg" style={{ top: '10%', left: '-10%', width: '40%', height: '80%', background: '#00d2ff' }}></div>
         <FadeInSection>
           <Features />
         </FadeInSection>
@@ -20,7 +20,7 @@ const Home = () => {
 
       {/* Flagship Feature 1: Forensic Reporting */}
       <section style={{ padding: '6rem 2rem', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', right: '-10%', top: '20%', width: '50%', height: '60%', background: 'radial-gradient(circle, rgba(0, 210, 255, 0.15) 0%, rgba(0,0,0,0) 70%)', zIndex: 0 }}></div>
+        <div className="neon-glow-bg" style={{ right: '-10%', top: '20%', width: '50%', height: '60%', background: '#00d2ff' }}></div>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '4rem', alignItems: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ flex: '1 1 300px' }}>
             <FadeInSection direction="right">

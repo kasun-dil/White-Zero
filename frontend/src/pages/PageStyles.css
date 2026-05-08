@@ -1,8 +1,14 @@
 .page-container {
-  padding: 120px 2rem 4rem;
+  padding: 110px 1.5rem 4rem;
   max-width: 1400px;
   margin: 0 auto;
   min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .page-container {
+    padding: 100px 1rem 3rem;
+  }
 }
 
 .page-header {

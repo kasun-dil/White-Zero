@@ -162,3 +162,50 @@ body {
 .hero-gradient {
   background: radial-gradient(circle at center, rgba(0, 210, 255, 0.15) 0%, transparent 70%);
 }
+
+/* Global Mobile Fixes */
+@media (max-width: 768px) {
+  :root {
+    --font-size-base: 14px;
+  }
+  
+  body {
+    font-size: var(--font-size-base);
+  }
+
+  h1 { font-size: 2.2rem !important; }
+  h2 { font-size: 1.8rem !important; }
+  h3 { font-size: 1.4rem !important; }
+
+  .glass-nav {
+    backdrop-filter: blur(40px) !important;
+    -webkit-backdrop-filter: blur(40px) !important;
+  }
+}
+
+.mobile-gradient-bg {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.neon-glow-bg {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.responsive-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+  }
+}
