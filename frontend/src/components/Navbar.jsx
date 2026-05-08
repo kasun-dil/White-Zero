@@ -206,7 +206,7 @@ const Navbar = () => {
                 <span className="desktop-only">{user.name.split(' ')[0]}</span>
               </Link>
             ) : (
-              <Link to="/login" className="btn-try-osint desktop-only">Login</Link>
+              <Link to="/login" className="btn-primary desktop-only" style={{ height: '40px', padding: '0 1.5rem', fontSize: '0.85rem' }}>Login</Link>
             )}
           </div>
 

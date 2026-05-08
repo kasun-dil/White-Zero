@@ -88,7 +88,7 @@ body {
   color: white;
   padding: 12px 28px;
   border-radius: 12px;
-  border: 1px solid rgba(0, 210, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -103,10 +103,9 @@ body {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
-  color: #000;
-  border-color: #fff;
-  box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+  border-color: #00d2ff;
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+  color: #fff;
 }
 
 .btn-primary:active {

@@ -163,16 +163,17 @@
 }
 
 .btn-try-osint {
-  background: linear-gradient(135deg, #004e92 0%, #002f6c 100%);
-  border: 1px solid rgba(0, 210, 255, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 210, 255, 0.2);
   color: white;
 }
 
 .btn-try-osint:hover {
-  background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
-  color: #000;
-  border-color: #fff;
-  box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+  background: rgba(0, 210, 255, 0.1);
+  border-color: #00d2ff;
+  box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
   transform: translateY(-1px);
 }
 
