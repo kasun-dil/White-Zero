@@ -101,7 +101,7 @@
 
 .hero-dots {
   position: absolute;
-  bottom: 3rem;
+  bottom: 8rem; /* Moved up to avoid overlap */
   left: 50%;
   transform: translateX(-50%);
   display: flex;
