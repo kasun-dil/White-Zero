@@ -123,7 +123,7 @@ const MyReports = () => {
   return (
     <div style={{ minHeight: '100vh', background: 'radial-gradient(circle at top right, #001f3f, #050505)', width: '100%', position: 'relative' }}>
       <div className="page-container" style={{ paddingTop: '100px', paddingBottom: '60px', maxWidth: '1400px', margin: '0 auto' }}>
-      <div className="container" style={{ maxWidth: '1200px' }}>
+        <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
         
         {/* Header Section */}
         <div className="fade-in" style={{ marginBottom: '3rem' }}>
