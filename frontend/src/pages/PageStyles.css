@@ -1,5 +1,5 @@
 .page-container {
-  padding: 110px 1.5rem 4rem;
+  padding: 110px 2rem 4rem;
   max-width: 1400px;
   margin: 0 auto;
   min-height: 100vh;
@@ -7,7 +7,15 @@
 
 @media (max-width: 768px) {
   .page-container {
-    padding: 100px 1rem 3rem;
+    padding: 90px 1.25rem 3rem;
+  }
+  
+  .container {
+    padding: 0 !important;
+  }
+
+  .auth-card {
+    --auth-padding: 2rem 1.25rem;
   }
 }
 

@@ -19,12 +19,19 @@ const Navbar = () => {
 
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
-    if (isMobile) {
+    const isFeaturePage = location.pathname.startsWith('/features') || 
+                          location.pathname.startsWith('/osint-trial') || 
+                          location.pathname.startsWith('/intelligence-lab') || 
+                          location.pathname.startsWith('/content-sentinel');
+                          
+    if (isMobile && isFeaturePage) {
       setShowMobileNotice(true);
       const timer = setTimeout(() => setShowMobileNotice(false), 10000);
       return () => clearTimeout(timer);
+    } else {
+      setShowMobileNotice(false);
     }
-  }, []);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,7 +93,6 @@ const Navbar = () => {
         <div className="mobile-notice-overlay">
           <div className="mobile-notice-card">
             <div className="notice-header">
-              <Shield size={20} className="text-[#00d2ff]" />
               <span>TACTICAL PROTOCOL ALERT</span>
               <X size={16} onClick={() => setShowMobileNotice(false)} style={{ cursor: 'pointer', marginLeft: 'auto' }} />
             </div>
@@ -200,7 +206,7 @@ const Navbar = () => {
                 <span className="desktop-only">{user.name.split(' ')[0]}</span>
               </Link>
             ) : (
-              <Link to="/login" className="btn-primary desktop-only">Login</Link>
+              <Link to="/login" className="btn-try-osint desktop-only" style={{ background: 'linear-gradient(135deg, #004e92, #002f6c)', border: '1px solid rgba(255,255,255,0.1)' }}>Login</Link>
             )}
           </div>
 
@@ -225,7 +231,6 @@ const Navbar = () => {
             <div className="drawer-section-title">INTELLIGENCE ASSETS</div>
             {navLinks.map((link) => (
               <Link key={link.name} to={link.path} className="drawer-link" onClick={() => setIsOpen(false)}>
-                {link.icon}
                 <span>{link.name}</span>
               </Link>
             ))}
@@ -233,25 +238,21 @@ const Navbar = () => {
             <div className="drawer-section-title">OPERATIONAL PORTALS</div>
             {user?.role === 'admin' && (
               <Link to="/admin" className="drawer-link portal-link-admin" onClick={() => setIsOpen(false)}>
-                <Shield size={18} />
                 <span>Admin Portal</span>
               </Link>
             )}
             {user?.role === 'police' && (
               <Link to="/police-dashboard" className="drawer-link portal-link-police" onClick={() => setIsOpen(false)}>
-                <Users size={18} />
                 <span>Police Portal</span>
               </Link>
             )}
             {user && (
               <Link to="/my-reports" className="drawer-link portal-link-user" onClick={() => setIsOpen(false)}>
-                <Layout size={18} />
                 <span>My Reports</span>
               </Link>
             )}
             
             <Link to="/osint-trial" className="drawer-link" onClick={() => setIsOpen(false)}>
-              <Play size={18} className="text-[#00d2ff]" />
               <span>Live OSINT Scan</span>
             </Link>
 
@@ -259,28 +260,21 @@ const Navbar = () => {
             {user ? (
               <>
                 <Link to="/profile" className="drawer-link" onClick={() => setIsOpen(false)}>
-                  <UserIcon size={18} />
                   <span>Profile Settings</span>
                 </Link>
                 <button onClick={handleLogout} className="drawer-link logout-btn" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
-                  <LogOut size={18} />
                   <span>Logout</span>
                 </button>
               </>
             ) : (
               <Link to="/login" className="drawer-link login-btn-mobile" onClick={() => setIsOpen(false)}>
-                <UserIcon size={18} />
                 <span>Sign In / Login</span>
               </Link>
             )}
           </div>
           
           <div className="drawer-footer">
-            <span style={{ opacity: 0.5 }}>WHITE ZERO v1.0.4</span>
-            <div className="status-indicator">
-              <div className="status-dot"></div>
-              SYSTEM_READY
-            </div>
+            <span className="footer-brand">WHITE ZERO</span>
           </div>
         </div>
       </nav>

@@ -297,27 +297,56 @@ const Profile = () => {
 
   const handlePrint = (report) => {
     const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('PRINT ERROR: Browser blocked the document transmission. Enable pop-ups.');
+      return;
+    }
+    
+    // Fallback content if report.content is missing
+    const reportBody = report.content || `
+      INCIDENT ARCHIVE
+      ----------------
+      PLATFORM: ${report.platform}
+      INCIDENT: ${report.incidentType}
+      REFERENCE: ${report.referenceId}
+      TIMESTAMP: ${new Date(report.createdAt).toLocaleString()}
+      
+      STATUS: ARCHIVED FORENSIC DATA
+    `;
+
     printWindow.document.write(`
       <html>
         <head>
           <title>Forensic Report - ${report.referenceId}</title>
           <style>
-            body { font-family: 'Times New Roman', Times, serif; padding: 40px; line-height: 1.6; color: #333; background: white; }
-            pre { white-space: pre-wrap; font-family: inherit; font-size: 12pt; }
-            .header { border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px; }
-            .footer { margin-top: 50px; font-size: 10pt; color: #777; border-top: 1px solid #ccc; padding-top: 10px; }
+            body { font-family: 'Courier New', Courier, monospace; padding: 50px; line-height: 1.5; color: #000; background: white; }
+            .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 80px; color: rgba(0,0,0,0.05); z-index: -1; white-space: nowrap; }
+            .header { border-bottom: 3px solid #000; margin-bottom: 30px; padding-bottom: 15px; }
+            pre { white-space: pre-wrap; font-size: 11pt; border: 1px solid #eee; padding: 20px; }
+            .footer { margin-top: 60px; font-size: 9pt; color: #555; border-top: 1px solid #000; padding-top: 15px; }
+            @media print { .no-print { display: none; } }
           </style>
         </head>
         <body>
+          <div class="watermark">WHITE ZERO FORENSIC</div>
           <div class="header">
-            <h2>WHITE ZERO FORENSIC INTELLIGENCE</h2>
-            <p>Archived Incident Documentation</p>
+            <h1 style="margin:0; letter-spacing: 2px;">WHITE ZERO</h1>
+            <p style="margin:5px 0 0; font-weight: bold;">OFFICIAL FORENSIC INTELLIGENCE REPORT</p>
           </div>
-          <pre>${report.content}</pre>
+          <div style="margin-bottom: 20px;">
+            <strong>REPORT ID:</strong> ${report.referenceId}<br>
+            <strong>GENERATED:</strong> ${new Date().toLocaleString()}
+          </div>
+          <pre>${reportBody}</pre>
           <div class="footer">
-            <p>This is an archived forensic document. Reference ID: ${report.referenceId}. Generated via White Zero Platform.</p>
+            <p>CONFIDENTIAL: This document contains sensitive intelligence data verified by the White Zero Framework. Unauthorized reproduction is prohibited.</p>
           </div>
-          <script>window.print(); window.close();</script>
+          <script>
+            window.onload = () => {
+              window.print();
+              setTimeout(() => window.close(), 500);
+            };
+          </script>
         </body>
       </html>
     `);
