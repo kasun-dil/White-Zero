@@ -72,6 +72,9 @@ function App() {
         position="top-center"
         reverseOrder={false}
         gutter={8}
+        containerStyle={{
+          top: 90,
+        }}
         toastOptions={{
           style: {
             background: 'rgba(10, 10, 15, 0.95)',
