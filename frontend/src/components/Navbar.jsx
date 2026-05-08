@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Shield, Play, Hexagon, LogOut, User as UserIcon, Bell, Info, FileText, Layout, Users, Mail, Cpu, Settings } from 'lucide-react';
+import { Menu, X, Shield, Play, Hexagon, LogOut, User as UserIcon, Bell, Info, FileText, Layout, Users, Mail, Cpu, Settings, Search } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import './Navbar.css';
 
@@ -100,9 +100,9 @@ const Navbar = () => {
         <div className="nav-container">
           {/* Logo */}
           <Link to="/" className="nav-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
-            <div style={{ position: 'relative', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Hexagon size={36} className="text-[#00d2ff]" style={{ position: 'absolute' }} />
-              <Shield size={18} color="white" style={{ position: 'absolute', zIndex: 1 }} />
+            <div className="logo-icon-container" style={{ position: 'relative', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Hexagon size={36} className="logo-hexagon" style={{ position: 'absolute' }} />
+              <Shield size={18} className="logo-shield" style={{ position: 'absolute', zIndex: 1 }} />
             </div>
             <div className="logo-text-wrapper">
               <span className="logo-brand">WHITE ZERO</span>
@@ -188,9 +188,9 @@ const Navbar = () => {
                 )}
               </div>
             )}
-            <Link to="/osint-trial" className="btn-outline desktop-only">
-              <Play size={16} />
-              Try OSINT
+            <Link to="/osint-trial" className="btn-try-osint desktop-only">
+              <Search size={14} />
+              <span>Try OSINT</span>
             </Link>
             {user ? (
               <Link to="/profile" className="nav-profile-pill">
