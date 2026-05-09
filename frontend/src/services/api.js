@@ -2,9 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = '/api';
 
-export const chatWithAI = async (message, context = '') => {
+export const chatWithAI = async (message, history = []) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/chat`, { message, context });
+    const response = await axios.post(`${API_BASE_URL}/chat`, { message, history });
     return response.data;
   } catch (error) {
     console.error('Chat API Error:', error);

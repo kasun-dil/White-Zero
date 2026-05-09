@@ -24,12 +24,19 @@ const FloatingAI = () => {
     if (!text.trim()) return;
 
     const userMessage = { role: 'user', content: text };
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     if (text === input) setInput('');
     setLoading(true);
 
     try {
-      const data = await chatWithAI(text);
+      // Send history for neural memory (excluding initial welcome message)
+      const history = newMessages.slice(1).map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+      
+      const data = await chatWithAI(text, history);
       const aiResponse = { role: 'assistant', content: data.content };
       setMessages(prev => [...prev, aiResponse]);
     } catch (error) {
@@ -79,29 +86,42 @@ const FloatingAI = () => {
           </div>
 
           {/* Messages */}
-          <div className="custom-scrollbar" style={{ flex: 1, padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="custom-scrollbar" style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {messages.map((msg, idx) => (
-              <div key={idx} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
+              <div key={idx} style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                width: '100%'
+              }}>
+                {msg.role === 'assistant' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', paddingLeft: '0.2rem' }}>
+                    <Bot size={14} color="#00d2ff" />
+                    <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#00d2ff', letterSpacing: '1px' }}>WHITE ZERO INTEL</span>
+                  </div>
+                )}
                 <div className="ai-message-content" style={{ 
-                  padding: '0.8rem 1rem', 
-                  borderRadius: '18px', 
-                  background: msg.role === 'user' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                  color: msg.role === 'user' ? 'black' : 'white',
-                  fontSize: '0.9rem',
-                  lineHeight: '1.5',
-                  borderBottomRightRadius: msg.role === 'user' ? '0' : '18px',
-                  borderBottomLeftRadius: msg.role === 'assistant' ? '0' : '18px',
+                  padding: '1rem 1.2rem', 
+                  borderRadius: '20px', 
+                  background: msg.role === 'user' ? 'rgba(0, 210, 255, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                  color: 'white',
+                  fontSize: '0.95rem',
+                  lineHeight: '1.6',
+                  borderTopRightRadius: msg.role === 'user' ? '4px' : '20px',
+                  borderTopLeftRadius: msg.role === 'assistant' ? '4px' : '20px',
                   wordBreak: 'break-word',
-                  border: msg.role === 'assistant' ? '1px solid rgba(255,255,255,0.05)' : 'none'
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  boxShadow: msg.role === 'user' ? '0 4px 15px rgba(0, 210, 255, 0.1)' : 'none',
+                  maxWidth: '90%'
                 }}>
                   <ReactMarkdown 
                     components={{
-                      p: ({node, ...props}) => <p style={{ margin: '0 0 0.5rem 0' }} {...props} />,
-                      ul: ({node, ...props}) => <ul style={{ margin: '0.5rem 0', paddingLeft: '1.2rem' }} {...props} />,
-                      ol: ({node, ...props}) => <ol style={{ margin: '0.5rem 0', paddingLeft: '1.2rem' }} {...props} />,
-                      li: ({node, ...props}) => <li style={{ marginBottom: '0.3rem' }} {...props} />,
-                      h3: ({node, ...props}) => <h3 style={{ fontSize: '1rem', margin: '0.8rem 0 0.4rem 0', color: '#00d2ff' }} {...props} />,
-                      strong: ({node, ...props}) => <strong style={{ color: '#00d2ff' }} {...props} />
+                      p: ({node, ...props}) => <p style={{ margin: '0 0 0.8rem 0' }} {...props} />,
+                      ul: ({node, ...props}) => <ul style={{ margin: '0.8rem 0', paddingLeft: '1.2rem' }} {...props} />,
+                      ol: ({node, ...props}) => <ol style={{ margin: '0.8rem 0', paddingLeft: '1.2rem' }} {...props} />,
+                      li: ({node, ...props}) => <li style={{ marginBottom: '0.5rem' }} {...props} />,
+                      h3: ({node, ...props}) => <h3 style={{ fontSize: '1.1rem', margin: '1rem 0 0.5rem 0', color: '#00d2ff', fontWeight: '800' }} {...props} />,
+                      strong: ({node, ...props}) => <strong style={{ color: '#00d2ff', fontWeight: '700' }} {...props} />
                     }}
                   >
                     {msg.content}

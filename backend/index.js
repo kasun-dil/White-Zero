@@ -595,26 +595,33 @@ app.get('/', (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-  const { message, context } = req.body;
+  const { message, history } = req.body;
   if (!message) return res.status(400).json({ error: 'Message is required' });
 
   try {
-    const prompt = `You are the White Zero Cyber Intelligence AI, a specialized forensic assistant. 
-         Active Intelligence Module: ${context || 'General Intelligence'}
-         
+    const systemPrompt = `You are the White Zero Cyber Intelligence AI, a specialized forensic assistant. 
+         Instruction: Provide professional, technical, and highly structured cyber security guidance. 
+         Use Markdown for formatting. Maintain a tone of "an advanced training brain".
          Operational Protocol:
-         1. If the user is reporting an incident or asking for security assistance, you MUST verify if they have mentioned their **Country** and the **Social Media Platform** (e.g., Facebook, Instagram, X).
-         2. If these are missing, politely request this information: "To provide a high-authority forensic protocol, please specify your **Country** and the **Social Media Platform** involved."
-         3. Once provided, refer to these variables to deliver localized cybercrime reporting procedures and platform-specific remediation steps.
-         4. Maintain a tone of "an advanced training brain"—professional, technical, and highly structured.
-         5. Use Markdown for formatting (headers, bold, bullet points). 
-         
-         User Query: ${message}`;
+         1. If the user is reporting an incident, verify their **Country** and **Platform**.
+         2. If missing, politely request them.
+         3. Once provided, refer to them in your advice.`;
     
     console.log(`[AI CHAT] Request: ${message.substring(0, 50)}...`);
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    
+    let text;
+    if (history && history.length > 0) {
+      const chat = model.startChat({
+        history: history.slice(0, -1), // Remove the last message as it's the one we're sending
+      });
+      const result = await chat.sendMessage(`${systemPrompt}\n\nUser Query: ${message}`);
+      const response = await result.response;
+      text = response.text();
+    } else {
+      const result = await model.generateContent(`${systemPrompt}\n\nUser Query: ${message}`);
+      const response = await result.response;
+      text = response.text();
+    }
     
     res.json({ content: text });
   } catch (error) {
