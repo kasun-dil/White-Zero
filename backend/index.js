@@ -599,13 +599,10 @@ app.post('/api/chat', async (req, res) => {
   if (!message) return res.status(400).json({ error: 'Message is required' });
 
   try {
-    const systemPrompt = `You are the White Zero Cyber Intelligence AI, a specialized forensic assistant. 
-         Instruction: Provide professional, technical, and highly structured cyber security guidance. 
-         Use Markdown for formatting. Maintain a tone of "an advanced training brain".
-         Operational Protocol:
-         1. If the user is reporting an incident, verify their **Country** and **Platform**.
-         2. If missing, politely request them.
-         3. Once provided, refer to them in your advice.`;
+    const systemPrompt = `You are White Zero AI, a state-of-the-art forensic intelligence assistant powered by Google's Gemini. 
+         You possess the full knowledge, reasoning, and conversational versatility of the Gemini model. 
+         Your mission is to provide high-velocity, professional cyber intelligence and OSINT guidance. 
+         Respond to all queries with the depth of Gemini, and when assisting with investigations, naturally leverage platform and regional context to provide the most accurate forensic advice.`;
     
     console.log(`[AI CHAT] Request: ${message.substring(0, 50)}...`);
     
