@@ -34,6 +34,11 @@ body {
   color: var(--text-main);
   overflow-x: hidden;
   line-height: 1.6;
+  font-weight: 300;
+}
+
+p {
+  font-weight: 300;
 }
 
 /* Scrollbar */
@@ -89,7 +94,7 @@ body {
   padding: 12px 28px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
@@ -120,7 +125,7 @@ body {
   padding: 12px 28px;
   border-radius: 12px;
   border: 1px solid rgba(0, 210, 255, 0.2);
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
@@ -146,7 +151,7 @@ body {
   padding: 10px 24px;
   border-radius: 8px;
   border: 1px solid var(--primary);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   text-decoration: none;

@@ -18,9 +18,9 @@ const Footer = () => {
             </div>
           </div>
           <p style={{ textAlign: 'justify', textAlignLast: 'left', lineHeight: '1.6', fontSize: '0.95rem', color: 'var(--text-muted)', maxWidth: '450px', letterSpacing: 'normal' }}>
-            White Zero is an elite, next-generation OSINT framework and comprehensive digital safety ecosystem. 
-            Engineered for high-authority forensic analysis, our platform empowers investigators across Sri Lanka 
-            with real-time intelligence gathering, neural threat mapping, and automated incident reporting protocols.
+            White Zero is an elite, next-generation OSINT framework and comprehensive digital safety ecosystem.
+            Engineered for high-authority forensic analysis, our platform empowers investigators across Sri Lanka
+            with real-time intelligence gathering, neural threat mapping.
           </p>
           <div className="social-links">
             <a href="#"><Globe size={20} /></a>

@@ -237,6 +237,7 @@ app.get('/api/admin/stats', protect, admin, async (req, res) => {
     const pendingFeedback = await Feedback.countDocuments({ status: 'pending' });
     const messageCount = await Message.countDocuments();
     const unreadMessages = await Message.countDocuments({ status: 'unread' });
+    const unreadPoliceReports = await PoliceReport.countDocuments({ isReadByPolice: false });
     
     res.json({
       users: userCount,
@@ -244,7 +245,8 @@ app.get('/api/admin/stats', protect, admin, async (req, res) => {
       feedbacks: feedbackCount,
       pendingFeedback,
       messages: messageCount,
-      unreadMessages
+      unreadMessages,
+      unreadPoliceReports
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -286,6 +288,8 @@ app.delete('/api/admin/users/:id', protect, admin, async (req, res) => {
 app.get('/api/admin/messages', protect, admin, async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
+    // Mark all as read when admin views the list
+    await Message.updateMany({ status: 'unread' }, { $set: { status: 'read' } });
     res.json(messages);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -599,23 +603,32 @@ app.post('/api/chat', async (req, res) => {
   if (!message) return res.status(400).json({ error: 'Message is required' });
 
   try {
-    const systemPrompt = `You are White Zero AI, a state-of-the-art forensic intelligence assistant powered by Google's Gemini. 
-         You possess the full knowledge, reasoning, and conversational versatility of the Gemini model. 
-         Your mission is to provide high-velocity, professional cyber intelligence and OSINT guidance. 
-         Respond to all queries with the depth of Gemini, and when assisting with investigations, naturally leverage platform and regional context to provide the most accurate forensic advice.`;
+    const systemPrompt = `You are White Zero AI, a state-of-the-art forensic intelligence partner powered by Google's Gemini. 
+         Identity: You possess the full depth, reasoning, and conversational curiosity of the Gemini model.
+         Core Directive: Be proactive and inquisitive. You are an investigator, not just a bot. 
+         Forensic Protocol: If a user reports an incident, you MUST naturally ask for the Country and Social Media Platform involved if they are missing. Do not wait for the user to provide everything—ask for what you need to help them best.
+         Tone: Professional, high-velocity, and intelligently curious.`;
     
     console.log(`[AI CHAT] Request: ${message.substring(0, 50)}...`);
     
     let text;
+    // Initialize model with System Instruction for permanent context
+    const modelWithInstructions = genAI.getGenerativeModel({ 
+      model: "gemini-flash-latest",
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      }
+    });
+
     if (history && history.length > 0) {
-      const chat = model.startChat({
-        history: history.slice(0, -1), // Remove the last message as it's the one we're sending
+      const chat = modelWithInstructions.startChat({
+        history: history.slice(0, -1), // Previous turns
       });
-      const result = await chat.sendMessage(`${systemPrompt}\n\nUser Query: ${message}`);
+      const result = await chat.sendMessage(message);
       const response = await result.response;
       text = response.text();
     } else {
-      const result = await model.generateContent(`${systemPrompt}\n\nUser Query: ${message}`);
+      const result = await modelWithInstructions.generateContent(message);
       const response = await result.response;
       text = response.text();
     }

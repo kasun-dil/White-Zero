@@ -30,7 +30,8 @@ const FloatingAI = () => {
     setLoading(true);
 
     try {
-      // Send history for neural memory (excluding initial welcome message)
+      // Send history for neural memory (Ensure history starts with a USER message)
+      // Gemini history MUST start with 'user' role
       const history = newMessages.slice(1).map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: m.content }]

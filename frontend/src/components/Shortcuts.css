@@ -63,7 +63,7 @@
 
 .status-badge {
   font-size: 0.65rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 2px;
   padding: 0.4rem 0.8rem;
   background: rgba(255, 255, 255, 0.03);
@@ -79,7 +79,7 @@
 
 .shortcut-info h3 {
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
   letter-spacing: 0.5px;
   color: #fff;
@@ -91,7 +91,7 @@
   margin: 0.4rem 0 0;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .card-glow {

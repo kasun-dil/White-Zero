@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { 
-  Users, BookOpen, MessageSquare, Shield, ExternalLink, 
+import {
+  Users, BookOpen, MessageSquare, Shield, ExternalLink,
   Plus, Trash2, Check, X, Settings, LogOut, LayoutDashboard,
   Search, Filter, MoreVertical, Edit2, Globe, TrendingUp, Clock, Activity,
   Eye, EyeOff, Star, Mail, Hexagon, AlertTriangle
@@ -16,9 +16,9 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(false);
-  
+
   // Data States
-  const [stats, setStats] = useState({ users: 0, articles: 0, feedbacks: 0, pendingFeedback: 0, messages: 0, unreadMessages: 0 });
+  const [stats, setStats] = useState({ users: 0, articles: 0, feedbacks: 0, pendingFeedback: 0, messages: 0, unreadMessages: 0, unreadPoliceReports: 0 });
   const [recentActivity, setRecentActivity] = useState({ searches: [], topArticles: [] });
   const [users, setUsers] = useState([]);
   const [articles, setArticles] = useState([]);
@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   const [messages, setMessages] = useState([]);
   const [policeMetadata, setPoliceMetadata] = useState([]);
   const [policeSearchTerm, setPoliceSearchTerm] = useState('');
-  
+
   // Form States
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user' });
   const [newArticle, setNewArticle] = useState({ title: '', category: 'Cyber Security', excerpt: '', content: '', image: '', link: '' });
@@ -61,7 +61,7 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const headers = { 'Authorization': `Bearer ${user.token}` };
-      
+
       const [sRes, aActRes, uRes, artRes, fRes, mRes] = await Promise.all([
         fetch('/api/admin/stats', { headers }).catch(() => ({ json: () => ({}) })),
         fetch('/api/admin/activity', { headers }).catch(() => ({ json: () => ({ searches: [], topArticles: [] }) })),
@@ -70,7 +70,7 @@ const AdminDashboard = () => {
         fetch('/api/feedback', { headers }).catch(() => ({ json: () => ([]) })),
         fetch('/api/admin/messages', { headers }).catch(() => ({ json: () => ([]) }))
       ]);
-      
+
       const sData = await sRes.json().catch(() => ({}));
       const aData = await aActRes.json().catch(() => ({ searches: [], topArticles: [] }));
       const uData = await uRes.json().catch(() => ([]));
@@ -84,7 +84,8 @@ const AdminDashboard = () => {
         feedbacks: sData?.feedbacks || 0,
         pendingFeedback: sData?.pendingFeedback || 0,
         messages: sData?.messages || 0,
-        unreadMessages: sData?.unreadMessages || 0
+        unreadMessages: sData?.unreadMessages || 0,
+        unreadPoliceReports: sData?.unreadPoliceReports || 0
       });
       setRecentActivity({
         searches: Array.isArray(aData?.searches) ? aData.searches : [],
@@ -105,7 +106,7 @@ const AdminDashboard = () => {
     try {
       const res = await fetch(`/api/feedback/${id}/status`, {
         method: 'PATCH',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user.token}`
         },
@@ -135,7 +136,7 @@ const AdminDashboard = () => {
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user.token}`
         },
@@ -156,10 +157,10 @@ const AdminDashboard = () => {
     try {
       const url = editingArticle ? `/api/articles/${editingArticle._id}` : '/api/articles';
       const method = editingArticle ? 'PUT' : 'POST';
-      
+
       const res = await fetch(url, {
         method,
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user.token}`
         },
@@ -273,8 +274,8 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('users')} className={`admin-nav-btn ${activeTab === 'users' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'users')}>
             <Users size={18} /> <span>Users</span>
           </button>
-          <button onClick={() => setActiveTab('police')} className={`admin-nav-btn ${activeTab === 'police' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'police')}>
-            <Shield size={18} /> <span>Police</span>
+          <button onClick={() => { setActiveTab('police'); setTimeout(fetchDashboardData, 1000); }} className={`admin-nav-btn ${activeTab === 'police' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'police')}>
+            <Shield size={18} /> <span>Police Investigations </span> {stats.unreadPoliceReports > 0 && <span style={{ marginLeft: 'auto', background: '#10b981', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.unreadPoliceReports}</span>}
           </button>
           <button onClick={() => setActiveTab('articles')} className={`admin-nav-btn ${activeTab === 'articles' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'articles')}>
             <BookOpen size={18} /> <span>Articles</span>
@@ -282,7 +283,7 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('feedback')} className={`admin-nav-btn ${activeTab === 'feedback' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'feedback')}>
             <MessageSquare size={18} /> <span>Feedback</span> {stats.pendingFeedback > 0 && <span style={{ marginLeft: 'auto', background: '#f59e0b', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.pendingFeedback}</span>}
           </button>
-          <button onClick={() => setActiveTab('messages')} className={`admin-nav-btn ${activeTab === 'messages' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'messages')}>
+          <button onClick={() => { setActiveTab('messages'); setTimeout(fetchDashboardData, 1000); }} className={`admin-nav-btn ${activeTab === 'messages' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'messages')}>
             <Mail size={18} /> <span>Messages</span> {stats.unreadMessages > 0 && <span style={{ marginLeft: 'auto', background: '#00d2ff', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.unreadMessages}</span>}
           </button>
         </nav>
@@ -452,31 +453,31 @@ const AdminDashboard = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
           {articles.map(a => (
             <div key={a._id} className="glass" style={{ padding: '1rem', borderRadius: '15px', position: 'relative', opacity: a.isHidden ? 0.6 : 1, display: 'flex', flexDirection: 'column' }}>
-               <img src={a.image} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px' }} />
-               <h4 style={{ margin: '1rem 0 0.5rem 0', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.title}</h4>
-               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{a.category} {a.isHidden && <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>(Hidden)</span>}</p>
-               
-               <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                 <button 
-                   onClick={() => handleToggleVisibility(a._id)} 
-                   style={{ background: a.isHidden ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', border: 'none', color: a.isHidden ? '#ef4444' : '#10b981', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                   title={a.isHidden ? "Hidden - Click to Show" : "Public - Click to Hide"}
-                 >
-                   {a.isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
-                 </button>
-                 <button 
-                   onClick={() => openEditArticle(a)} 
-                   style={{ background: 'rgba(0, 210, 255, 0.1)', border: 'none', color: '#00d2ff', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                 >
-                   <Edit2 size={14} />
-                 </button>
-                 <button 
-                   onClick={() => handleDeleteArticle(a._id)} 
-                   style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                 >
-                   <Trash2 size={14} />
-                 </button>
-               </div>
+              <img src={a.image} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px' }} />
+              <h4 style={{ margin: '1rem 0 0.5rem 0', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.title}</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{a.category} {a.isHidden && <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>(Hidden)</span>}</p>
+
+              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <button
+                  onClick={() => handleToggleVisibility(a._id)}
+                  style={{ background: a.isHidden ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', border: 'none', color: a.isHidden ? '#ef4444' : '#10b981', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  title={a.isHidden ? "Hidden - Click to Show" : "Public - Click to Hide"}
+                >
+                  {a.isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+                <button
+                  onClick={() => openEditArticle(a)}
+                  style={{ background: 'rgba(0, 210, 255, 0.1)', border: 'none', color: '#00d2ff', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                >
+                  <Edit2 size={14} />
+                </button>
+                <button
+                  onClick={() => handleDeleteArticle(a._id)}
+                  style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -577,16 +578,16 @@ const AdminDashboard = () => {
             <Shield className="text-[#10b981]" /> Police Intelligence Metadata
           </h2>
           <div style={{ padding: '0.5rem 1rem', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontSize: '0.75rem' }}>
-            <AlertTriangle size={14} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} /> 
+            <AlertTriangle size={14} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
             Forensic details isolated from Admin view
           </div>
         </div>
         <div style={{ marginBottom: '1.5rem' }}>
           <div className="glass" style={{ display: 'flex', alignItems: 'center', padding: '0.75rem 1.25rem', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', maxWidth: '400px' }}>
             <Search size={18} style={{ opacity: 0.5, marginRight: '0.75rem' }} />
-            <input 
-              type="text" 
-              placeholder="Search by ID or Victim Name..." 
+            <input
+              type="text"
+              placeholder="Search by ID or Victim Name..."
               value={policeSearchTerm}
               onChange={(e) => setPoliceSearchTerm(e.target.value)}
               style={{ background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.9rem' }}
@@ -609,27 +610,27 @@ const AdminDashboard = () => {
             </thead>
             <tbody>
               {Array.isArray(policeMetadata) && policeMetadata
-                .filter(r => 
+                .filter(r =>
                   r.referenceId?.toLowerCase().includes(policeSearchTerm.toLowerCase()) ||
                   r.victimName?.toLowerCase().includes(policeSearchTerm.toLowerCase())
                 )
                 .map(r => (
-                <tr key={r._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <td style={{ padding: '1rem', color: '#00d2ff', fontWeight: 'bold', fontFamily: 'monospace' }}>{r.referenceId}</td>
-                  <td style={{ padding: '1rem' }}>{r.victimName}</td>
-                  <td style={{ padding: '1rem' }}>{r.victimEmail}</td>
-                  <td style={{ padding: '1rem' }}>{r.title}</td>
-                  <td style={{ padding: '1rem' }}>{new Date(r.createdAt).toLocaleDateString()}</td>
-                  <td style={{ padding: '1rem' }}>
-                    <span style={{ color: r.isClosed ? '#10b981' : '#f59e0b', fontSize: '0.85rem' }}>
-                      {r.isClosed ? 'Resolved' : r.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    {r.conclusion || 'Ongoing...'}
-                  </td>
-                </tr>
-              ))}
+                  <tr key={r._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <td style={{ padding: '1rem', color: '#00d2ff', fontWeight: 'bold', fontFamily: 'monospace' }}>{r.referenceId}</td>
+                    <td style={{ padding: '1rem' }}>{r.victimName}</td>
+                    <td style={{ padding: '1rem' }}>{r.victimEmail}</td>
+                    <td style={{ padding: '1rem' }}>{r.title}</td>
+                    <td style={{ padding: '1rem' }}>{new Date(r.createdAt).toLocaleDateString()}</td>
+                    <td style={{ padding: '1rem' }}>
+                      <span style={{ color: r.isClosed ? '#10b981' : '#f59e0b', fontSize: '0.85rem' }}>
+                        {r.isClosed ? 'Resolved' : r.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      {r.conclusion || 'Ongoing...'}
+                    </td>
+                  </tr>
+                ))}
               {(!Array.isArray(policeMetadata) || policeMetadata.length === 0) && (
                 <tr>
                   <td colSpan="5" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -650,23 +651,23 @@ const AdminDashboard = () => {
         <div className="glass" style={{ padding: '2.5rem', borderRadius: '30px', width: '450px', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
           <button onClick={() => setShowAddUser(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
           <h3 style={{ fontSize: '1.8rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}><Users className="text-[#00d2ff]" /> New User</h3>
-          
+
           <form onSubmit={handleAddUser}>
             <div className="form-group" style={{ marginBottom: '1.2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Full Name</label>
-              <input type="text" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
+              <input type="text" value={newUser.name} onChange={e => setNewUser({ ...newUser, name: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
             </div>
             <div className="form-group" style={{ marginBottom: '1.2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Email Address</label>
-              <input type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
+              <input type="email" value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
             </div>
             <div className="form-group" style={{ marginBottom: '1.2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Password</label>
-              <input type="password" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
+              <input type="password" value={newUser.password} onChange={e => setNewUser({ ...newUser, password: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
             </div>
             <div className="form-group" style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Assign Role</label>
-              <select value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
+              <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
                 <option value="user">Standard User</option>
                 <option value="police">Police Officer</option>
                 <option value="admin">Administrator</option>
@@ -685,17 +686,17 @@ const AdminDashboard = () => {
         <div className="glass" style={{ padding: '2.5rem', borderRadius: '30px', width: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
           <button onClick={() => { setShowAddArticle(false); setEditingArticle(null); setNewArticle({ title: '', category: 'Cyber Security', excerpt: '', content: '', image: '', link: '' }); }} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
           <h3 style={{ fontSize: '1.8rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}><BookOpen className="text-[#10b981]" /> {editingArticle ? 'Edit Article' : 'Publish Article'}</h3>
-          
+
           <form onSubmit={handleAddArticle}>
             <div className="form-group" style={{ marginBottom: '1.2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Article Title</label>
-              <input type="text" value={newArticle.title} onChange={e => setNewArticle({...newArticle, title: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
+              <input type="text" value={newArticle.title} onChange={e => setNewArticle({ ...newArticle, title: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
             </div>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.2rem' }}>
               <div className="form-group">
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Category</label>
-                <select value={newArticle.category} onChange={e => setNewArticle({...newArticle, category: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
+                <select value={newArticle.category} onChange={e => setNewArticle({ ...newArticle, category: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
                   <option value="Cyber Security">Cyber Security</option>
                   <option value="Intelligence">Intelligence</option>
                   <option value="Privacy">Privacy</option>
@@ -703,7 +704,7 @@ const AdminDashboard = () => {
                   <option value="Malware">Malware</option>
                 </select>
               </div>
-              
+
               <div className="form-group">
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Image Source</label>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -718,7 +719,7 @@ const AdminDashboard = () => {
                 {imageMode === 'url' ? 'Image Address' : 'Select Image from PC'}
               </label>
               {imageMode === 'url' ? (
-                <input type="text" value={newArticle.image} onChange={e => setNewArticle({...newArticle, image: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} placeholder="https://images.unsplash.com/..." required />
+                <input type="text" value={newArticle.image} onChange={e => setNewArticle({ ...newArticle, image: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} placeholder="https://images.unsplash.com/..." required />
               ) : (
                 <div style={{ position: 'relative' }}>
                   <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
@@ -730,15 +731,15 @@ const AdminDashboard = () => {
 
             <div className="form-group" style={{ marginBottom: '1.2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Brief Excerpt</label>
-              <textarea rows="2" value={newArticle.excerpt} onChange={e => setNewArticle({...newArticle, excerpt: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
+              <textarea rows="2" value={newArticle.excerpt} onChange={e => setNewArticle({ ...newArticle, excerpt: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
             </div>
             <div className="form-group" style={{ marginBottom: '1.2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Full Content (Markdown Supported)</label>
-              <textarea rows="6" value={newArticle.content} onChange={e => setNewArticle({...newArticle, content: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
+              <textarea rows="6" value={newArticle.content} onChange={e => setNewArticle({ ...newArticle, content: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
             </div>
             <div className="form-group" style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>External Link (Optional)</label>
-              <input type="text" value={newArticle.link} onChange={e => setNewArticle({...newArticle, link: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
+              <input type="text" value={newArticle.link} onChange={e => setNewArticle({ ...newArticle, link: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
             </div>
             <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }} disabled={uploading}>{editingArticle ? 'Update Article' : 'Publish Now'}</button>
           </form>

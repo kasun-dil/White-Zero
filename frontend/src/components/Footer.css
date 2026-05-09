@@ -25,6 +25,7 @@
 .footer-brand p {
   color: var(--text-muted);
   font-size: 0.95rem;
+  font-weight: 300;
   margin-bottom: 2rem;
   text-align: justify;
   text-align-last: left;
