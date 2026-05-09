@@ -452,7 +452,9 @@ const PoliceDashboard = () => {
               <button onClick={() => setShowAddArticle(true)} className="btn-primary"><Plus size={18} /> New Intelligence Asset</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-              {Array.isArray(articles) && articles.map(a => (
+              {Array.isArray(articles) && articles
+                .filter(a => a.authorRole === 'police')
+                .map(a => (
                 <div 
                   key={a._id} 
                   className="glass" 
@@ -462,8 +464,8 @@ const PoliceDashboard = () => {
                     position: 'relative', 
                     display: 'flex', 
                     flexDirection: 'column',
-                    border: `1px solid ${a.authorRole === 'police' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0, 210, 255, 0.2)'}`,
-                    boxShadow: a.authorRole === 'police' ? '0 4px 15px rgba(16, 185, 129, 0.05)' : '0 4px 15px rgba(0, 210, 255, 0.05)'
+                    border: `1px solid rgba(16, 185, 129, 0.2)`,
+                    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.05)'
                   }}
                 >
                   <div style={{ position: 'relative' }}>

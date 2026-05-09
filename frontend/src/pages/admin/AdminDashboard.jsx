@@ -110,11 +110,18 @@ const AdminDashboard = () => {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${user.token}` }
       });
-      // Refresh to be sure, but we already cleared it locally for speed
-      fetchDashboardData();
+      // Small buffer to allow DB synchronization before refreshing stats
+      setTimeout(fetchDashboardData, 500);
     } catch (error) {
       console.error('Error clearing messages', error);
     }
+  };
+
+  const handleMarkAllPoliceRead = async () => {
+    setStats(prev => ({ ...prev, unreadPoliceReports: 0 }));
+    fetchPoliceMetadata();
+    // In a real scenario, you'd have a mark-all-read for police too
+    setTimeout(fetchDashboardData, 500);
   };
 
   const handleUpdateFeedbackStatus = async (id, status) => {
@@ -289,8 +296,8 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('users')} className={`admin-nav-btn ${activeTab === 'users' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'users')}>
             <Users size={18} /> <span>Users</span>
           </button>
-          <button onClick={() => { setActiveTab('police'); fetchPoliceMetadata(); fetchDashboardData(); }} className={`admin-nav-btn ${activeTab === 'police' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'police')}>
-            <Shield size={18} /> <span>Police Investigations </span> {stats.unreadPoliceReports > 0 && <span style={{ marginLeft: 'auto', background: '#10b981', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.unreadPoliceReports}</span>}
+          <button onClick={() => { setActiveTab('police'); handleMarkAllPoliceRead(); }} className={`admin-nav-btn ${activeTab === 'police' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'police')}>
+            <Shield size={18} /> <span>Police Investigations </span> {stats.unreadPoliceReports > 0 && activeTab !== 'police' && <span style={{ marginLeft: 'auto', background: '#10b981', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.unreadPoliceReports}</span>}
           </button>
           <button onClick={() => setActiveTab('articles')} className={`admin-nav-btn ${activeTab === 'articles' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'articles')}>
             <BookOpen size={18} /> <span>Articles</span>
@@ -299,7 +306,7 @@ const AdminDashboard = () => {
             <MessageSquare size={18} /> <span>Feedback</span> {stats.pendingFeedback > 0 && <span style={{ marginLeft: 'auto', background: '#f59e0b', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.pendingFeedback}</span>}
           </button>
           <button onClick={() => { setActiveTab('messages'); handleMarkAllMessagesRead(); }} className={`admin-nav-btn ${activeTab === 'messages' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'messages')}>
-            <Mail size={18} /> <span>Messages</span> {stats.unreadMessages > 0 && <span style={{ marginLeft: 'auto', background: '#00d2ff', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.unreadMessages}</span>}
+            <Mail size={18} /> <span>Messages</span> {stats.unreadMessages > 0 && activeTab !== 'messages' && <span style={{ marginLeft: 'auto', background: '#00d2ff', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.unreadMessages}</span>}
           </button>
         </nav>
 
