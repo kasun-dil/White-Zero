@@ -360,10 +360,23 @@ const AdminDashboard = () => {
           {[
             { label: 'Total Users', value: stats.users, icon: <Users />, color: '#00d2ff' },
             { label: 'Live Articles', value: stats.articles, icon: <BookOpen />, color: '#10b981' },
-            { label: 'Total Feedback', value: stats.feedbacks, icon: <MessageSquare />, color: '#f59e0b' },
-            { label: 'Pending Reviews', value: stats.pendingFeedback, icon: <Activity />, color: '#ef4444' }
+            { label: 'Ongoing Cases', value: stats.ongoingCases || 0, icon: <Shield />, color: '#10b981', action: () => { setActiveTab('police'); handleMarkAllPoliceRead(); } },
+            { label: 'New Messages', value: stats.unreadMessages || 0, icon: <Mail />, color: '#00d2ff', action: () => { setActiveTab('messages'); handleMarkAllMessagesRead(); } }
           ].map((item, i) => (
-            <div key={i} className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: `4px solid ${item.color}` }}>
+            <div 
+              key={i} 
+              className="glass" 
+              onClick={item.action}
+              style={{ 
+                padding: '1.5rem', 
+                borderRadius: '20px', 
+                borderLeft: `4px solid ${item.color}`,
+                cursor: item.action ? 'pointer' : 'default',
+                transition: 'transform 0.3s ease',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{item.label}</div>

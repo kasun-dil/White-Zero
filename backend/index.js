@@ -237,7 +237,8 @@ app.get('/api/admin/stats', protect, admin, async (req, res) => {
     const pendingFeedback = await Feedback.countDocuments({ status: 'pending' });
     const messageCount = await Message.countDocuments();
     const unreadMessages = await Message.countDocuments({ status: 'unread' });
-    const unreadPoliceReports = await PoliceReport.countDocuments({ isReadByPolice: false });
+    const ongoingCases = await PoliceReport.countDocuments({ isClosed: { $ne: true } });
+    const unreadPoliceReports = await PoliceReport.countDocuments({ isReadByAdmin: false });
     
     res.json({
       users: userCount,
@@ -246,6 +247,7 @@ app.get('/api/admin/stats', protect, admin, async (req, res) => {
       pendingFeedback,
       messages: messageCount,
       unreadMessages,
+      ongoingCases,
       unreadPoliceReports
     });
   } catch (error) {
