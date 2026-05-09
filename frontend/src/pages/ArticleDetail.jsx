@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import FadeInSection from '../components/FadeInSection';
 import { AuthContext } from '../context/AuthContext';
 import { ArrowLeft, Calendar, User, Clock, Share2, Bookmark } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import './PageStyles.css';
 
 const ArticleDetail = () => {
@@ -163,8 +164,8 @@ const ArticleDetail = () => {
               {article.excerpt}
             </p>
             
-            <div style={{ whiteSpace: 'pre-wrap' }}>
-              {article.content}
+            <div className="markdown-content">
+              <ReactMarkdown>{article.content}</ReactMarkdown>
             </div>
             
             <div className="glass" style={{ marginTop: '5rem', padding: '3rem', borderRadius: '25px', textAlign: 'center', border: '1px solid rgba(0, 210, 255, 0.1)' }}>
