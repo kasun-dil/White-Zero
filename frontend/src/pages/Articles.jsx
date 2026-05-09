@@ -78,14 +78,38 @@ const Articles = () => {
           <div className="blog-grid" style={{ marginBottom: '4rem' }}>
             {currentPosts.map(post => (
               <FadeInSection direction="up" key={post._id}>
-                <article className="blog-card glass" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <article 
+                  className="blog-card glass" 
+                  style={{ 
+                    height: '100%', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    border: `1px solid ${post.authorRole === 'police' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0, 210, 255, 0.2)'}`,
+                    boxShadow: post.authorRole === 'police' ? '0 4px 15px rgba(16, 185, 129, 0.05)' : '0 4px 15px rgba(0, 210, 255, 0.05)'
+                  }}
+                >
                   <div style={{ position: 'relative', overflow: 'hidden' }}>
                     <img 
                       src={post.image || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80'} 
                       alt={post.title} 
                       className="blog-img" 
                       style={{ transition: 'transform 0.5s ease' }}
+                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800'; }}
                     />
+                    <div style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 2 }}>
+                      <span style={{ 
+                        background: post.authorRole === 'police' ? '#10b981' : '#00d2ff', 
+                        color: 'black', 
+                        fontSize: '0.6rem', 
+                        fontWeight: 'bold', 
+                        padding: '4px 10px', 
+                        borderRadius: '6px',
+                        textTransform: 'uppercase',
+                        boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                      }}>
+                        {post.authorRole || 'Admin Hub'}
+                      </span>
+                    </div>
                     <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', padding: '1rem' }}>
                       <span className="blog-category" style={{ margin: 0 }}>{post.category}</span>
                     </div>
@@ -110,7 +134,7 @@ const Articles = () => {
                           rel="noopener noreferrer"
                           onClick={() => handleArticleRead(post)}
                           className="btn-outline"
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none' }}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none', borderColor: post.authorRole === 'police' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(0, 210, 255, 0.3)' }}
                         >
                           Read External <ChevronRight size={16} />
                         </a>
@@ -119,7 +143,7 @@ const Articles = () => {
                           to={`/articles/${post._id}`}
                           onClick={() => handleArticleRead(post)}
                           className="btn-outline"
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none' }}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none', borderColor: post.authorRole === 'police' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(0, 210, 255, 0.3)' }}
                         >
                           Read Report <ChevronRight size={16} />
                         </Link>

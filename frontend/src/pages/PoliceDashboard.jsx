@@ -451,14 +451,58 @@ const PoliceDashboard = () => {
               <h2 style={{ fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '1rem' }}><BookOpen className="text-[#10b981]" /> Intelligence Articles</h2>
               <button onClick={() => setShowAddArticle(true)} className="btn-primary"><Plus size={18} /> New Intelligence Asset</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
               {Array.isArray(articles) && articles.map(a => (
-                <div key={a._id} className="glass" style={{ padding: '1.5rem', borderRadius: '15px', position: 'relative' }}>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>{a.title}</h4>
+                <div 
+                  key={a._id} 
+                  className="glass" 
+                  style={{ 
+                    padding: '1rem', 
+                    borderRadius: '15px', 
+                    position: 'relative', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    border: `1px solid ${a.authorRole === 'police' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0, 210, 255, 0.2)'}`,
+                    boxShadow: a.authorRole === 'police' ? '0 4px 15px rgba(16, 185, 129, 0.05)' : '0 4px 15px rgba(0, 210, 255, 0.05)'
+                  }}
+                >
+                  <div style={{ position: 'relative' }}>
+                    <img 
+                      src={a.image} 
+                      style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px' }} 
+                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800'; }} 
+                    />
+                    <span style={{ 
+                      position: 'absolute', 
+                      top: '10px', 
+                      right: '10px', 
+                      background: a.authorRole === 'police' ? '#10b981' : '#00d2ff', 
+                      color: 'black', 
+                      fontSize: '0.6rem', 
+                      fontWeight: 'bold', 
+                      padding: '2px 8px', 
+                      borderRadius: '5px',
+                      textTransform: 'uppercase'
+                    }}>
+                      {a.authorRole}
+                    </span>
+                  </div>
+                  <h4 style={{ margin: '1rem 0 0.5rem 0', fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.title}</h4>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{a.category} | {new Date(a.createdAt).toLocaleDateString()}</p>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => { setEditingArticle(a); setNewArticle(a); setShowAddArticle(true); }} className="btn-outline" style={{ padding: '0.5rem', borderRadius: '8px' }}><Edit3 size={14} /></button>
-                    <button onClick={async () => { if(window.confirm('Delete article?')) { await fetch(`/api/articles/${a._id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${user.token}` } }); fetchArticles(); } }} className="btn-outline" style={{ padding: '0.5rem', borderRadius: '8px', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}><Trash2 size={14} /></button>
+                  
+                  <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <button 
+                      onClick={() => { setEditingArticle(a); setNewArticle(a); setShowAddArticle(true); }} 
+                      style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                    >
+                      <Edit3 size={16} /> Edit Asset
+                    </button>
+                    <button 
+                      onClick={async () => { if(window.confirm('Delete article?')) { await fetch(`/api/articles/${a._id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${user.token}` } }); fetchArticles(); } }} 
+                      style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                    >
+                      <Trash2 size={16} /> Purge
+                    </button>
                   </div>
                 </div>
               ))}

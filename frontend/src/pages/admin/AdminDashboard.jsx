@@ -22,6 +22,7 @@ const AdminDashboard = () => {
   const [recentActivity, setRecentActivity] = useState({ searches: [], topArticles: [] });
   const [users, setUsers] = useState([]);
   const [articles, setArticles] = useState([]);
+  const [articleFilter, setArticleFilter] = useState('all');
   const [feedbacks, setFeedbacks] = useState([]);
   const [messages, setMessages] = useState([]);
   const [policeMetadata, setPoliceMetadata] = useState([]);
@@ -99,6 +100,20 @@ const AdminDashboard = () => {
       console.error('Error fetching admin data', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMarkAllMessagesRead = async () => {
+    setStats(prev => ({ ...prev, unreadMessages: 0 }));
+    try {
+      await fetch('/api/admin/messages/read-all', {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+      // Refresh to be sure, but we already cleared it locally for speed
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Error clearing messages', error);
     }
   };
 
@@ -274,7 +289,7 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('users')} className={`admin-nav-btn ${activeTab === 'users' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'users')}>
             <Users size={18} /> <span>Users</span>
           </button>
-          <button onClick={() => { setActiveTab('police'); setTimeout(fetchDashboardData, 1000); }} className={`admin-nav-btn ${activeTab === 'police' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'police')}>
+          <button onClick={() => { setActiveTab('police'); fetchPoliceMetadata(); fetchDashboardData(); }} className={`admin-nav-btn ${activeTab === 'police' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'police')}>
             <Shield size={18} /> <span>Police Investigations </span> {stats.unreadPoliceReports > 0 && <span style={{ marginLeft: 'auto', background: '#10b981', color: 'white', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.unreadPoliceReports}</span>}
           </button>
           <button onClick={() => setActiveTab('articles')} className={`admin-nav-btn ${activeTab === 'articles' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'articles')}>
@@ -283,7 +298,7 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('feedback')} className={`admin-nav-btn ${activeTab === 'feedback' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'feedback')}>
             <MessageSquare size={18} /> <span>Feedback</span> {stats.pendingFeedback > 0 && <span style={{ marginLeft: 'auto', background: '#f59e0b', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.pendingFeedback}</span>}
           </button>
-          <button onClick={() => { setActiveTab('messages'); setTimeout(fetchDashboardData, 1000); }} className={`admin-nav-btn ${activeTab === 'messages' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'messages')}>
+          <button onClick={() => { setActiveTab('messages'); handleMarkAllMessagesRead(); }} className={`admin-nav-btn ${activeTab === 'messages' ? 'active' : ''}`} style={navBtnStyle(activeTab === 'messages')}>
             <Mail size={18} /> <span>Messages</span> {stats.unreadMessages > 0 && <span style={{ marginLeft: 'auto', background: '#00d2ff', color: 'black', padding: '2px 8px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 'bold' }}>{stats.unreadMessages}</span>}
           </button>
         </nav>
@@ -446,14 +461,76 @@ const AdminDashboard = () => {
   function renderArticlesSection() {
     return (
       <div className="glass" style={{ padding: '2rem', borderRadius: '25px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h2>Articles & Blogs</h2>
-          <button onClick={() => setShowAddArticle(true)} className="btn-primary">New Article</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <BookOpen className="text-[#10b981]" /> Articles & Intelligence
+          </h2>
+          <div style={{ display: 'flex', gap: '0.75rem', background: 'rgba(255,255,255,0.03)', padding: '0.4rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            {['all', 'admin', 'police'].map(f => (
+              <button
+                key={f}
+                onClick={() => setArticleFilter(f)}
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: articleFilter === f ? (f === 'police' ? '#10b981' : (f === 'admin' ? '#00d2ff' : 'rgba(255,255,255,0.1)')) : 'transparent',
+                  color: articleFilter === f ? 'black' : 'white',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {f}
+              </button>
+            ))}
+            <button onClick={() => setShowAddArticle(true)} className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Plus size={14} /> New
+            </button>
+          </div>
         </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          {articles.map(a => (
-            <div key={a._id} className="glass" style={{ padding: '1rem', borderRadius: '15px', position: 'relative', opacity: a.isHidden ? 0.6 : 1, display: 'flex', flexDirection: 'column' }}>
-              <img src={a.image} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px' }} />
+          {articles
+            .filter(a => articleFilter === 'all' || a.authorRole === articleFilter)
+            .map(a => (
+            <div 
+              key={a._id} 
+              className="glass" 
+              style={{ 
+                padding: '1rem', 
+                borderRadius: '15px', 
+                position: 'relative', 
+                opacity: a.isHidden ? 0.6 : 1, 
+                display: 'flex', 
+                flexDirection: 'column',
+                border: `1px solid ${a.authorRole === 'police' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0, 210, 255, 0.2)'}`,
+                boxShadow: a.authorRole === 'police' ? '0 4px 15px rgba(16, 185, 129, 0.05)' : '0 4px 15px rgba(0, 210, 255, 0.05)'
+              }}
+            >
+              <div style={{ position: 'relative' }}>
+                <img 
+                  src={a.image} 
+                  style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px' }} 
+                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800'; }} 
+                />
+                <span style={{ 
+                  position: 'absolute', 
+                  top: '10px', 
+                  right: '10px', 
+                  background: a.authorRole === 'police' ? '#10b981' : '#00d2ff', 
+                  color: 'black', 
+                  fontSize: '0.6rem', 
+                  fontWeight: 'bold', 
+                  padding: '2px 8px', 
+                  borderRadius: '5px',
+                  textTransform: 'uppercase'
+                }}>
+                  {a.authorRole}
+                </span>
+              </div>
               <h4 style={{ margin: '1rem 0 0.5rem 0', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.title}</h4>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{a.category} {a.isHidden && <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>(Hidden)</span>}</p>
 

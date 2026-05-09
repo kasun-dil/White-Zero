@@ -305,6 +305,15 @@ app.delete('/api/admin/messages/:id', protect, admin, async (req, res) => {
   }
 });
 
+app.patch('/api/admin/messages/read-all', protect, admin, async (req, res) => {
+  try {
+    await Message.updateMany({ status: 'unread' }, { $set: { status: 'read' } });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 app.post('/api/admin/users', protect, admin, async (req, res) => {
   const { name, email, password, role } = req.body;
   try {
