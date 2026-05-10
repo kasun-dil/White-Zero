@@ -3,10 +3,12 @@ import { AuthContext } from '../context/AuthContext';
 import { 
   Shield, Mail, Phone, Clock, CheckCircle, MessageSquare, 
   Send, User, ChevronRight, Search, LayoutDashboard, 
-  BookOpen, Trash2, Edit3, X, Plus, LogOut, Globe, Hexagon, Star
+  BookOpen, Trash2, Edit3, X, Plus, LogOut, Globe, Hexagon, Star,
+  Eye, EyeOff, Camera, Link as LinkIcon
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import { getAvatarUrl } from '../utils/avatar';
 import FadeInSection from '../components/FadeInSection';
 
 const PoliceDashboard = () => {
@@ -25,8 +27,19 @@ const PoliceDashboard = () => {
   // Article State
   const [showAddArticle, setShowAddArticle] = useState(false);
   const [editingArticle, setEditingArticle] = useState(null);
+  const [imageMode, setImageMode] = useState('url'); // 'url' or 'upload'
+  const [uploading, setUploading] = useState(false);
   const [newArticle, setNewArticle] = useState({
-    title: '', category: 'Cyber Security', excerpt: '', content: '', image: '', link: ''
+    title: '', 
+    category: 'Cyber Security', 
+    excerpt: '', 
+    content: '', 
+    image: '', 
+    introBold: '',
+    conclusion: '',
+    galleryImages: [],
+    authorRole: 'police',
+    isHidden: false
   });
 
   useEffect(() => {
@@ -143,10 +156,90 @@ const PoliceDashboard = () => {
         fetchArticles();
         setShowAddArticle(false);
         setEditingArticle(null);
-        setNewArticle({ title: '', category: 'Cyber Security', excerpt: '', content: '', image: '', link: '' });
+        setNewArticle({ 
+          title: '', 
+          category: 'Cyber Security', 
+          excerpt: '', 
+          content: '', 
+          image: '', 
+          introBold: '',
+          conclusion: '',
+          galleryImages: [],
+          authorRole: 'police',
+          isHidden: false
+        });
+        toast.success(editingArticle ? 'Intelligence synchronized.' : 'Article transmitted.');
       }
     } catch (error) {
       console.error('Error saving article', error);
+      toast.error('Transmission failed.');
+    }
+  };
+
+  const handleToggleVisibility = async (id) => {
+    try {
+      const res = await fetch(`/api/articles/${id}/visibility`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        toast.success('Visibility toggled.');
+        fetchArticles();
+      }
+    } catch (error) {
+      toast.error('Visibility sync failed.');
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${user.token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNewArticle({ ...newArticle, image: data.url });
+        toast.success('Imagery synchronized.');
+      }
+    } catch (error) {
+      toast.error('Upload protocol failed.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    
+    setUploading(true);
+    const formData = new FormData();
+    files.forEach(file => formData.append('image', file));
+
+    try {
+      const res = await fetch('/api/upload/multiple', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${user.token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNewArticle({ ...newArticle, galleryImages: [...newArticle.galleryImages, ...data.urls] });
+        toast.success('Gallery telemetry updated.');
+      }
+    } catch (error) {
+      toast.error('Gallery sync failed.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -185,6 +278,100 @@ const PoliceDashboard = () => {
     navigate('/');
   };
 
+  const renderAddArticleModal = () => {
+    return (
+      <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' }}>
+        <div className="glass" style={{ padding: '2.5rem', borderRadius: '30px', width: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+          <button onClick={() => { setShowAddArticle(false); setEditingArticle(null); }} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
+          
+          <h3 style={{ fontSize: '1.8rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}><BookOpen className="text-[#10b981]" /> {editingArticle ? 'Update Intelligence' : 'Draft New Article'}</h3>
+
+          <form onSubmit={handleAddArticle}>
+            <div className="form-group" style={{ marginBottom: '1.2rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Intel Title</label>
+              <input type="text" value={newArticle.title} onChange={e => setNewArticle({ ...newArticle, title: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.2rem' }}>
+              <div className="form-group">
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Category</label>
+                <select value={newArticle.category} onChange={e => setNewArticle({ ...newArticle, category: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
+                  <option value="Cyber Security">Cyber Security</option>
+                  <option value="Intelligence">Intelligence</option>
+                  <option value="Forensics">Forensics</option>
+                  <option value="Data Breach">Data Breach</option>
+                  <option value="Malware">Malware</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Imagery Source</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button type="button" onClick={() => setImageMode('url')} style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', background: imageMode === 'url' ? '#10b981' : 'rgba(255,255,255,0.05)', border: 'none', color: imageMode === 'url' ? 'black' : 'white', borderRadius: '5px', cursor: 'pointer' }}>URL</button>
+                  <button type="button" onClick={() => setImageMode('upload')} style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', background: imageMode === 'upload' ? '#10b981' : 'rgba(255,255,255,0.05)', border: 'none', color: imageMode === 'upload' ? 'black' : 'white', borderRadius: '5px', cursor: 'pointer' }}>Browse</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1.2rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                {imageMode === 'url' ? 'Address (Link)' : 'Local Forensic Asset'}
+              </label>
+              {imageMode === 'url' ? (
+                <input type="text" value={newArticle.image} onChange={e => setNewArticle({ ...newArticle, image: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} placeholder="https://..." required />
+              ) : (
+                <div style={{ position: 'relative' }}>
+                  <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
+                  {uploading && <div style={{ fontSize: '0.8rem', color: '#10b981', marginTop: '0.5rem' }}>Uploading asset...</div>}
+                </div>
+              )}
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1.2rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Excerpt (Summary)</label>
+              <textarea rows="2" value={newArticle.excerpt} onChange={e => setNewArticle({ ...newArticle, excerpt: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1.2rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Introduction (Forensic Overview)</label>
+              <textarea rows="2" value={newArticle.introBold} onChange={e => setNewArticle({ ...newArticle, introBold: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1.2rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Primary Intelligence Narrative</label>
+              <textarea rows="6" value={newArticle.content} onChange={e => setNewArticle({ ...newArticle, content: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1.2rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Operational Conclusion</label>
+              <textarea rows="3" value={newArticle.conclusion} onChange={e => setNewArticle({ ...newArticle, conclusion: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '2rem' }}>
+              <label style={{ display: 'block', marginBottom: '1rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Forensic Gallery (Upload Multiple)</label>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                {newArticle.galleryImages?.map((img, i) => (
+                  <div key={i} style={{ position: 'relative', width: '60px', height: '60px' }}>
+                    <img src={img} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                    <button type="button" onClick={() => setNewArticle({...newArticle, galleryImages: newArticle.galleryImages.filter((_, idx) => idx !== i)})} style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer' }}>X</button>
+                  </div>
+                ))}
+                <label style={{ width: '60px', height: '60px', borderRadius: '8px', border: '1px dashed #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#10b981' }}>
+                  <Camera size={20} />
+                  <input type="file" multiple accept="image/*" onChange={handleGalleryUpload} style={{ display: 'none' }} />
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }} disabled={uploading}>
+              {editingArticle ? 'Synchronize Updates' : 'Transmit to Feed'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   if (!user) return null;
   if (loading) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050505', color: '#10b981', fontSize: '1.2rem', fontWeight: 'bold' }}>
@@ -221,7 +408,7 @@ const PoliceDashboard = () => {
             <LayoutDashboard size={18} /> <span>Incident Reports</span>
           </button>
           <button onClick={() => setActiveTab('articles')} style={navBtnStyle(activeTab === 'articles')}>
-            <BookOpen size={18} /> <span>Intelligence Blogs</span>
+            <BookOpen size={18} /> <span>Cyber Blog</span>
           </button>
         </nav>
 
@@ -238,6 +425,19 @@ const PoliceDashboard = () => {
       </aside>
 
       <main>
+        <header className="admin-header-flex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+          <div>
+            <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontWeight: '800' }}>Command <span className="text-gradient" style={{ background: 'linear-gradient(90deg, #fff, #10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Operations</span></h1>
+            <p style={{ color: 'var(--text-muted)' }}>Secure forensic analysis and field intelligence moderation.</p>
+          </div>
+          <div className="glass admin-profile-badge" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.6rem 1.2rem', borderRadius: '15px' }}>
+            <div className="desktop-only" style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{user.name}</div>
+              <div style={{ fontSize: '0.75rem', color: '#10b981' }}>Field Intelligence Officer</div>
+            </div>
+            <img src={getAvatarUrl(user)} alt="" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #10b981' }} />
+          </div>
+        </header>
         {activeTab === 'reports' ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
             {/* List */}
@@ -344,9 +544,10 @@ const PoliceDashboard = () => {
                       <div style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={14} /> {selectedReport.victimEmail}</div>
                     </div>
                     <div className="glass" style={{ padding: '1.5rem', borderRadius: '15px' }}>
-                      <h4 style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem', textTransform: 'uppercase' }}>Session Info</h4>
-                      <div style={{ fontSize: '0.9rem' }}>Verification: <span style={{ color: '#10b981' }}>SUCCESSFUL</span></div>
-                      <div style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>Platform User: {selectedReport.user?.email || 'Anonymous Transmision'}</div>
+                      <h4 style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem', textTransform: 'uppercase' }}>Intelligence Parameters</h4>
+                      <div style={{ fontSize: '0.9rem' }}>Platform: <span style={{ color: '#10b981', fontWeight: 'bold' }}>{selectedReport.platform === 'Others' ? selectedReport.otherPlatform : selectedReport.platform || 'General Cyber Vector'}</span></div>
+                      {selectedReport.platformDetails && <div style={{ fontSize: '0.8rem', marginTop: '0.3rem', color: 'var(--text-muted)' }}>Target: {selectedReport.platformDetails}</div>}
+                      <div style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>Incident Date: <span style={{ color: '#f59e0b' }}>{selectedReport.incidentDate ? new Date(selectedReport.incidentDate).toLocaleDateString() : 'Unspecified'}</span></div>
                     </div>
                   </div>
 
@@ -448,7 +649,7 @@ const PoliceDashboard = () => {
         ) : (
           <div className="glass" style={{ padding: '2rem', borderRadius: '25px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '1rem' }}><BookOpen className="text-[#10b981]" /> Intelligence Articles</h2>
+              <h2 style={{ fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '1rem' }}><BookOpen className="text-[#10b981]" /> Cyber Blog Intelligence</h2>
               <button onClick={() => setShowAddArticle(true)} className="btn-primary"><Plus size={18} /> New Intelligence Asset</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
@@ -494,10 +695,17 @@ const PoliceDashboard = () => {
                   
                   <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                     <button 
+                      onClick={() => handleToggleVisibility(a._id)}
+                      style={{ background: a.isHidden ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', border: 'none', color: a.isHidden ? '#ef4444' : '#10b981', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                      title={a.isHidden ? "Hidden - Click to Show" : "Public - Click to Hide"}
+                    >
+                      {a.isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                    <button 
                       onClick={() => { setEditingArticle(a); setNewArticle(a); setShowAddArticle(true); }} 
                       style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                     >
-                      <Edit3 size={16} /> Edit Asset
+                      <Edit3 size={16} /> Edit
                     </button>
                     <button 
                       onClick={async () => { if(window.confirm('Delete article?')) { await fetch(`/api/articles/${a._id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${user.token}` } }); fetchArticles(); } }} 
@@ -513,21 +721,7 @@ const PoliceDashboard = () => {
         )}
       </main>
 
-      {showAddArticle && (
-        <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' }}>
-          <div className="glass" style={{ padding: '2.5rem', borderRadius: '30px', width: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-              <h3>{editingArticle ? 'Update Intelligence' : 'Draft New Article'}</h3>
-              <button onClick={() => setShowAddArticle(false)}><X /></button>
-            </div>
-            <form onSubmit={handleAddArticle} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-              <input type="text" placeholder="Title" value={newArticle.title} onChange={e => setNewArticle({...newArticle, title: e.target.value})} style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '10px', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }} required />
-              <textarea placeholder="Content" rows="6" value={newArticle.content} onChange={e => setNewArticle({...newArticle, content: e.target.value})} style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '10px', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }} required />
-              <button type="submit" className="btn-primary" style={{ padding: '1rem' }}>{editingArticle ? 'Synchronize Updates' : 'Transmit to Feed'}</button>
-            </form>
-          </div>
-        </div>
-      )}
+      {showAddArticle && renderAddArticleModal()}
     </div>
   );
 };

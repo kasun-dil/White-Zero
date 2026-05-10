@@ -76,8 +76,9 @@ const ReportCrime = () => {
     victimEmail: '',
     targetAccount: '',
     incidentType: '',
-    platform: 'Facebook',
-    date: new Date().toLocaleDateString(),
+    platform: '',
+    otherPlatform: '',
+    incidentDate: new Date().toISOString().split('T')[0],
     description: '',
     suspectInfo: '',
     impact: ''
@@ -89,6 +90,10 @@ const ReportCrime = () => {
     victimEmail: '',
     title: '',
     description: '',
+    platform: '',
+    otherPlatform: '',
+    incidentDate: '',
+    platformDetails: '',
     evidenceLinks: ''
   });
 
@@ -107,8 +112,22 @@ const ReportCrime = () => {
 
   const handleNext = () => {
     if (reportType === 'social') {
-      if (step === 1 && (!formData.victimName || !formData.victimEmail)) {
-        toast.error('CRITICAL DATA MISSING: Please provide the Legal Name and Contact Email.');
+      if (step === 1) {
+        if (!formData.victimName || !formData.victimEmail || !formData.platform || !formData.targetAccount) {
+          toast.error('MANDATORY DATA: Victim profile and platform targets must be fully documented.');
+          return;
+        }
+        if (formData.platform === 'Others' && !formData.otherPlatform) {
+          toast.error('FIELD REQUIRED: Please specify the platform name.');
+          return;
+        }
+      }
+      if (step === 2 && (!formData.incidentType || !formData.description)) {
+        toast.error('ANALYSIS REQUIRED: Classification and incident narrative are mandatory.');
+        return;
+      }
+      if (step === 3 && !formData.impact) {
+        toast.error('IMPACT ASSESSMENT: Please document the forensic impact of this event.');
         return;
       }
       setStep(s => Math.min(s + 1, 4));
@@ -120,6 +139,16 @@ const ReportCrime = () => {
       if (step === 2 && !otpVerified) {
         toast.error('Please verify your contact information via OTP first.');
         return;
+      }
+      if (step === 3) {
+        if (!policeData.title || !policeData.description || !policeData.platform || !policeData.incidentDate || !policeData.platformDetails) {
+          toast.error('MANDATORY DATA MISSING: All intelligence fields must be filled for forensic archiving.');
+          return;
+        }
+        if (policeData.platform === 'Others' && !policeData.otherPlatform) {
+          toast.error('FIELD REQUIRED: Please specify the platform name.');
+          return;
+        }
       }
       setStep(s => Math.min(s + 1, 4));
     }
@@ -381,15 +410,15 @@ Official Documentation by White Zero Intelligence Framework
         </FadeInSection>
 
         <div className="selection-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', maxWidth: '900px', margin: '0 auto' }}>
-          <div className="selection-card glass" onClick={() => { setReportType('social'); setStep(1); }} style={{ padding: '3rem', borderRadius: '30px', cursor: 'pointer', textAlign: 'center', transition: 'transform 0.3s' }}>
-            <Globe size={48} color="#00d2ff" style={{ marginBottom: '1.5rem' }} />
-            <h3>Social Platform</h3>
-            <p>Generate a formal report to send directly to platform trust & safety teams.</p>
-          </div>
           <div className="selection-card glass" onClick={() => { setReportType('police'); setStep(1); }} style={{ padding: '3rem', borderRadius: '30px', cursor: 'pointer', textAlign: 'center', transition: 'transform 0.3s' }}>
             <Shield size={48} color="#10b981" style={{ marginBottom: '1.5rem' }} />
             <h3>Law Enforcement</h3>
-            <p>Directly inform the Police Cyber-Intelligence Unit (Requires Contact Verification).</p>
+            <p>Report your case directly to the Police to get legal help and start an investigation.</p>
+          </div>
+          <div className="selection-card glass" onClick={() => { setReportType('social'); setStep(1); }} style={{ padding: '3rem', borderRadius: '30px', cursor: 'pointer', textAlign: 'center', transition: 'transform 0.3s' }}>
+            <Globe size={48} color="#00d2ff" style={{ marginBottom: '1.5rem' }} />
+            <h3>Social Platform</h3>
+            <p>Create a formal report to send to apps like Facebook or Instagram to help recover your account.</p>
           </div>
         </div>
       </div>
@@ -435,28 +464,67 @@ Official Documentation by White Zero Intelligence Framework
                 <div className="wizard-step-content">
                   <div className="step-title"><User color="#00d2ff" /><h2>Victim & Platform Profile</h2></div>
                   <div className="form-grid">
-                    <div className="input-group"><label>Full Name</label><input type="text" name="victimName" value={formData.victimName} onChange={handleChange} /></div>
-                    <div className="input-group"><label>Email</label><input type="email" name="victimEmail" value={formData.victimEmail} onChange={handleChange} /></div>
-                    <div className="input-group"><label>Account Link</label><input type="text" name="targetAccount" value={formData.targetAccount} onChange={handleChange} /></div>
-                    <div className="input-group"><label>Platform</label><select name="platform" value={formData.platform} onChange={handleChange}><option value="Facebook">Facebook</option><option value="Instagram">Instagram</option></select></div>
+                    <div className="input-group"><label>Full Name <span style={{ color: '#ef4444' }}>*</span></label><input type="text" name="victimName" value={formData.victimName} onChange={handleChange} placeholder="Legal Name" required /></div>
+                    <div className="input-group"><label>Email <span style={{ color: '#ef4444' }}>*</span></label><input type="email" name="victimEmail" value={formData.victimEmail} onChange={handleChange} placeholder="Contact Email" required /></div>
+                    
+                    <div className="input-group">
+                      <label>Platform <span style={{ color: '#ef4444' }}>*</span></label>
+                      <select name="platform" value={formData.platform} onChange={handleChange} required>
+                        <option value="">Select Platform...</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="X">X (Twitter)</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="Telegram">Telegram</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="Others">Others</option>
+                      </select>
+                    </div>
+
+                    <div className="input-group">
+                      <label>Account Target <span style={{ color: '#ef4444' }}>*</span></label>
+                      <input type="text" name="targetAccount" value={formData.targetAccount} onChange={handleChange} placeholder="e.g. @username or Profile URL" required />
+                    </div>
                   </div>
+
+                  {formData.platform === 'Others' && (
+                    <div className="form-group" style={{ marginTop: '1.2rem' }}>
+                      <label>Specify Platform <span style={{ color: '#ef4444' }}>*</span></label>
+                      <input type="text" name="otherPlatform" value={formData.otherPlatform} onChange={handleChange} placeholder="e.g. Discord, Snapchat" required />
+                    </div>
+                  )}
                 </div>
               )}
               {step === 2 && (
                 <div className="wizard-step-content">
                   <div className="step-title"><AlertTriangle color="#f59e0b" /><h2>Incident Analysis</h2></div>
-                  <div className="form-group">
-                    <label>Classification</label>
-                    <select name="incidentType" value={formData.incidentType} onChange={handleChange}><option value="">Select...</option><option value="Hacking">Hacking</option></select>
+                  <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                    <label>Intelligence Classification <span style={{ color: '#ef4444' }}>*</span></label>
+                    <select name="incidentType" value={formData.incidentType} onChange={handleChange} required>
+                      <option value="">Select Classification...</option>
+                      <option value="Account Breach / Hacking">Account Breach / Hacking</option>
+                      <option value="Cyberbullying / Harassment">Cyberbullying / Harassment</option>
+                      <option value="Identity Theft">Identity Theft</option>
+                      <option value="Misinformation / Fake News">Misinformation / Fake News</option>
+                      <option value="Financial Scam / Phishing">Financial Scam / Phishing</option>
+                      <option value="Unauthorized Surveillance">Unauthorized Surveillance</option>
+                    </select>
                   </div>
-                  <div className="form-group"><label>Description</label><textarea name="description" rows="6" value={formData.description} onChange={handleChange} /></div>
+                  <div className="form-group"><label>Incident Narrative <span style={{ color: '#ef4444' }}>*</span></label><textarea name="description" rows="6" value={formData.description} onChange={handleChange} placeholder="Document the adversarial activity in detail..." required /></div>
                 </div>
               )}
               {step === 3 && (
                 <div className="wizard-step-content">
                   <div className="step-title"><Shield color="#10b981" /><h2>Evidence & Impact</h2></div>
-                  <div className="form-group"><label>Suspect Info</label><input type="text" name="suspectInfo" value={formData.suspectInfo} onChange={handleChange} /></div>
-                  <div className="form-group"><label>Impact</label><textarea name="impact" rows="4" value={formData.impact} onChange={handleChange} /></div>
+                  <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                    <label>Adversarial Intel (Suspect Handles/Links)</label>
+                    <input type="text" name="suspectInfo" value={formData.suspectInfo} onChange={handleChange} placeholder="e.g. @suspect_user, suspicious links" />
+                  </div>
+                  <div className="form-group">
+                    <label>Operational Impact <span style={{ color: '#ef4444' }}>*</span></label>
+                    <textarea name="impact" rows="4" value={formData.impact} onChange={handleChange} placeholder="Describe how this event has affected your safety or operations..." required />
+                  </div>
                 </div>
               )}
               {step === 4 && (
@@ -544,9 +612,17 @@ Official Documentation by White Zero Intelligence Framework
                         )}
                         
                         {!otpVerified && (
-                          <button className="btn-link" onClick={() => setOtpSent(false)} style={{ marginTop: '1rem', fontSize: '0.8rem' }}>
-                            Didn't receive code? Resend
-                          </button>
+                          <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                            <button className="btn-link" onClick={() => setOtpSent(false)} style={{ fontSize: '0.8rem' }}>
+                              Didn't receive code? Resend
+                            </button>
+                            <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(245, 158, 11, 0.05)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.1)' }}>
+                              <p style={{ fontSize: '0.75rem', color: '#f59e0b', margin: 0 }}>
+                                <Info size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                                Check your <strong>Spam or Junk</strong> folder if the code doesn't arrive.
+                              </p>
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}
@@ -556,8 +632,51 @@ Official Documentation by White Zero Intelligence Framework
               {step === 3 && (
                 <div className="wizard-step-content">
                   <div className="step-title"><FileText color="#f59e0b" /><h2>Incident Details</h2></div>
-                  <div className="form-group"><label>Report Title / Case Subject</label><input type="text" name="title" value={policeData.title} onChange={handleChange} placeholder="e.g. Identity Theft via Social Media" /></div>
-                  <div className="form-group"><label>Full Incident Description</label><textarea name="description" rows="6" value={policeData.description} onChange={handleChange} placeholder="Provide a detailed chronological account..." /></div>
+                  <div className="form-group"><label>Report Title / Case Subject <span style={{ color: '#ef4444' }}>*</span></label><input type="text" name="title" value={policeData.title} onChange={handleChange} placeholder="e.g. Identity Theft via Social Media" required /></div>
+                  
+                  <div className="form-grid" style={{ marginBottom: '1.5rem' }}>
+                    <div className="input-group">
+                      <label>Platform Affected <span style={{ color: '#ef4444' }}>*</span></label>
+                      <select name="platform" value={policeData.platform} onChange={handleChange} required>
+                        <option value="">Select Platform...</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="X">X (Twitter)</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="Telegram">Telegram</option>
+                        <option value="Others">Others</option>
+                      </select>
+                    </div>
+                    <div className="input-group">
+                      <label>Incident Date <span style={{ color: '#ef4444' }}>*</span></label>
+                      <input 
+                        type="date" 
+                        name="incidentDate" 
+                        value={policeData.incidentDate} 
+                        onChange={handleChange} 
+                        required 
+                        onClick={(e) => e.target.showPicker?.()}
+                        onFocus={(e) => e.target.showPicker?.()}
+                      />
+                    </div>
+                  </div>
+
+                  {policeData.platform === 'Others' && (
+                    <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                      <label>Please Specify Platform <span style={{ color: '#ef4444' }}>*</span></label>
+                      <input type="text" name="otherPlatform" value={policeData.otherPlatform} onChange={handleChange} placeholder="e.g. Discord, Reddit, etc." required />
+                    </div>
+                  )}
+
+                  {policeData.platform && (
+                    <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                      <label>Platform-Specific Information (Handle/Link) <span style={{ color: '#ef4444' }}>*</span></label>
+                      <input type="text" name="platformDetails" value={policeData.platformDetails} onChange={handleChange} placeholder={`e.g. ${policeData.platform === 'WhatsApp' ? 'Phone Number' : 'Profile URL or Username'}`} required />
+                    </div>
+                  )}
+
+                  <div className="form-group"><label>Full Incident Description <span style={{ color: '#ef4444' }}>*</span></label><textarea name="description" rows="6" value={policeData.description} onChange={handleChange} placeholder="Provide a detailed chronological account..." required /></div>
                 </div>
               )}
               {step === 4 && (

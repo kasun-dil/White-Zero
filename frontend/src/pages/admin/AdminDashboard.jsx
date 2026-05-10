@@ -9,6 +9,11 @@ import {
 } from 'lucide-react';
 import FadeInSection from '../../components/FadeInSection';
 import { toast } from 'react-hot-toast';
+import { getAvatarUrl } from '../../utils/avatar';
+import { 
+  ResponsiveContainer, PieChart, Pie, Cell, 
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LabelList 
+} from 'recharts';
 import '../PageStyles.css';
 
 const AdminDashboard = () => {
@@ -30,12 +35,15 @@ const AdminDashboard = () => {
 
   // Form States
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'user' });
-  const [newArticle, setNewArticle] = useState({ title: '', category: 'Cyber Security', excerpt: '', content: '', image: '', link: '' });
+  const [newArticle, setNewArticle] = useState({ title: '', category: 'Cyber Security', excerpt: '', content: '', image: '', link: '', isFeatured: false });
   const [showAddUser, setShowAddUser] = useState(false);
   const [showAddArticle, setShowAddArticle] = useState(false);
   const [editingArticle, setEditingArticle] = useState(null);
   const [imageMode, setImageMode] = useState('url'); // 'url' or 'upload'
   const [uploading, setUploading] = useState(false);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [selectedArticleComments, setSelectedArticleComments] = useState(null);
+  const [addingUser, setAddingUser] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -86,7 +94,9 @@ const AdminDashboard = () => {
         pendingFeedback: sData?.pendingFeedback || 0,
         messages: sData?.messages || 0,
         unreadMessages: sData?.unreadMessages || 0,
-        unreadPoliceReports: sData?.unreadPoliceReports || 0
+        unreadPoliceReports: sData?.unreadPoliceReports || 0,
+        ongoingCases: sData?.ongoingCases || 0,
+        closedCases: sData?.closedCases || 0
       });
       setRecentActivity({
         searches: Array.isArray(aData?.searches) ? aData.searches : [],
@@ -155,6 +165,8 @@ const AdminDashboard = () => {
 
   const handleAddUser = async (e) => {
     e.preventDefault();
+    if (addingUser) return;
+    setAddingUser(true);
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
@@ -168,9 +180,16 @@ const AdminDashboard = () => {
         fetchDashboardData();
         setNewUser({ name: '', email: '', password: '', role: 'user' });
         setShowAddUser(false);
+        toast.success('New operative successfully inducted.');
+      } else {
+        const errorData = await res.json();
+        toast.error(`Induction Failed: ${errorData.message || 'Unknown failure'}`);
       }
     } catch (error) {
       console.error('Error adding user', error);
+      toast.error('Network Error: Data transmission interrupted.');
+    } finally {
+      setAddingUser(false);
     }
   };
 
@@ -190,7 +209,7 @@ const AdminDashboard = () => {
       });
       if (res.ok) {
         fetchDashboardData();
-        setNewArticle({ title: '', category: 'Cyber Security', excerpt: '', content: '', image: '', link: '' });
+        setNewArticle({ title: '', category: 'Cyber Security', excerpt: '', content: '', image: '', link: '', isFeatured: false });
         setShowAddArticle(false);
         setEditingArticle(null);
       }
@@ -232,6 +251,26 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleToggleFeatured = async (id) => {
+    console.log('Toggling featured for article:', id);
+    try {
+      const res = await fetch(`/api/articles/${id}/featured`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        setArticles(prev => prev.map(a => a._id === id ? { ...a, isFeatured: !a.isFeatured } : a));
+        toast.success('Slideshow selection updated.');
+        fetchDashboardData();
+      } else {
+        const errorData = await res.json();
+        toast.error(`Failed: ${errorData.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error toggling featured', error);
+    }
+  };
+
   const openEditArticle = (article) => {
     setEditingArticle(article);
     setImageMode('url');
@@ -241,9 +280,56 @@ const AdminDashboard = () => {
       excerpt: article.excerpt,
       content: article.content,
       image: article.image,
-      link: article.link
+      link: article.link,
+      isFeatured: article.isFeatured || false
     });
     setShowAddArticle(true);
+  };
+
+  const handleToggleCommentVisibility = async (articleId, commentId) => {
+    try {
+      const res = await fetch(`/api/articles/${articleId}/comments/${commentId}/visibility`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        const updatedComment = await res.json();
+        setSelectedArticleComments(prev => ({
+          ...prev,
+          comments: prev.comments.map(c => c._id === commentId ? updatedComment : c)
+        }));
+        setArticles(prev => prev.map(a => a._id === articleId ? {
+          ...a,
+          comments: a.comments.map(c => c._id === commentId ? updatedComment : c)
+        } : a));
+        toast.success('Visibility updated.');
+      }
+    } catch (err) {
+      toast.error('Failed to update visibility.');
+    }
+  };
+
+  const handleDeleteCommentAdmin = async (articleId, commentId) => {
+    if (!window.confirm('Purge this comment from the record?')) return;
+    try {
+      const res = await fetch(`/api/articles/${articleId}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        setSelectedArticleComments(prev => ({
+          ...prev,
+          comments: prev.comments.filter(c => c._id !== commentId)
+        }));
+        setArticles(prev => prev.map(a => a._id === articleId ? {
+          ...a,
+          comments: a.comments.filter(c => c._id !== commentId)
+        } : a));
+        toast.success('Comment purged.');
+      }
+    } catch (err) {
+      toast.error('Failed to delete comment.');
+    }
   };
 
   const handleImageUpload = async (e) => {
@@ -334,7 +420,7 @@ const AdminDashboard = () => {
               <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{user.name}</div>
               <div style={{ fontSize: '0.75rem', color: '#00d2ff' }}>Super Administrator</div>
             </div>
-            <img src={user.profileImage || 'https://ui-avatars.com/api/?name=Admin'} alt="" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #00d2ff' }} />
+            <img src={getAvatarUrl(user)} alt="" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #00d2ff' }} />
           </div>
         </header>
 
@@ -349,6 +435,7 @@ const AdminDashboard = () => {
       {/* Modals for Adding content */}
       {showAddUser && renderAddUserModal()}
       {showAddArticle && renderAddArticleModal()}
+      {showCommentModal && renderCommentModal()}
     </div>
   );
 
@@ -360,8 +447,8 @@ const AdminDashboard = () => {
           {[
             { label: 'Total Users', value: stats.users, icon: <Users />, color: '#00d2ff' },
             { label: 'Live Articles', value: stats.articles, icon: <BookOpen />, color: '#10b981' },
-            { label: 'Ongoing Cases', value: stats.ongoingCases || 0, icon: <Shield />, color: '#10b981', action: () => { setActiveTab('police'); handleMarkAllPoliceRead(); } },
-            { label: 'New Messages', value: stats.unreadMessages || 0, icon: <Mail />, color: '#00d2ff', action: () => { setActiveTab('messages'); handleMarkAllMessagesRead(); } }
+            { label: 'Ongoing Cases', value: stats.ongoingCases || 0, icon: <Shield />, color: '#f59e0b', action: () => { setActiveTab('police'); handleMarkAllPoliceRead(); } },
+            { label: 'Total Messages', value: stats.messages || 0, icon: <Mail />, color: '#8b5cf6', action: () => { setActiveTab('messages'); handleMarkAllMessagesRead(); } }
           ].map((item, i) => (
             <div 
               key={i} 
@@ -388,7 +475,96 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* Activity Feed */}
+        {/* Tactical Intelligence Charts (Moved to 2nd Section) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+          {/* Pie Chart: Investigation Status */}
+          <div className="glass" style={{ padding: '2rem', borderRadius: '25px', height: '450px', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+              <Shield className="text-[#f59e0b]" /> Investigation Lifecycle
+            </h3>
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Ongoing Operations', value: stats.ongoingCases || 0 },
+                      { name: 'Concluded Cases', value: stats.closedCases || 0 }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={10}
+                    dataKey="value"
+                    labelLine={false}
+                    label={false}
+                  >
+                    <Cell fill="#f59e0b" stroke="rgba(255,255,255,0.1)" />
+                    <Cell fill="#10b981" stroke="rgba(255,255,255,0.1)" />
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ background: 'rgba(10,10,15,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px' }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value, entry) => {
+                      const item = entry.payload;
+                      return <span style={{ color: entry.color, fontWeight: 'bold' }}>{value}: {item.value}</span>;
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Bar Chart: Trending Intelligence */}
+          <div className="glass" style={{ padding: '2rem', borderRadius: '25px', height: '450px', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+              <TrendingUp className="text-[#10b981]" /> Trending Asset Analysis
+            </h3>
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={recentActivity.topArticles?.map(art => ({ 
+                    fullName: art._id,
+                    name: art._id.length > 15 ? art._id.substring(0, 12) + '...' : art._id, 
+                    count: art.count 
+                  })) || []}
+                  margin={{ top: 20, bottom: 40 }}
+                >
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#888" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false}
+                    angle={-25}
+                    textAnchor="end"
+                    interval={0}
+                  />
+                  <YAxis stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    contentStyle={{ background: 'rgba(10,10,15,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px' }}
+                    formatter={(value, name, props) => [value, 'Reads']}
+                    labelFormatter={(label, payload) => payload[0]?.payload?.fullName || label}
+                  />
+                  <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                    <LabelList dataKey="count" position="top" fill="#fff" fontSize={12} style={{ fontWeight: 'bold' }} />
+                    {recentActivity.topArticles?.map((entry, index) => {
+                      const colors = ['#00d2ff', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                      return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Activity Feed (Moved to 3rd Section) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
           <div className="glass" style={{ padding: '2rem', borderRadius: '25px' }}>
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -459,7 +635,7 @@ const AdminDashboard = () => {
               {users?.map(u => (
                 <tr key={u?._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <img src={u?.profileImage || `https://ui-avatars.com/api/?name=${u?.name}`} style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
+                    <img src={getAvatarUrl(u)} style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
                     {u?.name}
                   </td>
                   <td style={{ padding: '1rem' }}>{u?.email}</td>
@@ -483,7 +659,7 @@ const AdminDashboard = () => {
       <div className="glass" style={{ padding: '2rem', borderRadius: '25px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
           <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <BookOpen className="text-[#10b981]" /> Articles & Intelligence
+            <BookOpen className="text-[#10b981]" /> Cyber Blog Management
           </h2>
           <div style={{ display: 'flex', gap: '0.75rem', background: 'rgba(255,255,255,0.03)', padding: '0.4rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
             {['all', 'admin', 'police'].map(f => (
@@ -555,6 +731,21 @@ const AdminDashboard = () => {
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{a.category} {a.isHidden && <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>(Hidden)</span>}</p>
 
               <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <button
+                  onClick={() => { setSelectedArticleComments(a); setShowCommentModal(true); }}
+                  style={{ marginRight: 'auto', background: 'rgba(0, 210, 255, 0.1)', border: 'none', color: '#00d2ff', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  title="Moderate Comments"
+                >
+                  <MessageSquare size={14} />
+                  {a.comments?.length > 0 && <span style={{ fontSize: '0.65rem', marginLeft: '4px', fontWeight: 'bold' }}>{a.comments.length}</span>}
+                </button>
+                <button
+                  onClick={() => handleToggleFeatured(a._id)}
+                  style={{ background: a.isFeatured ? 'rgba(255, 215, 0, 0.1)' : 'rgba(255,255,255,0.05)', border: 'none', color: a.isFeatured ? '#ffd700' : '#888', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  title={a.isFeatured ? "Featured - Shown in Slideshow" : "Not Featured"}
+                >
+                  <Star size={14} fill={a.isFeatured ? "#ffd700" : "none"} />
+                </button>
                 <button
                   onClick={() => handleToggleVisibility(a._id)}
                   style={{ background: a.isHidden ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', border: 'none', color: a.isHidden ? '#ef4444' : '#10b981', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
@@ -766,11 +957,22 @@ const AdminDashboard = () => {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Assign Role</label>
               <select value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: '#111', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
                 <option value="user">Standard User</option>
-                <option value="police">Police Officer</option>
-                <option value="admin">Administrator</option>
+                {user?.email === 'admin@whitezero.com' && (
+                  <>
+                    <option value="police">Police Officer</option>
+                    <option value="admin">Administrator</option>
+                  </>
+                )}
               </select>
             </div>
-            <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}>Create Account</button>
+            <button 
+              type="submit" 
+              className="btn-primary" 
+              style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', opacity: addingUser ? 0.7 : 1, cursor: addingUser ? 'not-allowed' : 'pointer' }} 
+              disabled={addingUser}
+            >
+              {addingUser ? 'Processing...' : 'Create Account'}
+            </button>
           </form>
         </div>
       </div>
@@ -781,7 +983,7 @@ const AdminDashboard = () => {
     return (
       <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(5px)' }}>
         <div className="glass" style={{ padding: '2.5rem', borderRadius: '30px', width: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <button onClick={() => { setShowAddArticle(false); setEditingArticle(null); setNewArticle({ title: '', category: 'Cyber Security', excerpt: '', content: '', image: '', link: '' }); }} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
+          <button onClick={() => { setShowAddArticle(false); setEditingArticle(null); setNewArticle({ title: '', category: 'Cyber Security', excerpt: '', content: '', image: '', link: '', isFeatured: false }); }} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
           <h3 style={{ fontSize: '1.8rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}><BookOpen className="text-[#10b981]" /> {editingArticle ? 'Edit Article' : 'Publish Article'}</h3>
 
           <form onSubmit={handleAddArticle}>
@@ -834,9 +1036,22 @@ const AdminDashboard = () => {
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Full Content (Markdown Supported)</label>
               <textarea rows="6" value={newArticle.content} onChange={e => setNewArticle({ ...newArticle, content: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} required />
             </div>
-            <div className="form-group" style={{ marginBottom: '2rem' }}>
+            <div className="form-group" style={{ marginBottom: '1.2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>External Link (Optional)</label>
               <input type="text" value={newArticle.link} onChange={e => setNewArticle({ ...newArticle, link: e.target.value })} style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <input 
+                type="checkbox" 
+                id="isFeatured"
+                checked={newArticle.isFeatured} 
+                onChange={e => setNewArticle({ ...newArticle, isFeatured: e.target.checked })} 
+                style={{ width: '20px', height: '20px', cursor: 'pointer' }} 
+              />
+              <label htmlFor="isFeatured" style={{ cursor: 'pointer', fontSize: '0.95rem', fontWeight: 'bold', color: '#00d2ff' }}>
+                Feature this article in the Home Slideshow
+              </label>
             </div>
             <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }} disabled={uploading}>{editingArticle ? 'Update Article' : 'Publish Now'}</button>
           </form>
@@ -852,6 +1067,59 @@ const AdminDashboard = () => {
       color: isActive ? '#00d2ff' : 'white', display: 'flex', alignItems: 'center', gap: '1rem',
       fontSize: '0.9rem', fontWeight: isActive ? 'bold' : 'normal', textAlign: 'left', cursor: 'pointer'
     };
+  }
+
+  function renderCommentModal() {
+    if (!selectedArticleComments) return null;
+    return (
+      <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, backdropFilter: 'blur(8px)' }}>
+        <div className="glass modern-scroll-container" style={{ padding: '2.5rem', borderRadius: '30px', width: '700px', maxHeight: '85vh', overflowY: 'auto', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <button onClick={() => { setShowCommentModal(false); setSelectedArticleComments(null); }} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
+          
+          <h3 style={{ fontSize: '1.6rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            <MessageSquare className="text-[#00d2ff]" /> Comment Moderation
+          </h3>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.9rem' }}>Article: <span style={{ color: 'white' }}>{selectedArticleComments.title}</span></p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {!selectedArticleComments.comments || selectedArticleComments.comments.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>No comments detected on this transmission.</div>
+            ) : (
+              [...selectedArticleComments.comments].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(comment => (
+                <div key={comment._id} className="glass" style={{ padding: '1.5rem', borderRadius: '15px', border: comment.isHidden ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(0, 210, 255, 0.1)', opacity: comment.isHidden ? 0.7 : 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <img src={getAvatarUrl({ profileImage: comment.userImage, name: comment.userName })} style={{ width: '35px', height: '35px', borderRadius: '10px', objectFit: 'cover' }} />
+                      <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{comment.userName}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{new Date(comment.createdAt).toLocaleString()}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <button 
+                        onClick={() => handleToggleCommentVisibility(selectedArticleComments._id, comment._id)}
+                        style={{ background: comment.isHidden ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: 'none', color: comment.isHidden ? '#10b981' : '#ef4444', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}
+                        title={comment.isHidden ? "Unhide" : "Hide"}
+                      >
+                        {comment.isHidden ? <Eye size={16} /> : <EyeOff size={16} />}
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteCommentAdmin(selectedArticleComments._id, comment._id)}
+                        style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}
+                        title="Purge"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.6', color: comment.isHidden ? '#888' : '#eee' }}>{comment.text}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 };
 

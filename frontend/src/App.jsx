@@ -5,7 +5,6 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import About from './pages/About';
 import FeaturesPage from './pages/FeaturesPage';
-import Blog from './pages/Blog';
 import Contact from './pages/Contact';
 import ContentSentinel from './pages/ContentSentinel';
 import ReportAssistant from './pages/ReportAssistant';
@@ -41,7 +40,6 @@ function AppContent() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/features" element={<FeaturesPage />} />
-        <Route path="/blog" element={<Blog />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/osint-trial" element={<OSINTDashboard />} />
         <Route path="/login" element={<Login />} />

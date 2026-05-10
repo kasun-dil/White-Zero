@@ -9,8 +9,9 @@ const Articles = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeSlide, setActiveSlide] = useState(0);
   const { user } = useContext(AuthContext);
-  const postsPerPage = 12;
+  const postsPerPage = 9;
 
   useEffect(() => {
     fetchArticles();
@@ -27,6 +28,15 @@ const Articles = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (articles.length > 0) {
+      const timer = setInterval(() => {
+        setActiveSlide((prev) => (prev + 1) % Math.min(articles.length, 5));
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [articles]);
 
   const handleArticleRead = async (post) => {
     if (!user) return;
@@ -57,25 +67,72 @@ const Articles = () => {
 
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
-    window.scrollTo(0, 0); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const featuredArticles = articles.filter(a => a.isFeatured).slice(0, 5);
+  // If no featured articles, fall back to latest 5
+  const displaySlides = featuredArticles.length > 0 ? featuredArticles : articles.slice(0, 5);
 
   return (
     <div className="page-container fade-in">
       <FadeInSection direction="down">
-        <div className="page-header">
-          <h1>Internal <span className="text-gradient">Articles</span></h1>
-          <p>Private repository of articles and intelligence reports published by administrators. ({articles.length} total)</p>
+        <div className="page-header" style={{ marginBottom: '2rem' }}>
+          <h1>Cyber <span className="text-gradient">Blog</span></h1>
+          <p>Official repository of forensic reports and threat intelligence curated by administrators.</p>
         </div>
       </FadeInSection>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '5rem' }}>
-          <div className="loader">Loading internal reports...</div>
+          <div className="loader">Synchronizing Repository...</div>
         </div>
       ) : (
         <>
-          <div className="blog-grid" style={{ marginBottom: '4rem' }}>
+          {/* Slideshow Section */}
+          {displaySlides.length > 0 && (
+            <FadeInSection direction="up">
+              <div style={{ 
+                position: 'relative', 
+                height: '400px', 
+                borderRadius: '25px', 
+                overflow: 'hidden', 
+                marginBottom: '4rem',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                border: '1px solid rgba(255,255,255,0.05)'
+              }}>
+                {displaySlides.map((slide, index) => (
+                  <div 
+                    key={slide._id} 
+                    style={{ 
+                      position: 'absolute', 
+                      top: 0, left: 0, width: '100%', height: '100%',
+                      opacity: activeSlide === index ? 1 : 0,
+                      transform: activeSlide === index ? 'scale(1)' : 'scale(1.05)',
+                      transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      zIndex: activeSlide === index ? 1 : 0
+                    }}
+                  >
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to right, rgba(0,0,0,0.9) 20%, transparent 100%)', zIndex: 1 }}></div>
+                    <img src={slide.image} alt={slide.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ position: 'absolute', top: '50%', left: '5%', transform: 'translateY(-50%)', zIndex: 2, maxWidth: '500px' }}>
+                      <span style={{ color: '#00d2ff', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', fontSize: '0.8rem' }}>Featured Intelligence</span>
+                      <h2 style={{ fontSize: '2.5rem', margin: '1rem 0', lineHeight: '1.1' }}>{slide.title}</h2>
+                      <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{slide.excerpt}</p>
+                      <Link to={`/articles/${slide._id}`} className="btn-primary" style={{ textDecoration: 'none' }}>Access Report</Link>
+                    </div>
+                  </div>
+                ))}
+                <div style={{ position: 'absolute', bottom: '20px', right: '30px', display: 'flex', gap: '8px', zIndex: 3 }}>
+                  {displaySlides.map((_, i) => (
+                    <div key={i} onClick={() => setActiveSlide(i)} style={{ width: activeSlide === i ? '30px' : '10px', height: '10px', borderRadius: '5px', background: activeSlide === i ? '#00d2ff' : 'rgba(255,255,255,0.3)', cursor: 'pointer', transition: 'all 0.3s ease' }}></div>
+                  ))}
+                </div>
+              </div>
+            </FadeInSection>
+          )}
+
+          <div className="blog-archive-grid" style={{ marginBottom: '4rem' }}>
             {currentPosts.map(post => (
               <FadeInSection direction="up" key={post._id}>
                 <article 
@@ -84,70 +141,54 @@ const Articles = () => {
                     height: '100%', 
                     display: 'flex', 
                     flexDirection: 'column',
-                    border: `1px solid ${post.authorRole === 'police' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0, 210, 255, 0.2)'}`,
-                    boxShadow: post.authorRole === 'police' ? '0 4px 15px rgba(16, 185, 129, 0.05)' : '0 4px 15px rgba(0, 210, 255, 0.05)'
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    transition: 'transform 0.3s ease, box-shadow 0.3s ease'
                   }}
                 >
-                  <div style={{ position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'relative', height: '220px', overflow: 'hidden' }}>
                     <img 
-                      src={post.image || 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80'} 
+                      src={post.image} 
                       alt={post.title} 
                       className="blog-img" 
-                      style={{ transition: 'transform 0.5s ease' }}
-                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800'; }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                     <div style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 2 }}>
                       <span style={{ 
                         background: post.authorRole === 'police' ? '#10b981' : '#00d2ff', 
                         color: 'black', 
                         fontSize: '0.6rem', 
-                        fontWeight: 'bold', 
+                        fontWeight: '900', 
                         padding: '4px 10px', 
-                        borderRadius: '6px',
-                        textTransform: 'uppercase',
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                        borderRadius: '4px',
+                        textTransform: 'uppercase'
                       }}>
-                        {post.authorRole || 'Admin Hub'}
+                        {post.category}
                       </span>
-                    </div>
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', padding: '1rem' }}>
-                      <span className="blog-category" style={{ margin: 0 }}>{post.category}</span>
                     </div>
                   </div>
                   
-                  <div className="blog-content" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <h2 style={{ fontSize: '1.3rem', margin: '0.5rem 0', lineHeight: '1.4' }}>{post.title}</h2>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  <div className="blog-content" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <h2 style={{ fontSize: '1.2rem', margin: '0 0 1rem 0', lineHeight: '1.3', fontWeight: '700' }}>{post.title}</h2>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.6' }}>
                       {post.excerpt}
                     </p>
                     
                     <div style={{ marginTop: 'auto' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Calendar size={14} /> {new Date(post.createdAt).toLocaleDateString()}</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><User size={14} /> {post.author || 'Admin'}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.7 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Calendar size={12} /> {new Date(post.createdAt).toLocaleDateString()}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><User size={12} /> {post.author}</span>
                       </div>
                       
-                      {post.link && post.link !== '#' ? (
-                        <a 
-                          href={post.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => handleArticleRead(post)}
-                          className="btn-outline"
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none', borderColor: post.authorRole === 'police' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(0, 210, 255, 0.3)' }}
-                        >
-                          Read External <ChevronRight size={16} />
-                        </a>
-                      ) : (
-                        <Link 
-                          to={`/articles/${post._id}`}
-                          onClick={() => handleArticleRead(post)}
-                          className="btn-outline"
-                          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none', borderColor: post.authorRole === 'police' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(0, 210, 255, 0.3)' }}
-                        >
-                          Read Report <ChevronRight size={16} />
-                        </Link>
-                      )}
+                      <Link 
+                        to={`/articles/${post._id}`}
+                        onClick={() => handleArticleRead(post)}
+                        className="btn-outline"
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none', fontSize: '0.9rem' }}
+                      >
+                        Read Report <ChevronRight size={16} />
+                      </Link>
                     </div>
                   </div>
                 </article>
@@ -155,55 +196,55 @@ const Articles = () => {
             ))}
           </div>
 
-          {articles.length > postsPerPage && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap', paddingBottom: '4rem' }}>
-              <button 
-                onClick={() => paginate(currentPage - 1)} 
-                disabled={currentPage === 1}
-                className="btn-outline"
-                style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
-              >
-                Previous
-              </button>
-              
-              {[...Array(totalPages)].map((_, i) => (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', paddingBottom: '4rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem' }}>
                 <button 
-                  key={i} 
-                  onClick={() => paginate(i + 1)}
-                  style={{ 
-                    padding: '0.5rem 1rem', 
-                    background: currentPage === i + 1 ? 'var(--primary)' : 'var(--bg-card)', 
-                    border: '1px solid var(--glass-border)', 
-                    color: currentPage === i + 1 ? 'black' : 'white', 
-                    borderRadius: '5px', 
-                    cursor: 'pointer',
-                    fontWeight: currentPage === i + 1 ? 'bold' : 'normal'
-                  }}
+                  onClick={() => paginate(currentPage - 1)} 
+                  disabled={currentPage === 1}
+                  className="btn-outline"
+                  style={{ opacity: currentPage === 1 ? 0.3 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
                 >
-                  {i + 1}
+                  Prev
                 </button>
-              ))}
+                
+                {[...Array(totalPages)].map((_, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => paginate(i + 1)}
+                    style={{ 
+                      width: '40px',
+                      height: '40px',
+                      background: currentPage === i + 1 ? 'var(--primary)' : 'rgba(255,255,255,0.05)', 
+                      border: '1px solid rgba(255,255,255,0.1)', 
+                      color: currentPage === i + 1 ? 'black' : 'white', 
+                      borderRadius: '8px', 
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
 
-              <button 
-                onClick={() => paginate(currentPage + 1)} 
-                disabled={currentPage === totalPages}
-                className="btn-outline"
-                style={{ opacity: currentPage === totalPages ? 0.5 : 1 }}
-              >
-                Next
-              </button>
+                <button 
+                  onClick={() => paginate(currentPage + 1)} 
+                  disabled={currentPage === totalPages}
+                  className="btn-outline"
+                  style={{ opacity: currentPage === totalPages ? 0.3 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                >
+                  Next
+                </button>
+              </div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', opacity: 0.6 }}>
+                Showing {indexOfFirstPost + 1} - {Math.min(indexOfLastPost, articles.length)} of {articles.length} reports
+              </div>
             </div>
-          )}
 
           {articles.length === 0 && (
             <div style={{ textAlign: 'center', padding: '5rem', color: 'var(--text-muted)' }}>
               <BookOpen size={48} style={{ marginBottom: '1rem', opacity: 0.3 }} />
               <p>No internal reports have been published yet.</p>
-              {user.role === 'admin' && (
-                <a href="/admin" className="btn-primary" style={{ marginTop: '1.5rem', display: 'inline-block', textDecoration: 'none' }}>
-                  Create First Article
-                </a>
-              )}
             </div>
           )}
         </>

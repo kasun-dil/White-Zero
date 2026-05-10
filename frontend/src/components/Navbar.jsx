@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Shield, Play, Hexagon, LogOut, User as UserIcon, Bell, Info, FileText, Layout, Users, Mail, Cpu, Settings, Search } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
+import { getAvatarUrl } from '../utils/avatar';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -75,8 +76,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'About', path: '/about', icon: <Info size={18} /> },
     { name: 'Tactical Suite', path: '/features', icon: <Cpu size={18} /> },
-    { name: 'Blog', path: '/blog', icon: <Layout size={18} /> },
-    { name: 'Articles', path: '/articles', icon: <FileText size={18} /> },
+    { name: 'Cyber Blog', path: '/articles', icon: <FileText size={18} /> },
     { name: 'Contact', path: '/contact', icon: <Mail size={18} /> },
   ];
 
@@ -201,7 +201,7 @@ const Navbar = () => {
             {user ? (
               <Link to="/profile" className="nav-profile-pill">
                 <div className="profile-avatar-box">
-                  {user.profileImage ? <img src={user.profileImage} alt="Avatar" /> : <UserIcon size={14} />}
+                  <img src={getAvatarUrl(user)} alt="Avatar" />
                 </div>
                 <span className="desktop-only">{user.name.split(' ')[0]}</span>
               </Link>

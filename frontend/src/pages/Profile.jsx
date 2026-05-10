@@ -10,6 +10,7 @@ import {
   FileText, ExternalLink, Download, Printer, ChevronLeft, ChevronRight,
   ZoomIn, ZoomOut, Move
 } from 'lucide-react';
+import { getAvatarUrl } from '../utils/avatar';
 import './PageStyles.css';
 
 const DEFAULT_AVATARS = [
@@ -390,7 +391,7 @@ const Profile = () => {
                 <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '3rem', flexWrap: 'wrap' }}>
                   <div style={{ position: 'relative' }}>
                     <div style={{ width: '160px', height: '160px', borderRadius: '50%', border: '4px solid #00d2ff', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 30px rgba(0, 210, 255, 0.2)' }}>
-                      {profileImage ? <img src={profileImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={80} color="rgba(255,255,255,0.1)" />}
+                      <img src={getAvatarUrl({ profileImage, name: user?.name })} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                     <div style={{ position: 'absolute', bottom: '5px', right: '5px', background: '#10b981', border: '3px solid #0a0b10', width: '25px', height: '25px', borderRadius: '50%' }}></div>
                   </div>

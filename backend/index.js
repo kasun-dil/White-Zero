@@ -87,15 +87,11 @@ app.post('/api/users/signup', async (req, res) => {
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: 'User already exists' });
     
-    // Pick a random default avatar
-    const avatars = ['/avatars/hacker.png', '/avatars/robot.png', '/avatars/ninja.png', '/avatars/retro.png', '/avatars/operative.png'];
-    const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
-    
     const user = await User.create({ 
       name, 
       email, 
       password, 
-      profileImage: randomAvatar,
+      profileImage: '',
       lastKnownIP: req.ip || '127.0.0.1' 
     });
     
@@ -222,7 +218,15 @@ app.delete('/api/feedback/:id', protect, admin, async (req, res) => {
 
 app.get('/api/admin/users', protect, admin, async (req, res) => {
   try {
-    const users = await User.find({ role: 'user' }).select('-password');
+    const isSuperAdmin = req.user.email === 'admin@whitezero.com';
+    let query = { role: 'user' };
+    
+    // Super Admin can see everyone (including other admins and police)
+    if (isSuperAdmin) {
+      query = {};
+    }
+
+    const users = await User.find(query).select('-password').sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -238,6 +242,7 @@ app.get('/api/admin/stats', protect, admin, async (req, res) => {
     const messageCount = await Message.countDocuments();
     const unreadMessages = await Message.countDocuments({ status: 'unread' });
     const ongoingCases = await PoliceReport.countDocuments({ isClosed: { $ne: true } });
+    const closedCases = await PoliceReport.countDocuments({ isClosed: true });
     const unreadPoliceReports = await PoliceReport.countDocuments({ isReadByAdmin: false });
     
     res.json({
@@ -248,6 +253,7 @@ app.get('/api/admin/stats', protect, admin, async (req, res) => {
       messages: messageCount,
       unreadMessages,
       ongoingCases,
+      closedCases,
       unreadPoliceReports
     });
   } catch (error) {
@@ -278,9 +284,23 @@ app.get('/api/admin/activity', protect, admin, async (req, res) => {
 
 app.delete('/api/admin/users/:id', protect, admin, async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (user) res.json({ message: 'User removed' });
-    else res.status(404).json({ message: 'User not found' });
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+    const isSuperAdmin = req.user.email === 'admin@whitezero.com';
+    
+    // Prevent standard admins from deleting other admins or police
+    if (!isSuperAdmin && (targetUser.role === 'admin' || targetUser.role === 'police')) {
+      return res.status(403).json({ message: 'Unauthorized: Standard Admins cannot purge privileged accounts.' });
+    }
+
+    // Prevent anyone from deleting the Super Admin
+    if (targetUser.email === 'admin@whitezero.com') {
+      return res.status(403).json({ message: 'Critical Error: The Super Administrator account is a core system asset and cannot be decommissioned.' });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: 'User removed' });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -321,7 +341,16 @@ app.post('/api/admin/users', protect, admin, async (req, res) => {
   try {
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: 'User already exists' });
-    const user = await User.create({ name, email, password, role: role || 'user' });
+    
+    // Security Restriction: Only Super Admin (admin@whitezero.com) can create admin or police roles
+    const isSuperAdmin = req.user.email === 'admin@whitezero.com';
+    const requestedRole = role || 'user';
+    
+    if (!isSuperAdmin && (requestedRole === 'admin' || requestedRole === 'police')) {
+      return res.status(403).json({ message: 'Authorization Failure: Only Super Admin can provision privileged roles.' });
+    }
+
+    const user = await User.create({ name, email, password, role: requestedRole });
     res.status(201).json(user);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -352,7 +381,7 @@ app.get('/api/articles', async (req, res) => {
 });
 
 app.post('/api/articles', protect, policeOrAdmin, async (req, res) => {
-  const { title, category, excerpt, content, image, link } = req.body;
+  const { title, category, excerpt, content, image, link, isFeatured } = req.body;
   try {
     const article = await Article.create({
       title, 
@@ -361,6 +390,7 @@ app.post('/api/articles', protect, policeOrAdmin, async (req, res) => {
       content, 
       image, 
       link,
+      isFeatured: isFeatured || false,
       author: req.user.name,
       authorId: req.user._id,
       authorRole: req.user.role
@@ -382,7 +412,7 @@ app.delete('/api/articles/:id', protect, policeOrAdmin, async (req, res) => {
 });
 
 app.put('/api/articles/:id', protect, policeOrAdmin, async (req, res) => {
-  const { title, category, excerpt, content, image, link } = req.body;
+  const { title, category, excerpt, content, image, link, isFeatured } = req.body;
   try {
     const article = await Article.findById(req.params.id);
     if (article) {
@@ -392,6 +422,7 @@ app.put('/api/articles/:id', protect, policeOrAdmin, async (req, res) => {
       article.content = content || article.content;
       article.image = image || article.image;
       article.link = link || article.link;
+      article.isFeatured = isFeatured !== undefined ? isFeatured : article.isFeatured;
       
       const updatedArticle = await article.save();
       res.json(updatedArticle);
@@ -417,6 +448,106 @@ app.patch('/api/articles/:id/visibility', protect, policeOrAdmin, async (req, re
   } catch (error) {
     console.error('Visibility toggle error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.patch('/api/articles/:id/featured', protect, policeOrAdmin, async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (article) {
+      article.isFeatured = !article.isFeatured;
+      const updatedArticle = await article.save();
+      console.log(`Article ${req.params.id} featured status set to: ${updatedArticle.isFeatured}`);
+      res.json(updatedArticle);
+    } else {
+      res.status(404).json({ message: 'Article not found' });
+    }
+  } catch (error) {
+    console.error('Featured toggle error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Comment Routes
+app.post('/api/articles/:id/comments', protect, async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ message: 'Comment text is required' });
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: 'Article not found' });
+
+    const newComment = {
+      userId: req.user._id,
+      userName: req.user.name,
+      userImage: req.user.profileImage,
+      text,
+      createdAt: new Date()
+    };
+
+    article.comments.push(newComment);
+    await article.save();
+    res.status(201).json(article.comments[article.comments.length - 1]);
+  } catch (error) {
+    console.error('Add comment error:', error);
+    res.status(500).json({ message: 'Failed to add comment' });
+  }
+});
+
+app.put('/api/articles/:id/comments/:commentId', protect, async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ message: 'Comment text is required' });
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: 'Article not found' });
+    
+    const comment = article.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+    
+    if (comment.userId.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized to edit this comment' });
+    }
+
+    comment.text = text;
+    await article.save();
+    res.json(comment);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to edit comment' });
+  }
+});
+
+app.delete('/api/articles/:id/comments/:commentId', protect, async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: 'Article not found' });
+
+    const comment = article.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    if (comment.userId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    article.comments.pull(req.params.commentId);
+    await article.save();
+    res.json({ message: 'Comment removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete comment' });
+  }
+});
+
+app.patch('/api/articles/:id/comments/:commentId/visibility', protect, admin, async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: 'Article not found' });
+
+    const comment = article.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+    comment.isHidden = !comment.isHidden;
+    await article.save();
+    res.json(comment);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to toggle visibility' });
   }
 });
 
@@ -922,7 +1053,7 @@ app.post('/api/otp/verify', async (req, res) => {
 // =======================
 
 app.post('/api/police-reports', protect, async (req, res) => {
-  const { victimName, victimEmail, title, description, evidenceLinks } = req.body;
+  const { victimName, victimEmail, title, description, platform, otherPlatform, incidentDate, platformDetails, evidenceLinks } = req.body;
   try {
     const referenceId = `POL-${Math.floor(Math.random() * 900000) + 100000}`;
     const report = await PoliceReport.create({
@@ -931,6 +1062,10 @@ app.post('/api/police-reports', protect, async (req, res) => {
       victimEmail,
       title,
       description,
+      platform,
+      otherPlatform,
+      incidentDate,
+      platformDetails,
       evidenceLinks,
       referenceId,
       contactVerified: true

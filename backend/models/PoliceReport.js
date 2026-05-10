@@ -12,6 +12,10 @@ const policeReportSchema = mongoose.Schema({
   contactVerified: { type: Boolean, default: false },
   title: { type: String, required: true },
   description: { type: String, required: true },
+  platform: { type: String },
+  otherPlatform: { type: String },
+  incidentDate: { type: Date },
+  platformDetails: { type: String },
   evidenceLinks: [String],
   status: {
     type: String,
