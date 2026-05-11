@@ -12,6 +12,8 @@ const path = require('path');
 const sgMail = require('@sendgrid/mail');
 
 const twilio = require('twilio');
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Models & Middleware
 const User = require('./models/User');
@@ -70,7 +72,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Gemini AI Setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIzaSyBKQPdoNhZ54CjVIxR07NFUFlxjOkX9Nqs');
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 // Generate JWT Token Function
 const generateToken = (id) => {
@@ -134,6 +136,47 @@ app.post('/api/users/login', async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/users/google-login', async (req, res) => {
+  const { credential } = req.body;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const { name, email, picture } = ticket.getPayload();
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        profileImage: picture,
+        lastKnownIP: req.ip || '127.0.0.1'
+      });
+    } else {
+      // Update image and IP if user already exists
+      user.profileImage = user.profileImage || picture;
+      user.lastKnownIP = req.ip || '127.0.0.1';
+      await user.save();
+    }
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profileImage: user.profileImage,
+      lastKnownIP: user.lastKnownIP,
+      createdAt: user.createdAt,
+      token: generateToken(user._id)
+    });
+  } catch (error) {
+    console.error('[GOOGLE AUTH ERROR]:', error);
+    res.status(500).json({ message: 'Google authentication failed' });
   }
 });
 
@@ -875,16 +918,17 @@ app.post('/api/osint/search', async (req, res) => {
 });
 
 app.post('/api/osint/username', async (req, res) => {
-  const { username } = req.body;
+  const { username, deep_scan } = req.body;
   try {
     const response = await axios.post(`${OSINT_URL}/search_username`, {
-      username
-    });
+      username,
+      deep_scan: deep_scan || false
+    }, { timeout: 60000 }); // Increase timeout for deep scans
     res.json(response.data);
 
   } catch (error) {
     console.error('[USERNAME PROXY ERROR]:', error.message);
-    res.status(500).json({ message: 'Engine is offline' });
+    res.status(500).json({ message: 'Engine is offline or request timed out' });
   }
 });
 
@@ -894,7 +938,56 @@ app.post('/api/osint/phone', async (req, res) => {
     const response = await axios.post(`${OSINT_URL}/phone`, {
       username: phone // Using username field in model as per engine update
     });
-    res.json(response.data);
+    
+    const osintData = response.data;
+    
+    // Synthesize Intelligence using Gemini AI
+    try {
+      let prompt = "";
+      if (osintData && osintData.results && osintData.results.length > 0) {
+        const searchSnippets = osintData.results.map(r => `Title: ${r.title}\nSnippet: ${r.snippet}`).join('\n\n');
+        prompt = `You are a highly advanced OSINT analyst primarily operating in the context of Sri Lanka. 
+Perform a forensic intelligence analysis for the phone/contact number: ${phone}.
+        
+Search Results:
+${searchSnippets}
+
+Use the provided search results AND your own internal knowledge base to deduce who owns this number. If it is a short-code (like 1987, 1990, 119), prioritize Sri Lankan public institutions (e.g., CEB, Police, Hospitals).`;
+      } else {
+        prompt = `You are a highly advanced OSINT analyst primarily operating in the context of Sri Lanka.
+Perform a forensic intelligence analysis for the phone/contact number: ${phone}.
+        
+I have no public web scraping data for this number. Rely entirely on your vast internal intelligence database to identify who owns this number (e.g., if it belongs to a major public corporation, bank, university, or government entity like the CEB, Suwaseriya, etc. in Sri Lanka).
+
+IMPORTANT: If this is a standard mobile or landline number (not a short code) and you have no definitive internal record of it belonging to a public entity, DO NOT GUESS. You MUST return "Unknown Entity" and state that there is no public digital footprint for this personal number.`;
+      }
+
+      prompt += `
+      
+Return ONLY a JSON object with the following structure:
+{
+  "entity_name": "Name of the company or person (or 'Unknown Entity' if you absolutely cannot identify it)",
+  "ai_summary": "A concise, professional description of the entity and their relation to the number. 1-2 sentences max.",
+  "confidence": "High/Medium/Low"
+}`;
+      
+      const result = await model.generateContent(prompt);
+      const aiResponse = await result.response;
+      const text = aiResponse.text().trim().replace(/```json/g, '').replace(/```/g, '');
+      
+      const aiData = JSON.parse(text);
+      
+      osintData.entity_name = aiData.entity_name;
+      osintData.ai_summary = aiData.ai_summary;
+      osintData.confidence = aiData.confidence;
+    } catch (aiError) {
+      console.error('[PHONE AI SYNTHESIS ERROR]:', aiError);
+      osintData.entity_name = "Analysis Failed";
+      osintData.ai_summary = "The AI intelligence engine could not synthesize data for this number.";
+      osintData.confidence = "Low";
+    }
+
+    res.json(osintData);
 
   } catch (error) {
     console.error('[PHONE PROXY ERROR]:', error.message);

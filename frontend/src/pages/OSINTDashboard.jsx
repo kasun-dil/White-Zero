@@ -6,7 +6,7 @@ import FadeInSection from '../components/FadeInSection';
 import './OSINTDashboard.css';
 
 const OSINTDashboard = () => {
-  const [searchType, setSearchType] = useState('people');
+  const [searchType, setSearchType] = useState('username');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
@@ -16,6 +16,7 @@ const OSINTDashboard = () => {
   const [scanning, setScanning] = useState(false);
   const [usernameResults, setUsernameResults] = useState(null);
   const [phoneResults, setPhoneResults] = useState(null);
+  const [lastUsername, setLastUsername] = useState('');
   const { user } = useContext(AuthContext);
 
   const handleSearch = async () => {
@@ -23,13 +24,14 @@ const OSINTDashboard = () => {
     setLoading(true);
     setScanning(true);
     setUsernameResults(null);
+    setLastUsername(query); // Save for potential deep scan
     try {
       let data;
       if (searchType === 'username') {
         const response = await fetch('/api/osint/username', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: query })
+          body: JSON.stringify({ username: query, deep_scan: false })
         });
         data = await response.json();
         setUsernameResults(data);
@@ -79,10 +81,35 @@ const OSINTDashboard = () => {
     } catch (error) {
       console.error(error);
     } finally {
+      setQuery(''); // Clear search bar after results
       setTimeout(() => {
         setLoading(false);
         setScanning(false);
       }, 1500); // Simulate forensic scanning time
+    }
+  };
+
+  const handleDeepScan = async () => {
+    if (!lastUsername) return;
+    setLoading(true);
+    setScanning(true);
+    try {
+      console.log('Initiating Deep Forensic Scan for:', lastUsername);
+      const response = await fetch('/api/osint/username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: lastUsername, deep_scan: true })
+      });
+      const data = await response.json();
+      console.log('Deep Scan Complete. Nodes Found:', data.results?.length);
+      setUsernameResults(data);
+    } catch (error) {
+      console.error('Forensic Engine Failure:', error);
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+        setScanning(false);
+      }, 1500);
     }
   };
 
@@ -136,8 +163,8 @@ const OSINTDashboard = () => {
   const SocialIcon = ({ platform, size = 24 }) => {
     const p = platform.toLowerCase();
     const colors = {
-      facebook: '#1877F2', instagram: '#E4405F', twitter: '#1DA1F2',
-      github: '#FFF', linkedin: '#0A66C2', youtube: '#FF0000', reddit: '#FF4500', tiktok: '#000',
+      facebook: '#1877F2', instagram: '#E4405F', x: '#FFF',
+      github: '#FFF', linkedin: '#0A66C2', youtube: '#FF0000', reddit: '#FF4500', tiktok: '#FE2C55',
       'global intelligence': '#00d2ff'
     };
     const color = colors[p] || '#888';
@@ -152,7 +179,7 @@ const OSINTDashboard = () => {
           <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
         </>
       ),
-      twitter: <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" />,
+      x: <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />,
       github: <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />,
       linkedin: (
         <>
@@ -198,8 +225,17 @@ const OSINTDashboard = () => {
     );
   };
 
-  const getPlatformIcon = (platform) => {
-    return <SocialIcon platform={platform} />;
+  const getPlatformIconData = (platform) => {
+    const p = platform.toLowerCase();
+    const colors = {
+      facebook: '#1877F2', instagram: '#E4405F', twitter: '#1DA1F2',
+      github: '#FFF', linkedin: '#0A66C2', youtube: '#FF0000', reddit: '#FF4500', tiktok: '#FFF',
+      'global intelligence': '#00d2ff'
+    };
+    return {
+      icon: <SocialIcon platform={platform} />,
+      color: colors[p] || '#888'
+    };
   };
 
   return (
@@ -213,6 +249,18 @@ const OSINTDashboard = () => {
 
           <div className="search-section">
             <div className="search-type-selector">
+              <button className="disabled-btn" title="This forensic module is currently pending integration.">
+                <MessageSquare size={16} /> Posts
+              </button>
+              <button className="disabled-btn" title="This forensic module is currently pending integration.">
+                <User size={16} /> People
+              </button>
+              <button className="disabled-btn" title="This forensic module is currently pending integration.">
+                <Flag size={16} /> Pages
+              </button>
+              <button className="disabled-btn" title="This forensic module is currently pending integration.">
+                <Users size={16} /> Groups
+              </button>
               <button className={searchType === 'username' ? 'active' : ''} onClick={() => setSearchType('username')}>
                 <User size={16} /> Username
               </button>
@@ -294,8 +342,11 @@ const OSINTDashboard = () => {
                   <FadeInSection key={res.platform} delay={i * 0.05} direction="up">
                     <div className={`platform-card glass ${res.status.toLowerCase()}`}>
                       <div className="platform-header">
-                        <div className={`platform-icon-box ${res.status.toLowerCase()}`}>
-                          {getPlatformIcon(res.platform)}
+                        <div 
+                          className={`platform-icon-box ${res.status.toLowerCase()}`}
+                          style={{ background: '#000', border: `1px solid ${getPlatformIconData(res.platform).color}` }}
+                        >
+                          {getPlatformIconData(res.platform).icon}
                         </div>
                         <div className={`status-tag ${res.status.toLowerCase()}`}>
                           {res.status}
@@ -319,6 +370,15 @@ const OSINTDashboard = () => {
                 </div>
               )}
             </div>
+
+            {usernameResults && !usernameResults.deep_scan && (
+              <div className="deep-scan-cta">
+                <button className="btn-secondary" onClick={handleDeepScan} disabled={loading}>
+                  {loading ? <Loader2 className="animate-spin" /> : <Globe size={18} />}
+                  Deep Scan All Global Platforms
+                </button>
+              </div>
+            )}
           </div>
         ) : phoneResults ? (
             <div className="username-investigation">
@@ -347,13 +407,44 @@ const OSINTDashboard = () => {
                 </div>
               </FadeInSection>
 
+              {phoneResults.ai_summary && (
+                <FadeInSection direction="up" delay={0.1}>
+                  <div className="ai-intelligence-brief glass">
+                    <div className="brief-header">
+                      <h3><Filter size={18} /> AI INTELLIGENCE BRIEF</h3>
+                      <span className={`confidence-badge ${phoneResults.confidence?.toLowerCase()}`}>
+                        {phoneResults.confidence} Confidence
+                      </span>
+                    </div>
+                    <div className="brief-content">
+                      <h4>Entity: {phoneResults.entity_name}</h4>
+                      <p>{phoneResults.ai_summary}</p>
+                    </div>
+                  </div>
+                </FadeInSection>
+              )}
+
               <div className="forensic-feed">
                 {phoneResults.results.some(r => r.status === 'Found') ? (
                   phoneResults.results.filter(r => r.status === 'Found').map((res, i) => (
                     <FadeInSection key={i} delay={i * 0.05} direction="up">
                       <div className="forensic-entry glass">
                         <div className="entry-header">
-                          <div className="entry-icon">{getPlatformIcon(res.platform)}</div>
+                          <div 
+                            className="entry-icon"
+                            style={{ 
+                              background: '#000', 
+                              border: `1px solid ${getPlatformIconData(res.platform).color}`,
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '10px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            {getPlatformIconData(res.platform).icon}
+                          </div>
                           <div className="entry-meta">
                             <span className="entry-title">{res.title || res.platform}</span>
                             <span className="entry-platform">{res.platform}</span>
@@ -383,11 +474,6 @@ const OSINTDashboard = () => {
               <Search size={64} className="text-[#00d2ff] opacity-20" />
               <h2>OSINT CENTRAL COMMAND</h2>
               <p>Initialize a search to begin forensic data extraction from social networks.</p>
-              <div className="command-hints">
-                <span>[ALT+S] SEARCH</span>
-                <span>[ALT+F] FILTER</span>
-                <span>[ALT+E] EXPORT</span>
-              </div>
             </div>
           </FadeInSection>
         ) : (

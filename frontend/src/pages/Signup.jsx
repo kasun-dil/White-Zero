@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, User as UserIcon, Hexagon, Eye, EyeOff } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 import FadeInSection from '../components/FadeInSection';
 import './PageStyles.css';
 
@@ -11,7 +12,7 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const { register, user } = useContext(AuthContext);
+  const { register, user, googleLogin } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,6 +38,24 @@ const Signup = () => {
     } else {
       setErrorMsg(res.error);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setErrorMsg('');
+    const res = await googleLogin(credentialResponse.credential);
+    if (res.success) {
+      if (res.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/profile');
+      }
+    } else {
+      setErrorMsg(res.error);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setErrorMsg('Google Signup Failed. Please try again.');
   };
 
   return (
@@ -113,16 +132,34 @@ const Signup = () => {
               className="btn-primary"
               style={{
                 width: '100%',
-                marginTop: '1.5rem',
+                marginTop: '1rem',
                 padding: '1.1rem',
                 fontSize: '1.1rem',
                 background: 'linear-gradient(135deg, #004e92, #002f6c)',
                 boxShadow: '0 10px 20px rgba(0, 78, 146, 0.3)',
-                border: '1px solid rgba(255, 255, 255, 0.05)'
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                marginBottom: '1rem'
               }}
             >
               Create Account
             </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', margin: '1.5rem 0', color: 'var(--text-muted)' }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--glass-border)' }}></div>
+              <span style={{ padding: '0 1rem', fontSize: '0.9rem' }}>OR</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--glass-border)' }}></div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="filled_black"
+                shape="pill"
+                size="large"
+                width="100%"
+              />
+            </div>
           </form>
 
           <p style={{ textAlign: 'center', marginTop: '2rem', color: 'var(--text-muted)' }}>

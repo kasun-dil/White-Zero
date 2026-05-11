@@ -8,7 +8,7 @@ const FeaturesPage = () => {
   const features = [
     {
       id: 'osint',
-      title: 'AI Intelligence Search',
+      title: 'OSINT Intelligence Search',
       icon: <Search size={40} className="text-[#3a7bd5]" />,
       desc: 'Deep-dive harvesting of public data from social media platforms and web repositories for intelligence gathering.',
       link: '/osint-trial',
@@ -17,9 +17,9 @@ const FeaturesPage = () => {
     },
     {
       id: 'police-report',
-      title: 'Automated Incident Report',
+      title: 'Police & Social Media Investigation',
       icon: <FileText size={40} className="text-[#10b981]" />,
-      desc: 'Smart wizard to generate professional cybercrime reports for official submission to law enforcement agencies.',
+      desc: 'Easily create professional reports to send to the Police or Social Media apps like Facebook and Instagram to get help.',
       link: '/report-crime',
       category: 'Legal & Compliance',
       locked: false
@@ -71,22 +71,22 @@ const FeaturesPage = () => {
         </div>
       </FadeInSection>
 
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-        gap: '2.5rem', 
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: '2.5rem',
         alignItems: 'stretch',
         maxWidth: '1200px',
         margin: '0 auto'
       }}>
         {features.map((f, i) => (
           <FadeInSection key={f.id} delay={i * 0.1}>
-            <div className={`feature-detail-card glass ${f.locked ? 'locked-feature' : ''}`} style={{ 
-              height: '100%', 
-              display: 'flex', 
-              flexDirection: 'column', 
+            <div className={`feature-detail-card glass ${f.locked ? 'locked-feature' : ''}`} style={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
               justifyContent: 'space-between',
-              alignItems: 'flex-start', 
+              alignItems: 'flex-start',
               textAlign: 'left',
               padding: '2rem', /* Reduced for professional look */
               position: 'relative',
@@ -101,14 +101,14 @@ const FeaturesPage = () => {
               {/* Background Glow */}
               {!f.locked && <div style={{ position: 'absolute', top: '-20%', right: '-20%', width: '150px', height: '150px', background: 'radial-gradient(circle, rgba(0, 210, 255, 0.1) 0%, transparent 70%)', zIndex: 0 }}></div>}
 
-              <div style={{ 
-                position: 'absolute', 
-                top: 0, 
-                right: 0, 
-                padding: '0.6rem 1.2rem', 
-                background: f.locked ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0, 210, 255, 0.1)', 
-                fontSize: '0.65rem', 
-                letterSpacing: '1.5px', 
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                padding: '0.6rem 1.2rem',
+                background: f.locked ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0, 210, 255, 0.1)',
+                fontSize: '0.65rem',
+                letterSpacing: '1.5px',
                 color: f.locked ? '#ef4444' : '#00d2ff',
                 borderBottomLeftRadius: '20px',
                 fontWeight: '800',
@@ -117,17 +117,17 @@ const FeaturesPage = () => {
               }}>
                 {f.category}
               </div>
-              
+
               <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 1 }}>
                 {f.icon}
               </div>
-              
+
               <h2 style={{ fontSize: '1.6rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.8rem', fontWeight: '700', position: 'relative', zIndex: 1 }}>
                 {f.title}
                 {f.locked && <Lock size={16} color="#ef4444" style={{ opacity: 0.6 }} />}
               </h2>
               <p style={{ flex: 1, marginBottom: '2rem', fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: '1.7', position: 'relative', zIndex: 1 }}>{f.desc}</p>
-              
+
               <div style={{ width: '100%', position: 'relative', zIndex: 1 }}>
                 {f.locked ? (
                   <div style={{ width: '100%', textAlign: 'center', padding: '0.8rem', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.2)', fontSize: '0.85rem', fontWeight: 'bold' }}>

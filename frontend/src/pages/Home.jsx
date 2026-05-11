@@ -47,13 +47,13 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Flagship Feature 2: AI OSINT */}
+      {/* Flagship Feature 2: Digital Intelligence Search */}
       <section style={{ padding: '6rem 2rem', position: 'relative', overflow: 'hidden', background: 'rgba(0, 210, 255, 0.02)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexWrap: 'wrap-reverse', gap: '4rem', alignItems: 'center' }}>
           <div style={{ flex: '1 1 300px' }}>
             <FadeInSection>
               <div style={{ display: 'inline-block', padding: '0.5rem 1rem', background: 'rgba(0,210,255,0.1)', color: '#00d2ff', borderRadius: '50px', fontWeight: '600', marginBottom: '1rem' }}>Investigative Engine</div>
-              <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: '1.2' }}>AI Intelligence Search & Harvesting</h2>
+              <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: '1.2' }}>Digital Intelligence Search & Harvesting</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: '1.8', marginBottom: '2rem' }}>
                 Deploy our advanced OSINT harvesting engine to extract public posts, engagement metrics, and behavioral patterns from social media repositories. Convert raw data into actionable intelligence with high-speed neural filtering.
               </p>

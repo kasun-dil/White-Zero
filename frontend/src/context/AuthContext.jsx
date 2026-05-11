@@ -65,6 +65,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (credential) => {
+    try {
+      const res = await fetch('/api/users/google-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Google Login failed');
+
+      setUser(data);
+      localStorage.setItem('userInfo', JSON.stringify(data));
+      return { success: true, user: data };
+    } catch (error) {
+      console.error("Google Login error:", error);
+      return { success: false, error: error.message };
+    }
+  };
+
   const updateProfile = async (userData) => {
     try {
       const res = await fetch('/api/users/profile', {
@@ -93,7 +113,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, googleLogin, loading }}>
       {children}
     </AuthContext.Provider>
   );
