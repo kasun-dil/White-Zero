@@ -150,19 +150,26 @@ const MyReports = () => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {reports.length > 0 ? reports.map(r => (
+              {reports.length > 0 ? [...reports].sort((a, b) => {
+                // Active reports first
+                if (a.isClosed && !b.isClosed) return 1;
+                if (!a.isClosed && b.isClosed) return -1;
+                // Then by latest activity (updatedAt)
+                return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+              }).map(r => (
                 <div 
                   key={r._id} 
                   onClick={() => setSelectedReport(r)}
+                  className="chat-item-animation"
                   style={{ 
                     padding: '1.2rem', 
                     borderRadius: '16px', 
                     cursor: 'pointer',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     background: selectedReport?._id === r._id ? 'rgba(0, 210, 255, 0.1)' : 'rgba(255,255,255,0.02)',
                     border: '1px solid',
                     borderColor: selectedReport?._id === r._id ? 'rgba(0, 210, 255, 0.4)' : 'rgba(255,255,255,0.05)',
-                    position: 'relative'
+                    position: 'relative',
+                    opacity: r.isClosed ? 0.7 : 1
                   }}
                 >
                   {!r.isReadByUser && (
@@ -240,13 +247,13 @@ const MyReports = () => {
                     border: '1px solid rgba(255,255,255,0.02)'
                   }}>
                     {selectedReport.responses.map((resp, i) => (
-                      <div key={i} style={{ 
+                      <div key={i} className="message-animation" style={{ 
                         alignSelf: resp.role === 'user' ? 'flex-end' : 'flex-start',
                         maxWidth: '80%',
-                        background: resp.role === 'user' ? 'linear-gradient(135deg, #004e92, #00d2ff)' : 'rgba(255,255,255,0.05)',
+                        background: resp.role === 'user' ? 'linear-gradient(135deg, #021a30, #004e92)' : 'rgba(255,255,255,0.05)',
                         padding: '1.2rem',
                         borderRadius: resp.role === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                        boxShadow: resp.role === 'user' ? '0 4px 15px rgba(0, 210, 255, 0.2)' : 'none',
+                        boxShadow: resp.role === 'user' ? '0 4px 15px rgba(0, 0, 0, 0.4)' : 'none',
                         border: '1px solid rgba(255,255,255,0.05)'
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginBottom: '0.6rem' }}>

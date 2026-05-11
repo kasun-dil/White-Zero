@@ -262,7 +262,8 @@ const PoliceDashboard = () => {
       if (a.isClosed && !b.isClosed) return 1;
       if (!a.isClosed && b.isClosed) return -1;
       
-      return new Date(b.createdAt) - new Date(a.createdAt);
+      // Sort by latest activity (updatedAt)
+      return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
     });
 
   const toggleFocus = (id, e) => {
@@ -483,20 +484,21 @@ const PoliceDashboard = () => {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {Array.isArray(filteredReports) && filteredReports.map(r => (
-                  <div key={r._id} onClick={() => setSelectedReport(r)} className={`report-item glass ${selectedReport?._id === r._id ? 'active' : ''}`} 
+                  <div key={r._id} onClick={() => setSelectedReport(r)} className={`report-item glass chat-item-animation ${selectedReport?._id === r._id ? 'active' : ''} ${!r.isReadByPolice && !r.isClosed ? 'unread-report' : ''}`} 
                     style={{ 
                       padding: '1rem', 
                       borderRadius: '12px', 
                       cursor: 'pointer', 
-                      border: selectedReport?._id === r._id ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.05)', 
+                      border: selectedReport?._id === r._id ? '1px solid #10b981' : (r.isReadByPolice ? '1px solid rgba(255,255,255,0.05)' : 'none'), 
                       background: selectedReport?._id === r._id ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.02)',
                       opacity: r.isClosed ? 0.6 : 1,
                       position: 'relative'
                     }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.3rem' }}>
-                      <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: r.isClosed ? '#888' : 'white' }}>
-                        {r.isClosed && <CheckCircle size={14} style={{ marginRight: '5px', color: '#10b981', verticalAlign: 'middle' }} />}
-                        {r.title}
+                      <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: r.isClosed ? '#888' : 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {r.isClosed && <CheckCircle size={14} style={{ color: '#10b981' }} />}
+                        {!r.isReadByPolice && !r.isClosed && <span className="new-badge">NEW ALERT</span>}
+                        <span>{r.title}</span>
                       </div>
                       <button 
                         onClick={(e) => toggleFocus(r._id, e)}
@@ -571,7 +573,7 @@ const PoliceDashboard = () => {
                       border: '1px solid rgba(255,255,255,0.02)'
                     }}>
                       {selectedReport.responses?.map((resp, i) => (
-                        <div key={i} style={{ 
+                        <div key={i} className="message-animation" style={{ 
                           alignSelf: resp.role === 'user' ? 'flex-start' : 'flex-end',
                           maxWidth: '80%',
                           background: resp.role === 'user' ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #10b981, #059669)',

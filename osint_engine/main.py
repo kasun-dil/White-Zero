@@ -119,7 +119,8 @@ async def get_search_results(query):
     results = []
     try:
         search_url = "https://html.duckduckgo.com/html/"
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"}
+        # Use a mobile User-Agent to avoid blocks/shadow-bans
+        headers = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Mobile/15E148 Safari/604.1"}
         async with httpx.AsyncClient(headers=headers, timeout=15.0, follow_redirects=True) as client:
             response = await client.post(search_url, data={'q': query})
             if response.status_code == 200:

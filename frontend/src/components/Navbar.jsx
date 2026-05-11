@@ -17,6 +17,7 @@ const Navbar = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [triggerNotification, setTriggerNotification] = useState(false);
 
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
@@ -52,7 +53,15 @@ const Navbar = () => {
           });
           if (res.ok) {
             const data = await res.json();
-            setUnreadCount(data.count || 0);
+            const newCount = data.count || 0;
+            
+            // Trigger animation if unread count increased
+            if (newCount > unreadCount) {
+              setTriggerNotification(true);
+              setTimeout(() => setTriggerNotification(false), 1000);
+            }
+            
+            setUnreadCount(newCount);
             setTotalCount(data.totalCount || 0);
             setNotifications(data.notifications || []);
           }
@@ -71,7 +80,7 @@ const Navbar = () => {
         window.removeEventListener('reportSubmitted', handleReportEvent);
       };
     }
-  }, [user]);
+  }, [user, unreadCount]);
 
   const navLinks = [
     { name: 'About', path: '/about', icon: <Info size={18} /> },
@@ -150,15 +159,25 @@ const Navbar = () => {
               <div style={{ position: 'relative' }}>
                 <button 
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="notification-toggle"
+                  className={`notification-toggle ${triggerNotification ? 'animate-bell' : ''}`}
                 >
                   <Bell size={22} color={unreadCount > 0 ? "#00d2ff" : "#888"} />
-                  {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+                  {unreadCount > 0 && <span className={`notification-badge ${triggerNotification ? 'animate-badge' : ''}`}>{unreadCount}</span>}
                 </button>
 
                 {showNotifications && (
                   <div className="notifications-dropdown glass">
-                    <div className="dropdown-header">FORENSIC ALERTS</div>
+                    <div className="dropdown-header">
+                      <span>FORENSIC ALERTS</span>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setShowNotifications(false); }}
+                        style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: '5px' }}
+                        onMouseOver={(e) => e.target.style.color = '#00d2ff'}
+                        onMouseOut={(e) => e.target.style.color = '#888'}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
                     <div className="notifications-list">
                       {notifications && notifications.length > 0 ? notifications.map((n, i) => (
                         <div 

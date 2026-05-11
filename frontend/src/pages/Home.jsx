@@ -4,13 +4,11 @@ import Hero from '../components/Hero';
 import Features from '../components/Features';
 import FadeInSection from '../components/FadeInSection';
 import { Shield, Mail, ArrowRight, Zap, Target, Lock, FileText, Search } from 'lucide-react';
-import Shortcuts from '../components/Shortcuts';
 
 const Home = () => {
   return (
     <main className="fade-in" style={{ background: '#020617' }}>
       <Hero />
-      <Shortcuts />
 
       {/* Features Grid */}
       <div style={{ position: 'relative' }}>
