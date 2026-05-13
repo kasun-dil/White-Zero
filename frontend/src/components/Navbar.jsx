@@ -89,6 +89,28 @@ const Navbar = () => {
     { name: 'Contact', path: '/contact', icon: <Mail size={18} /> },
   ];
 
+  const handleClearNotifications = async (e) => {
+    e.stopPropagation();
+    if (!user || !user.token) return;
+    try {
+      const res = await fetch('/api/police-reports/read-all', {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        setUnreadCount(0);
+        // Mark local notifications as read too
+        setNotifications(prev => prev.map(n => ({
+          ...n,
+          isReadByUser: user.role === 'user' ? true : n.isReadByUser,
+          isReadByPolice: user.role !== 'user' ? true : n.isReadByPolice
+        })));
+      }
+    } catch (err) {
+      console.error('[CLEAR NOTIFICATIONS ERROR]', err);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     setIsOpen(false);
@@ -169,14 +191,24 @@ const Navbar = () => {
                   <div className="notifications-dropdown glass">
                     <div className="dropdown-header">
                       <span>FORENSIC ALERTS</span>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setShowNotifications(false); }}
-                        style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: '5px' }}
-                        onMouseOver={(e) => e.target.style.color = '#00d2ff'}
-                        onMouseOut={(e) => e.target.style.color = '#888'}
-                      >
-                        <X size={16} />
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {unreadCount > 0 && (
+                          <button 
+                            onClick={handleClearNotifications}
+                            className="clear-all-btn"
+                          >
+                            Clear All
+                          </button>
+                        )}
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setShowNotifications(false); }}
+                          style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: '5px', display: 'flex', alignItems: 'center' }}
+                          onMouseOver={(e) => e.currentTarget.style.color = '#00d2ff'}
+                          onMouseOut={(e) => e.currentTarget.style.color = '#888'}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
                     </div>
                     <div className="notifications-list">
                       {notifications && notifications.length > 0 ? notifications.map((n, i) => (

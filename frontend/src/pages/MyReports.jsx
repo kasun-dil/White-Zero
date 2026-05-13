@@ -338,8 +338,9 @@ const MyReports = () => {
               </div>
             ) : (
               <div className="glass fade-in" style={{ borderRadius: '24px', height: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', textAlign: 'center' }}>
-                <div style={{ width: '80px', height: '80px', background: 'rgba(0, 210, 255, 0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem', border: '1px solid rgba(0, 210, 255, 0.1)' }}>
-                  <Shield size={40} className="text-[#00d2ff]" style={{ opacity: 0.3 }} />
+                <div style={{ position: 'relative', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Hexagon size={36} className="text-[#10b981]" style={{ position: 'absolute' }} />
+                  <Shield size={18} color="white" style={{ position: 'absolute', zIndex: 1 }} />
                 </div>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '1rem' }}>No Investigation Selected</h2>
                 <p style={{ color: '#666', maxWidth: '400px', margin: '0 auto' }}>Select a forensic file from the archive to view detailed incident correspondence and intelligence updates.</p>

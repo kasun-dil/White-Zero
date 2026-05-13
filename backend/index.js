@@ -1363,6 +1363,25 @@ app.get('/api/reports/police/my', protect, async (req, res) => {
   }
 });
 
+// Mark all reports as read
+app.patch('/api/police-reports/read-all', protect, async (req, res) => {
+  try {
+    let query = {};
+    let update = {};
+    if (req.user.role === 'police' || req.user.role === 'admin') {
+      query = { isReadByPolice: false };
+      update = { isReadByPolice: true };
+    } else {
+      query = { user: req.user._id, isReadByUser: false };
+      update = { isReadByUser: true };
+    }
+    await PoliceReport.updateMany(query, { $set: update });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Mark report as read
 app.patch('/api/police-reports/:id/read', protect, async (req, res) => {
   try {

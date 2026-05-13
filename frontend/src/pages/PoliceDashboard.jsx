@@ -642,7 +642,7 @@ const PoliceDashboard = () => {
                 </FadeInSection>
               ) : (
                 <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.2 }}>
-                  <Shield size={80} />
+                  <div style={{ display: 'none' }}><Shield size={80} /></div>
                   <p style={{ marginTop: '1rem', fontSize: '1.2rem' }}>Awaiting Target Selection</p>
                 </div>
               )}
