@@ -5,7 +5,7 @@ import {
   Users, BookOpen, MessageSquare, Shield, ExternalLink,
   Plus, Trash2, Check, X, Settings, LogOut, LayoutDashboard,
   Search, Filter, MoreVertical, Edit2, Globe, TrendingUp, Clock, Activity,
-  Eye, EyeOff, Star, Mail, Hexagon, AlertTriangle
+  Eye, EyeOff, Star, Mail, Hexagon, AlertTriangle, User
 } from 'lucide-react';
 import FadeInSection from '../../components/FadeInSection';
 import { toast } from 'react-hot-toast';
@@ -15,6 +15,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LabelList 
 } from 'recharts';
 import '../PageStyles.css';
+import '../DashboardStyles.css';
 
 const AdminDashboard = () => {
   const { user, logout } = useContext(AuthContext);
@@ -402,7 +403,7 @@ const AdminDashboard = () => {
               <Globe size={18} /> Go to Website
             </button>
           </Link>
-          <button onClick={logout} className="btn-primary" style={{ width: '100%', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}>
+          <button onClick={logout} className="btn-logout">
             <LogOut size={18} /> Logout
           </button>
         </div>
@@ -410,17 +411,26 @@ const AdminDashboard = () => {
 
       {/* Main Content */}
       <main>
-        <header className="admin-header-flex">
-          <div>
-            <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontWeight: '800' }}>WhiteZero <span className="text-gradient">Admin Hub</span></h1>
-            <p style={{ color: 'var(--text-muted)' }}>Real-time platform insights and moderation controls.</p>
+        <header className="admin-header-main">
+          <div className="admin-title-group">
+            <h1>
+              <span style={{ color: '#fff' }}>WhiteZero</span> <span style={{ color: '#00d2ff' }}>Admin Hub</span>
+            </h1>
+            <p className="admin-subtitle">Real-time platform insights and moderation controls.</p>
           </div>
-          <div className="glass admin-profile-badge">
-            <div className="desktop-only" style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{user.name}</div>
-              <div style={{ fontSize: '0.75rem', color: '#00d2ff' }}>Super Administrator</div>
+          
+          <div className="admin-profile-badge">
+            <div className="profile-info">
+              <span className="profile-name">{user.name || 'Super Admin'}</span>
+              <span className="profile-role">{user.role === 'admin' ? 'Super Administrator' : 'Forensic Officer'}</span>
             </div>
-            <img src={getAvatarUrl(user)} alt="" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #00d2ff' }} />
+            <div className="profile-avatar-ring">
+              <img 
+                src={getAvatarUrl(user)} 
+                alt="Admin" 
+                style={{ width: '100%', height: '100%', borderRadius: '12px', objectFit: 'cover' }} 
+              />
+            </div>
           </div>
         </header>
 
@@ -443,33 +453,24 @@ const AdminDashboard = () => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {/* Stats Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+        <div className="stats-grid">
           {[
-            { label: 'Total Users', value: stats.users, icon: <Users />, color: '#00d2ff' },
-            { label: 'Live Articles', value: stats.articles, icon: <BookOpen />, color: '#10b981' },
-            { label: 'Ongoing Cases', value: stats.ongoingCases || 0, icon: <Shield />, color: '#f59e0b', action: () => { setActiveTab('police'); handleMarkAllPoliceRead(); } },
-            { label: 'Total Messages', value: stats.messages || 0, icon: <Mail />, color: '#8b5cf6', action: () => { setActiveTab('messages'); handleMarkAllMessagesRead(); } }
+            { label: 'Total Users', value: stats.users, icon: <Users />, colorClass: 'blue', action: () => setActiveTab('users') },
+            { label: 'Live Articles', value: stats.articles, icon: <BookOpen />, colorClass: 'green', action: () => setActiveTab('articles') },
+            { label: 'Ongoing Cases', value: stats.ongoingCases || 0, icon: <Shield />, colorClass: 'orange', action: () => { setActiveTab('police'); handleMarkAllPoliceRead(); } },
+            { label: 'Total Messages', value: stats.messages || 0, icon: <Mail />, colorClass: 'purple', action: () => { setActiveTab('messages'); handleMarkAllMessagesRead(); } }
           ].map((item, i) => (
             <div 
               key={i} 
-              className="glass" 
+              className={`stat-card ${item.colorClass}`}
               onClick={item.action}
-              style={{ 
-                padding: '1.5rem', 
-                borderRadius: '20px', 
-                borderLeft: `4px solid ${item.color}`,
-                cursor: item.action ? 'pointer' : 'default',
-                transition: 'transform 0.3s ease',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{item.label}</div>
-                  <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{item.value}</div>
-                </div>
-                <div style={{ color: item.color, opacity: 0.8 }}>{item.icon}</div>
+              <div className="stat-info">
+                <div className="stat-label">{item.label}</div>
+                <div className="stat-value">{item.value}</div>
+              </div>
+              <div className="stat-icon-box">
+                {React.cloneElement(item.icon, { size: 24 })}
               </div>
             </div>
           ))}

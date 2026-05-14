@@ -129,7 +129,11 @@ const OSINTDashboard = () => {
     if (found.length > 0) {
       found.forEach(res => {
         report += `[+] PLATFORM: ${res.platform}\n`;
-        report += `    PROFILE URL: ${res.link}\n\n`;
+        report += `    CONFIDENCE: ${res.confidence}\n`;
+        report += `    SOURCES: ${res.sources?.join(', ')}\n`;
+        report += `    PROFILE URL: ${res.link}\n`;
+        if (res.snippet) report += `    SNIPPET: ${res.snippet}\n`;
+        report += `\n`;
       });
     } else {
       report += `[!] No public profiles discovered in this scan.\n`;
@@ -339,7 +343,7 @@ const OSINTDashboard = () => {
             <div className="platforms-grid">
               {usernameResults.results ? (
                 usernameResults.results.map((res, i) => (
-                  <FadeInSection key={res.platform} delay={i * 0.05} direction="up">
+                  <FadeInSection key={i} delay={i * 0.05} direction="up">
                     <div className={`platform-card glass ${res.status.toLowerCase()}`}>
                       <div className="platform-header">
                         <div 
@@ -348,15 +352,27 @@ const OSINTDashboard = () => {
                         >
                           {getPlatformIconData(res.platform).icon}
                         </div>
-                        <div className={`status-tag ${res.status.toLowerCase()}`}>
-                          {res.status}
+                        <div className="discovery-badges">
+                          <div className={`status-tag confidence-badge`}>
+                            {res.confidence} Match
+                          </div>
+                          <div className={`status-tag ${res.status.toLowerCase()}`}>
+                            {res.status}
+                          </div>
                         </div>
                       </div>
                       <div className="platform-info">
                         <h3>{res.platform}</h3>
+                        {res.title && <p className="platform-title">{res.title}</p>}
                         <p className="platform-url">{res.link}</p>
+                        {res.snippet && <p className="platform-snippet">"{res.snippet}"</p>}
                       </div>
                       <div className="platform-footer">
+                        <div className="source-list">
+                          {res.sources?.map(s => (
+                            <span key={s} className="source-tag">{s}</span>
+                          ))}
+                        </div>
                         <a href={res.link} target="_blank" rel="noreferrer" className="btn-visit">
                           Visit Profile <ExternalLink size={14} />
                         </a>

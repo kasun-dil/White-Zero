@@ -3,9 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 import FadeInSection from '../components/FadeInSection';
-import { 
-  User, Mail, Lock, Save, Shield, Edit2, LogOut, Upload, X, 
-  Search, BookOpen, MessageSquare, Check, Trash2, Trophy, 
+import {
+  User, Mail, Lock, Save, Shield, Edit2, LogOut, Upload, X,
+  Search, BookOpen, MessageSquare, Check, Trash2, Trophy,
   Zap, Calendar, Award, Info, Terminal, Activity, Globe,
   FileText, ExternalLink, Download, Printer, ChevronLeft, ChevronRight,
   ZoomIn, ZoomOut, Move
@@ -27,16 +27,16 @@ const DEFAULT_AVATARS = [
 const Profile = () => {
   const { user, updateProfile, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
   const [profileImage, setProfileImage] = useState('');
-  
+
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -44,15 +44,16 @@ const Profile = () => {
   const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
   const [readFilter, setReadFilter] = useState('all');
-  
+
   const fileInputRef = useRef(null);
 
-  const [ipAddress, setIpAddress] = useState('Detecting...');
-  const [bandwidth, setBandwidth] = useState('0 Mbps');
-  
   // Alignment States
   const [isAligning, setIsAligning] = useState(false);
-  const [tempImage, setTempImage] = useState(null);
+  const [activeTab, setActiveTab] = useState('reports');
+  const [searchPage, setSearchPage] = useState(1);
+  const SEARCH_PER_PAGE = 12;
+  const [ipAddress, setIpAddress] = useState('FETCHING...');
+  const [bandwidth, setBandwidth] = useState('0 Mbps');
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -80,6 +81,17 @@ const Profile = () => {
     } else {
       navigate('/login');
     }
+    // Fetch IP Address
+    const fetchIP = async () => {
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        setIpAddress(data.ip);
+      } catch (err) {
+        setIpAddress('127.0.0.1');
+      }
+    };
+    fetchIP();
   }, [user, navigate]);
 
   const fetchActivity = async () => {
@@ -151,11 +163,11 @@ const Profile = () => {
     img.onload = async () => {
       canvas.width = 400;
       canvas.height = 400;
-      
+
       // Calculate crop
       const aspect = img.width / img.height;
       let drawWidth, drawHeight;
-      
+
       if (aspect > 1) {
         drawHeight = 400 * zoom;
         drawWidth = drawHeight * aspect;
@@ -166,24 +178,24 @@ const Profile = () => {
 
       ctx.fillStyle = '#0a0b10';
       ctx.fillRect(0, 0, 400, 400);
-      
+
       // Draw circular clip
       ctx.beginPath();
       ctx.arc(200, 200, 200, 0, Math.PI * 2);
       ctx.clip();
-      
+
       ctx.drawImage(
-        img, 
-        200 - (drawWidth / 2) + position.x, 
-        200 - (drawHeight / 2) + position.y, 
-        drawWidth, 
+        img,
+        200 - (drawWidth / 2) + position.x,
+        200 - (drawHeight / 2) + position.y,
+        drawWidth,
         drawHeight
       );
 
       canvas.toBlob(async (blob) => {
         const formData = new FormData();
         formData.append('image', blob, 'identity_asset.png');
-        
+
         try {
           const res = await fetch('/api/users/upload', {
             method: 'POST',
@@ -211,7 +223,7 @@ const Profile = () => {
   const scrollReports = (direction) => {
     if (reportsScrollRef.current) {
       const { scrollLeft, clientWidth } = reportsScrollRef.current;
-      const scrollTo = direction === 'left' 
+      const scrollTo = direction === 'left'
         ? scrollLeft - clientWidth
         : scrollLeft + clientWidth;
       reportsScrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
@@ -220,16 +232,16 @@ const Profile = () => {
 
   const handleDeleteReport = async (reportId) => {
     if (!window.confirm('PERMANENT DELETION: Are you sure you want to purge this forensic report from the secure archive?')) return;
-    
+
     try {
       console.log(`[PURGE REQUEST]: Purging intelligence node ${reportId}...`);
       const response = await fetch(`/api/reports/${reportId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${user.token}` }
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok) {
         console.log('[PURGE SUCCESS]: Intelligence purged.');
         setReports(prev => prev.filter(r => r._id !== reportId));
@@ -246,13 +258,13 @@ const Profile = () => {
 
   const handleClearHistory = async () => {
     if (!window.confirm('SECURITY ALERT: This will PERMANENTLY PURGE all archived reports, search history, and saved intelligence. This action cannot be undone. Proceed?')) return;
-    
+
     try {
       const response = await fetch('/api/users/profile/clear-history', {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${user.token}` }
       });
-      
+
       if (response.ok) {
         setReports([]);
         setActivity({ searches: [], bookmarks: [] });
@@ -302,7 +314,7 @@ const Profile = () => {
       toast.error('PRINT ERROR: Browser blocked the document transmission. Enable pop-ups.');
       return;
     }
-    
+
     const reportBody = report.content || `
       PLATFORM: ${report.platform}
       INCIDENT: ${report.incidentType}
@@ -385,195 +397,201 @@ const Profile = () => {
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              {/* Profile Header Card */}
-              <div className="glass" style={{ padding: '3rem', borderRadius: '30px', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: '-10%', right: '-10%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(0, 210, 255, 0.1) 0%, transparent 70%)', zIndex: 0 }}></div>
-                <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '3rem', flexWrap: 'wrap' }}>
-                  <div style={{ position: 'relative' }}>
-                    <div style={{ width: '160px', height: '160px', borderRadius: '50%', border: '4px solid #00d2ff', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 30px rgba(0, 210, 255, 0.2)' }}>
-                      <img src={getAvatarUrl({ profileImage, name: user?.name })} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                    <div style={{ position: 'absolute', bottom: '5px', right: '5px', background: '#10b981', border: '3px solid #0a0b10', width: '25px', height: '25px', borderRadius: '50%' }}></div>
+        {/* Dashboard Profile Card */}
+        <div className="profile-dashboard-card">
+          <div className="profile-banner">
+            <div className="profile-banner-overlay"></div>
+            <div className="banner-top-left-info">
+              <div className="ip-badge-glass">
+                <Shield size={12} /> <span>SECURE ACCESS: {ipAddress}</span>
+              </div>
+            </div>
+            <div className="profile-banner-actions">
+              <button onClick={() => setIsEditing(true)} className="btn-banner-glass cyan">
+                <Edit2 size={14} /> <span>Edit</span>
+              </button>
+              <button onClick={handleClearHistory} className="btn-banner-glass white">
+                <Trash2 size={14} /> <span>Reset</span>
+              </button>
+              <button onClick={handleLogout} className="btn-banner-glass red">
+                <LogOut size={14} /> <span>Logout</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="profile-header-content">
+            <div className="avatar-overlap-wrapper">
+              <div className="avatar-overlap">
+                <img src={getAvatarUrl({ profileImage, name: user?.name })} alt="Profile" />
+              </div>
+            </div>
+
+            <div className="profile-main-info">
+              <h2>{user?.name}</h2>
+              <p>{user?.role} Investigator</p>
+            </div>
+          </div>
+
+          <div className="profile-sub-nav">
+            <button
+              onClick={() => setActiveTab('reports')}
+              className={`nav-link-mini ${activeTab === 'reports' ? 'active' : ''}`}
+            >
+              <FileText size={16} /> My Reports
+            </button>
+            <button
+              onClick={() => setActiveTab('search')}
+              className={`nav-link-mini ${activeTab === 'search' ? 'active' : ''}`}
+            >
+              <Search size={16} /> Search History
+            </button>
+            <button
+              onClick={() => setActiveTab('saved')}
+              className={`nav-link-mini ${activeTab === 'saved' ? 'active' : ''}`}
+            >
+              <Save size={16} /> Saved Articles
+            </button>
+          </div>
+        </div>
+
+        <div className="profile-tab-content-wrapper">
+          {/* My Reports Tab */}
+          {activeTab === 'reports' && (
+            <FadeInSection direction="up">
+              <div className="premium-content-card">
+                <div className="section-header">
+                  <h3 className="section-title">
+                    <FileText size={22} className="text-[#f59e0b]" /> Intelligence Archive
+                  </h3>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className="btn-icon" onClick={() => scrollReports('left')}><ChevronLeft size={20} /></button>
+                    <button className="btn-icon" onClick={() => scrollReports('right')}><ChevronRight size={20} /></button>
                   </div>
-                  <div style={{ flex: 1, minWidth: '300px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <h2 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontWeight: '800' }}>{user?.name}</h2>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', color: 'var(--text-muted)', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Mail size={16} /> {user?.email}</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Calendar size={16} /> Joined {new Date(user?.createdAt).toLocaleDateString()}</span>
+                </div>
+
+                <div className="modern-scroll-container" ref={reportsScrollRef} style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '1rem', scrollSnapType: 'x mandatory' }}>
+                  {reports.map((report) => (
+                    <div key={report._id} className="report-item-professional" style={{ minWidth: '350px', flex: '0 0 auto', scrollSnapAlign: 'start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div className="report-tag-lux">INCIDENT LOG • {report.platform}</div>
+                        <h4 className="report-title-lux">{report.incidentType}</h4>
+                        <div className="report-date-lux">{new Date(report.createdAt).toLocaleDateString()}</div>
+                        <div style={{ display: 'flex', gap: '0.8rem', marginTop: '1.5rem' }}>
+                          <button className="btn-banner-glass white" onClick={() => setSelectedReport(report)}>Review</button>
+                          <button className="btn-banner-glass cyan" onClick={() => handlePrint(report)}>Export</button>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button onClick={() => setIsEditing(true)} className="btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem' }}>
-                          <Edit2 size={16} /> Edit Profile
-                        </button>
-                        <button onClick={handleClearHistory} className="btn-outline" style={{ borderColor: 'rgba(239, 68, 68, 0.3)', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem' }}>
-                          <Trash2 size={16} /> Clear History
-                        </button>
-                        <button onClick={handleLogout} className="btn-primary" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #ef4444', color: '#ef4444' }}>
-                          <LogOut size={16} />
-                        </button>
-                      </div>
+                      <button onClick={() => handleDeleteReport(report._id)} className="btn-purge"><Trash2 size={16} /></button>
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                      <div className="glass" style={{ padding: '0.4rem 1rem', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0, 210, 255, 0.1)', color: '#00d2ff', fontWeight: 'bold' }}>
-                        <Shield size={14} /> {user?.role?.toUpperCase()} ACCOUNT
-                      </div>
-                      <div className="glass" style={{ padding: '0.4rem 1rem', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Award size={14} className="text-[#f59e0b]" /> LEVEL {currentLevel} INVESTIGATOR
-                      </div>
-                    </div>
+                  ))}
+                </div>
+                {reports.length === 0 && renderEmptyState(<FileText size={30} />, "No forensic reports archived yet.")}
+              </div>
+            </FadeInSection>
+          )}
+
+          {/* Search History Tab */}
+          {activeTab === 'search' && (
+            <FadeInSection direction="up">
+              <div className="premium-content-card">
+                <div className="section-header">
+                  <h3 className="section-title"><Search size={20} className="text-[#00d2ff]" /> Investigation Log</h3>
+                  <div className="pagination-controls">
+                    <button 
+                      className="btn-icon-small" 
+                      disabled={searchPage === 1}
+                      onClick={() => setSearchPage(p => p - 1)}
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <span className="page-indicator">PAGE {searchPage}</span>
+                    <button 
+                      className="btn-icon-small" 
+                      disabled={searchPage * SEARCH_PER_PAGE >= activity.searches.length}
+                      onClick={() => setSearchPage(p => p + 1)}
+                    >
+                      <ChevronRight size={16} />
+                    </button>
                   </div>
                 </div>
-              </div>
 
-              {/* Stats Bar */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                {[
-                  { label: 'Secure Node IP', value: ipAddress, icon: <Globe size={20} />, color: '#10b981' },
-                  { label: 'Investigations', value: reports.length, icon: <Search size={20} />, color: '#00d2ff' },
-                  { label: 'Intelligence Read', value: activity.stats?.readCount || 0, icon: <Award size={20} />, color: '#f59e0b' },
-                  { label: 'Network Rank', value: networkRank, icon: <Trophy size={20} />, color: '#a855f7' }
-                ].map((stat, i) => (
-                  <div key={i} className="glass" style={{ padding: '1.5rem', borderRadius: '20px', textAlign: 'center' }}>
-                    <div style={{ color: stat.color, marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>{stat.icon}</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{stat.value}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{stat.label}</div>
-                  </div>
-                ))}
+                <div className="search-grid-compact">
+                  {activity.searches
+                    .slice((searchPage - 1) * SEARCH_PER_PAGE, searchPage * SEARCH_PER_PAGE)
+                    .map((s, i) => (
+                    <div key={i} className="search-pill-tactical">
+                      <div className="search-meta">
+                        <Terminal size={12} className="text-[#00d2ff]" />
+                        <span>QUERY NODE</span>
+                      </div>
+                      <div className="search-query-text">{s.query}</div>
+                      <div className="search-timestamp">
+                        {new Date(s.createdAt).toLocaleDateString()} • {new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {activity.searches.length === 0 && renderEmptyState(<Search size={30} />, "No search history recorded.")}
               </div>
+            </FadeInSection>
+          )}
 
-      <div className="responsive-grid">
-        {/* Forensic Reports Section */}
-        <div className="glass" style={{ padding: '2rem', borderRadius: '25px', gridColumn: '1 / -1', position: 'relative' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', margin: 0 }}>
-              <FileText size={20} className="text-[#f59e0b]" /> Forensic Intelligence Reports
-            </h3>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="btn-icon" onClick={() => scrollReports('left')} style={{ 
-                padding: '0.4rem', 
-                borderRadius: '50%', 
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: 'white',
-                cursor: 'pointer'
-              }}>
-                <ChevronLeft size={18} />
-              </button>
-              <button className="btn-icon" onClick={() => scrollReports('right')} style={{ 
-                padding: '0.4rem', 
-                borderRadius: '50%', 
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: 'white',
-                cursor: 'pointer'
-              }}>
-                <ChevronRight size={18} />
-              </button>
-            </div>
-          </div>
-          
-          <div className="modern-scroll-container" ref={reportsScrollRef} style={{ 
-            display: 'flex', 
-            gap: '1.5rem', 
-            overflowX: 'auto', 
-            paddingBottom: '1.5rem',
-            scrollSnapType: 'x mandatory',
-            scrollBehavior: 'smooth'
-          }}>
-            {reports.map((report) => (
-              <div key={report._id} className="glass premium-card" style={{ 
-                minWidth: '280px', 
-                flex: '1 0 30%',
-                flexShrink: 0, 
-                padding: '1.5rem', 
-                borderRadius: '20px', 
-                borderLeft: '4px solid #f59e0b', 
-                transition: '0.3s',
-                scrollSnapAlign: 'start',
-                position: 'relative'
-              }}>
-                <button 
-                  onClick={() => handleDeleteReport(report._id)}
-                  style={{ position: 'absolute', bottom: '1.5rem', right: '1.5rem', background: 'transparent', border: 'none', color: '#ff4d4d', cursor: 'pointer', opacity: 0.6 }}
-                  title="Purge Report"
-                >
-                  <Trash2 size={16} />
+          {/* Saved Articles Tab */}
+          {activeTab === 'saved' && (
+            <FadeInSection direction="up">
+              <div className="premium-content-card">
+                <h3 className="section-title"><Save size={20} className="text-[#a855f7]" /> Saved Intelligence</h3>
+                <div className="blog-archive-grid" style={{ marginTop: '2rem' }}>
+                  {activity.bookmarks?.map((art) => (
+                    <Link key={art._id} to={`/articles/${art._id}`} style={{ textDecoration: 'none' }}>
+                      <article className="blog-card glass" style={{ height: '100%', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
+                          <img 
+                            src={art.image || 'https://via.placeholder.com/400x200?text=Forensic+Dossier'} 
+                            alt={art.title} 
+                            className="blog-img" 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          />
+                          <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 2 }}>
+                            <span className="blog-category" style={{ fontSize: '0.6rem', padding: '2px 8px' }}>
+                              {art.category || 'Intelligence'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="blog-content" style={{ padding: '1.25rem' }}>
+                          <h4 style={{ fontSize: '1rem', margin: '0 0 0.5rem 0', color: '#fff', lineHeight: '1.3' }}>{art.title}</h4>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', opacity: 0.7 }}>
+                            {art.excerpt}
+                          </p>
+                        </div>
+                      </article>
+                    </Link>
+                  ))}
+                </div>
+                {(!activity.bookmarks || activity.bookmarks.length === 0) && renderEmptyState(<Save size={30} />, "No saved intelligence yet.")}
+              </div>
+            </FadeInSection>
+          )}
+        </div>
+
+        {/* Report Modal */}
+        {selectedReport && (
+          <div className="modal-backdrop" onClick={() => setSelectedReport(null)} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+            <div className="glass" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', padding: '3rem', borderRadius: '30px', background: 'white', color: '#111' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #111', paddingBottom: '1rem', marginBottom: '2rem' }}>
+                <h2 style={{ color: '#111' }}>Forensic Report</h2>
+                <button onClick={() => setSelectedReport(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}><X /></button>
+              </div>
+              <pre style={{ whiteSpace: 'pre-wrap', fontFamily: "'Times New Roman', serif", fontSize: '1.1rem', lineHeight: '1.6' }}>
+                {selectedReport.content}
+              </pre>
+              <div style={{ marginTop: '3rem', display: 'flex', gap: '1rem' }}>
+                <button className="btn-primary" style={{ flex: 1 }} onClick={() => handlePrint(selectedReport)}>
+                  <Printer size={18} /> Print Now
                 </button>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#f59e0b', fontWeight: 'bold' }}>INCIDENT LOG</span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(report.createdAt).toLocaleDateString()}</span>
-                </div>
-                <h4 style={{ marginBottom: '0.5rem', maxWidth: '85%' }}>{report.platform} Analysis</h4>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>{report.incidentType}</p>
-                
-                <div style={{ display: 'flex', gap: '0.8rem' }}>
-                  <button className="btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }} onClick={() => setSelectedReport(report)}>
-                    View Letter
-                  </button>
-                  <button className="btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: '#f59e0b', color: 'black', border: 'none' }} onClick={() => handlePrint(report)}>
-                    <Printer size={14} /> Print
-                  </button>
-                </div>
               </div>
-            ))}
-          </div>
-          {reports.length === 0 && renderEmptyState(<FileText size={30} />, "No forensic reports archived yet.")}
-        </div>
-
-        {/* Search Activity */}
-        <div className="glass" style={{ padding: '2rem', borderRadius: '25px' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem' }}>
-            <Search size={20} className="text-[#00d2ff]" /> Investigation Log
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {activity.searches.slice(0, 5).map((s, i) => (
-              <div key={i} style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', borderLeft: '3px solid #00d2ff' }}>
-                <div style={{ fontWeight: 'bold' }}>{s.query}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{new Date(s.createdAt).toLocaleDateString()}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Saved Intelligence */}
-        <div className="glass" style={{ padding: '2rem', borderRadius: '25px' }}>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem' }}>
-            <Save size={20} className="text-[#a855f7]" /> Saved Articles
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {activity.bookmarks?.slice(0, 5).map((art) => (
-              <Link key={art._id} to={`/articles/${art._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <div className="glass premium-card" style={{ padding: '1rem', borderRadius: '12px', borderLeft: '3px solid #a855f7' }}>
-                  <div style={{ fontWeight: 'bold' }}>{art.title}</div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Report Modal */}
-      {selectedReport && (
-        <div className="modal-backdrop" onClick={() => setSelectedReport(null)} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-          <div className="glass" onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', padding: '3rem', borderRadius: '30px', background: 'white', color: '#111' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #111', paddingBottom: '1rem', marginBottom: '2rem' }}>
-              <h2 style={{ color: '#111' }}>Forensic Report</h2>
-              <button onClick={() => setSelectedReport(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}><X /></button>
-            </div>
-            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: "'Times New Roman', serif", fontSize: '1.1rem', lineHeight: '1.6' }}>
-              {selectedReport.content}
-            </pre>
-            <div style={{ marginTop: '3rem', display: 'flex', gap: '1rem' }}>
-              <button className="btn-primary" style={{ flex: 1 }} onClick={() => handlePrint(selectedReport)}>
-                <Printer size={18} /> Print Now
-              </button>
             </div>
           </div>
-        </div>
         )}
       </div>
     );
@@ -597,13 +615,13 @@ const Profile = () => {
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             {DEFAULT_AVATARS.map((avatar, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 onClick={() => setProfileImage(avatar)}
-                style={{ 
-                  width: '80px', 
-                  height: '80px', 
-                  borderRadius: '15px', 
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '15px',
                   cursor: 'pointer',
                   border: profileImage === avatar ? '3px solid #00d2ff' : '1px solid rgba(255,255,255,0.1)',
                   overflow: 'hidden',
@@ -617,19 +635,19 @@ const Profile = () => {
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => fileInputRef.current.click()}
-              className="btn-outline" 
+              className="btn-outline"
               style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
             >
               <Upload size={14} style={{ marginRight: '0.5rem' }} /> Custom Identity Upload
             </button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileUpload} 
-              style={{ display: 'none' }} 
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
               accept="image/*"
             />
             {isUploading && <span style={{ fontSize: '0.8rem', color: '#00d2ff' }}>Uploading forensic asset...</span>}
@@ -644,22 +662,22 @@ const Profile = () => {
             </h3>
             <div className="form-group">
               <label>Operative Name</label>
-              <input 
-                type="text" 
-                value={name} 
-                onChange={e => setName(e.target.value)} 
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
                 placeholder="Full Name"
                 style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
-                required 
+                required
               />
             </div>
             <div className="form-group">
               <label>Intelligence Bio</label>
-              <textarea 
-                value={bio} 
-                onChange={e => setBio(e.target.value)} 
+              <textarea
+                value={bio}
+                onChange={e => setBio(e.target.value)}
                 placeholder="Briefly describe your forensic specialization..."
-                rows="4" 
+                rows="4"
                 style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
               />
             </div>
@@ -672,9 +690,9 @@ const Profile = () => {
             </h3>
             <div className="form-group">
               <label>Current Credentials (Required for Password Change)</label>
-              <input 
-                type="password" 
-                value={oldPassword} 
+              <input
+                type="password"
+                value={oldPassword}
                 onChange={e => setOldPassword(e.target.value)}
                 placeholder="••••••••"
                 style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -682,9 +700,9 @@ const Profile = () => {
             </div>
             <div className="form-group">
               <label>New Access Code</label>
-              <input 
-                type="password" 
-                value={newPassword} 
+              <input
+                type="password"
+                value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 placeholder="••••••••"
                 style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -692,9 +710,9 @@ const Profile = () => {
             </div>
             <div className="form-group">
               <label>Confirm Access Code</label>
-              <input 
-                type="password" 
-                value={confirmPassword} 
+              <input
+                type="password"
+                value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
                 style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -723,17 +741,17 @@ const Profile = () => {
       <div className="glass" style={{ width: '100%', maxWidth: '600px', padding: '3rem', borderRadius: '40px', textAlign: 'center' }}>
         <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>Forensic Asset Calibration</h2>
         <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Align and zoom the identity asset within the viewfinder.</p>
-        
-        <div 
+
+        <div
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{ 
-            width: '350px', 
-            height: '350px', 
-            margin: '0 auto 2rem', 
-            borderRadius: '50%', 
+          style={{
+            width: '350px',
+            height: '350px',
+            margin: '0 auto 2rem',
+            borderRadius: '50%',
             border: '4px solid #00d2ff',
             overflow: 'hidden',
             position: 'relative',
@@ -753,12 +771,12 @@ const Profile = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center' }}>
             <ZoomOut size={20} color="var(--text-muted)" />
-            <input 
-              type="range" 
-              min="0.1" 
-              max="5" 
-              step="0.05" 
-              value={zoom} 
+            <input
+              type="range"
+              min="0.1"
+              max="5"
+              step="0.05"
+              value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
               style={{ width: '200px' }}
             />

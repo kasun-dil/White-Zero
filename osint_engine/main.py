@@ -115,11 +115,10 @@ app = FastAPI(title="White Zero OSINT Engine", lifespan=lifespan)
 
 # --- Helper Functions ---
 
-async def get_search_results(query):
+async def get_ddg_results(query):
     results = []
     try:
         search_url = "https://html.duckduckgo.com/html/"
-        # Use a mobile User-Agent to avoid blocks/shadow-bans
         headers = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Mobile/15E148 Safari/604.1"}
         async with httpx.AsyncClient(headers=headers, timeout=15.0, follow_redirects=True) as client:
             response = await client.post(search_url, data={'q': query})
@@ -128,18 +127,87 @@ async def get_search_results(query):
                 links = soup.select('.result__title a')
                 snippets = soup.select('.result__snippet')
                 
-                for i, link_el in enumerate(links[:5]):
+                for i, link_el in enumerate(links[:8]):
                     title = link_el.text.strip()
                     raw_link = link_el.get('href', '')
-                    # Extract real link from DDG redirect
                     link = urllib.parse.parse_qs(urllib.parse.urlparse(raw_link).query).get('uddg', [raw_link])[0]
                     snippet = snippets[i].text.strip() if i < len(snippets) else ""
                     
                     if link and link.startswith('http'):
-                        results.append({"title": title, "link": link, "snippet": snippet})
+                        results.append({"title": title, "link": link, "snippet": snippet, "source": "DuckDuckGo"})
     except Exception as e:
-        print(f"Search Discovery Error: {e}")
+        print(f"DDG Search Error: {e}")
     return results
+
+async def get_google_results(query):
+    results = []
+    async with scanner.semaphore:
+        page = await scanner.context.new_page()
+        try:
+            # Random delay to mimic human behavior
+            await asyncio.sleep(random.uniform(1, 3))
+            search_url = f"https://www.google.com/search?q={urllib.parse.quote(query)}"
+            await page.goto(search_url, wait_until="domcontentloaded", timeout=30000)
+            
+            # Wait for results or handle CAPTCHA (simplified)
+            await page.wait_for_selector('div.g', timeout=5000)
+            
+            items = await page.query_selector_all('div.g')
+            for item in items[:8]:
+                title_el = await item.query_selector('h3')
+                link_el = await item.query_selector('a')
+                snippet_el = await item.query_selector('div.VwiC3b') # Google's snippet class
+                
+                if title_el and link_el:
+                    title = await title_el.inner_text()
+                    link = await link_el.get_attribute('href')
+                    snippet = await snippet_el.inner_text() if snippet_el else ""
+                    if link and link.startswith('http') and "google.com" not in link:
+                        results.append({"title": title, "link": link, "snippet": snippet, "source": "Google"})
+        except Exception as e:
+            print(f"Google Search Error: {e}")
+        finally:
+            await page.close()
+    return results
+
+async def get_yahoo_results(query):
+    results = []
+    async with scanner.semaphore:
+        page = await scanner.context.new_page()
+        try:
+            await asyncio.sleep(random.uniform(1, 2))
+            search_url = f"https://search.yahoo.com/search?p={urllib.parse.quote(query)}"
+            await page.goto(search_url, wait_until="domcontentloaded", timeout=30000)
+            
+            await page.wait_for_selector('div.algo', timeout=5000)
+            
+            items = await page.query_selector_all('div.algo')
+            for item in items[:8]:
+                title_el = await item.query_selector('h3 a')
+                snippet_el = await item.query_selector('div.compText')
+                
+                if title_el:
+                    title = await title_el.inner_text()
+                    link = await title_el.get_attribute('href')
+                    snippet = await snippet_el.inner_text() if snippet_el else ""
+                    if link and link.startswith('http') and "yahoo.com" not in link:
+                        results.append({"title": title, "link": link, "snippet": snippet, "source": "Yahoo"})
+        except Exception as e:
+            print(f"Yahoo Search Error: {e}")
+        finally:
+            await page.close()
+    return results
+
+def normalize_url(url):
+    """Simple URL normalization to compare across engines"""
+    try:
+        parsed = urllib.parse.urlparse(url.lower().rstrip('/'))
+        # Remove common tracking params
+        netloc = parsed.netloc.replace('www.', '')
+        path = parsed.path
+        return f"{netloc}{path}"
+    except:
+        return url.lower()
 
 async def check_http(platform, url):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"}
@@ -214,21 +282,92 @@ async def check_browser(platform, url):
 
 @app.post("/search_username")
 async def search_username(query: UsernameQuery):
-    tasks = []
-    platform_items = list(PLATFORMS.items())
+    # 1. Multi-Engine Discovery phase
+    discovery_tasks = [
+        get_ddg_results(query.username),
+        get_google_results(query.username),
+        get_yahoo_results(query.username)
+    ]
     
-    # If not deep scan, only do first 9
+    discovery_results = await asyncio.gather(*discovery_tasks)
+    
+    # Flatten and build consensus
+    all_links = []
+    url_map = {} # normalized_url -> {original_url, sources: set(), title, snippet}
+    
+    for engine_results in discovery_results:
+        for res in engine_results:
+            norm = normalize_url(res["link"])
+            if norm not in url_map:
+                url_map[norm] = {
+                    "link": res["link"],
+                    "title": res["title"],
+                    "snippet": res["snippet"],
+                    "sources": {res["source"]}
+                }
+            else:
+                url_map[norm]["sources"].add(res["source"])
+
+    # Convert map to sorted results based on consensus
+    final_results = []
+    found_platforms = set()
+    
+    for norm, data in url_map.items():
+        score = (len(data["sources"]) / 3) * 100
+        
+        # Identify platform
+        platform_name = "Unknown"
+        for p_name, p_data in PLATFORMS.items():
+            if p_name.lower() in norm:
+                platform_name = p_name
+                found_platforms.add(p_name)
+                break
+        
+        final_results.append({
+            "platform": platform_name,
+            "status": "Found",
+            "link": data["link"],
+            "title": data["title"],
+            "snippet": data["snippet"],
+            "confidence": f"{round(score, 1)}%",
+            "sources": list(data["sources"])
+        })
+
+    # 2. Direct Verification phase (Check platforms NOT found by search engines)
+    direct_tasks = []
+    platform_items = list(PLATFORMS.items())
     scan_list = platform_items if query.deep_scan else platform_items[:9]
     
     for platform, data in scan_list:
-        url = data["url"].format(query.username)
-        if data["type"] == "http":
-            tasks.append(check_http(platform, url))
-        else:
-            tasks.append(check_browser(platform, url))
+        if platform not in found_platforms:
+            url = data["url"].format(query.username)
+            if data["type"] == "http":
+                direct_tasks.append(check_http(platform, url))
+            else:
+                direct_tasks.append(check_browser(platform, url))
     
-    results = await asyncio.gather(*tasks)
-    return {"username": query.username, "results": results, "deep_scan": query.deep_scan}
+    if direct_tasks:
+        direct_results = await asyncio.gather(*direct_tasks)
+        for res in direct_results:
+            if res["status"] == "Found":
+                final_results.append({
+                    **res,
+                    "confidence": "33.3%", # Direct hit but not in top search results
+                    "sources": ["Direct Probe"]
+                })
+
+    # Sort results: high confidence first, then identified platforms
+    final_results.sort(key=lambda x: (float(x["confidence"].strip('%')), x["platform"] != "Unknown"), reverse=True)
+
+    return {
+        "username": query.username, 
+        "results": final_results, 
+        "deep_scan": query.deep_scan,
+        "discovery_metrics": {
+            "engines_queried": ["Google", "DuckDuckGo", "Yahoo"],
+            "total_matches": len(final_results)
+        }
+    }
 
 @app.post("/search", response_model=List[SearchResult])
 async def search_discovery(query: SearchQuery):
@@ -272,14 +411,14 @@ async def search_phone(query: UsernameQuery):
     # but allows long mobile numbers to freely return Facebook/social media profiles.
     if len(clean_number) <= 5:
         search_query = f'"{number}" OR "{clean_number}" (phone OR contact OR hotline OR directory)'
-        search_hits = await get_search_results(search_query)
+        search_hits = await get_ddg_results(search_query)
     else:
         global_query = f'"{number}" OR "{clean_number}"'
         fb_query = f'site:facebook.com "{number}" OR "{clean_number}"'
         
         hit_lists = await asyncio.gather(
-            get_search_results(global_query),
-            get_search_results(fb_query)
+            get_ddg_results(global_query),
+            get_ddg_results(fb_query)
         )
         
         seen_links = set()
