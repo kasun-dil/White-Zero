@@ -1027,6 +1027,37 @@ app.get('/api/reports/my', protect, async (req, res) => {
   }
 });
 
+app.put('/api/reports/:id', protect, async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) return res.status(404).json({ message: 'Report not found' });
+    if (report.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    report.content = req.body.content || report.content;
+    const updatedReport = await report.save();
+    res.json(updatedReport);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+app.delete('/api/reports/:id', protect, async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) return res.status(404).json({ message: 'Report not found' });
+    if (report.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    await Report.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Report removed' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 app.delete('/api/users/profile/clear-history', protect, async (req, res) => {
   try {
     const userId = req.user._id;

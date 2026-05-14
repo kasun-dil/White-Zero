@@ -12,10 +12,10 @@ const features = [
     path: "/content-sentinel"
   },
   {
-    title: "AI Report Assistant",
-    description: "Step-by-step guidance on reporting harmful content and profiles to social media platforms.",
+    title: "AI Security Auditor",
+    description: "Advanced diagnostic of your social media security profile with AI-driven forensic audits.",
     icon: <ShieldCheck size={32} />,
-    path: "/report-assistant"
+    path: "/security-auditor"
   },
   {
     title: "Cyber QA Bot",

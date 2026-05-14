@@ -6,9 +6,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import FeaturesPage from './pages/FeaturesPage';
 import Contact from './pages/Contact';
-import ContentSentinel from './pages/ContentSentinel';
-import ReportAssistant from './pages/ReportAssistant';
-import QABot from './pages/QABot';
+import SecurityAuditor from './pages/SecurityAuditor';
 import OSINTDashboard from './pages/OSINTDashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -18,13 +16,13 @@ import Articles from './pages/Articles';
 import ArticleDetail from './pages/ArticleDetail';
 import ScrollToTop from './components/ScrollToTop';
 import FloatingAI from './components/FloatingAI';
-import IntelligenceLab from './pages/IntelligenceLab';
 import ReportCrime from './pages/ReportCrime';
 import PoliceDashboard from './pages/PoliceDashboard';
 import MyReports from './pages/MyReports';
 import { AuthProvider } from './context/AuthContext';
 import { useLocation } from 'react-router-dom';
 import './index.css';
+import { Toaster } from 'react-hot-toast';
 
 function AppContent() {
   const location = useLocation();
@@ -48,10 +46,7 @@ function AppContent() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/articles" element={<Articles />} />
         <Route path="/articles/:id" element={<ArticleDetail />} />
-        <Route path="/content-sentinel" element={<ContentSentinel />} />
-        <Route path="/report-assistant" element={<ReportAssistant />} />
-        <Route path="/qa-bot" element={<QABot />} />
-        <Route path="/intelligence-lab" element={<IntelligenceLab />} />
+        <Route path="/security-auditor" element={<SecurityAuditor />} />
         <Route path="/report-crime" element={<ReportCrime />} />
         <Route path="/police-dashboard" element={<PoliceDashboard />} />
         <Route path="/my-reports" element={<MyReports />} />
@@ -61,7 +56,6 @@ function AppContent() {
   );
 }
 
-import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (

@@ -285,25 +285,36 @@ Official Documentation by White Zero Intelligence Framework
     setGeneratedReport(report);
   }, [formData, reportType]);
 
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Cyber Incident Report</title>
-          <style>
-            @page { size: auto; margin: 0; }
-            body { font-family: 'Times New Roman', Times, serif; padding: 50px; line-height: 1.5; color: #111; background: white; margin: 0; }
-            pre { white-space: pre-wrap; font-family: inherit; font-size: 11pt; margin: 0; }
-          </style>
-        </head>
-        <body>
-          <pre>${generatedReport}</pre>
-          <script>window.print(); window.close();</script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+  const downloadDoc = (content, filename) => {
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Forensic Report</title></head><body>";
+    const footer = "</body></html>";
+    const sourceHTML = header + content.replace(/\n/g, '<br>') + footer;
+    
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+    const fileDownload = document.createElement("a");
+    document.body.appendChild(fileDownload);
+    fileDownload.href = source;
+    fileDownload.download = `${filename}.doc`;
+    fileDownload.click();
+    document.body.removeChild(fileDownload);
+  };
+
+  const handleDownloadDoc = () => {
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+            "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+            "xmlns='http://www.w3.org/TR/REC-html40'>"+
+            "<head><meta charset='utf-8'><title>Forensic Report</title></head><body>";
+    const footer = "</body></html>";
+    const sourceHTML = header + `<pre style="font-family: 'Courier New', Courier, monospace; font-size: 10pt;">${generatedReport}</pre>` + footer;
+    
+    const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+    const fileLink = document.createElement("a");
+    document.body.appendChild(fileLink);
+    fileLink.href = source;
+    fileLink.download = `Forensic_Report_${reportRefId}.doc`;
+    fileLink.click();
+    document.body.removeChild(fileLink);
+    toast.success('Dossier exported as editable .DOC');
   };
 
   const saveReport = async () => {
@@ -733,7 +744,8 @@ Official Documentation by White Zero Intelligence Framework
                 {step === 4 && reportType === 'social' && (
                   <div style={{ display: 'flex', gap: '1rem' }}>
                     <button className="btn-nav-next" style={{ background: '#004e92', color: 'white' }} onClick={saveReport}><Shield size={18} /> Save</button>
-                    <button className="btn-nav-next success" onClick={handlePrint}><Download size={18} /> Print</button>
+                    <button className="btn-nav-next success" onClick={handleDownloadDoc}><Download size={18} /> Download .DOC</button>
+                    <button className="btn-nav-next" style={{ background: 'rgba(255,255,255,0.1)', color: 'white' }} onClick={handlePrint}><FileText size={18} /> Print</button>
                   </div>
                 )}
               </div>

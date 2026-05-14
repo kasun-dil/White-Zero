@@ -428,7 +428,7 @@ const PoliceDashboard = () => {
       <main>
         <header className="admin-header-flex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
           <div>
-            <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontWeight: '800' }}>Command <span className="text-gradient" style={{ background: 'linear-gradient(90deg, #fff, #10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Operations</span></h1>
+            <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontWeight: '800' }}>Command Operations</h1>
             <p style={{ color: 'var(--text-muted)' }}>Secure forensic analysis and field intelligence moderation.</p>
           </div>
           <div className="glass admin-profile-badge" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.6rem 1.2rem', borderRadius: '15px' }}>
