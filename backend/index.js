@@ -40,6 +40,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Automated Health Diagnostics
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'operational', timestamp: new Date().toISOString() });
+});
+
 // Multer Setup for Image Uploads
 const storage = multer.diskStorage({
   destination(req, file, cb) {

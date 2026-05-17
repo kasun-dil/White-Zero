@@ -340,46 +340,69 @@ const OSINTDashboard = () => {
               </div>
             </FadeInSection>
 
-            <div className="platforms-grid">
-              {usernameResults.results ? (
-                usernameResults.results.map((res, i) => (
-                  <FadeInSection key={i} delay={i * 0.05} direction="up">
-                    <div className={`platform-card glass ${res.status.toLowerCase()}`}>
-                      <div className="platform-header">
-                        <div 
-                          className={`platform-icon-box ${res.status.toLowerCase()}`}
-                          style={{ background: '#000', border: `1px solid ${getPlatformIconData(res.platform).color}` }}
-                        >
-                          {getPlatformIconData(res.platform).icon}
-                        </div>
-                        <div className="discovery-badges">
-                          <div className={`status-tag confidence-badge`}>
-                            {res.confidence} Match
+              <div className="platforms-grid">
+                {usernameResults.results ? (
+                  usernameResults.results
+                    .filter(res => {
+                      if (res.status !== 'Found') return false;
+                      
+                      // 1. CLEAN URL HANDLE EXTRACTION
+                      let handle = '';
+                      try {
+                        const urlParts = res.link.split('/');
+                        // Get last part, remove query params, remove @ or in/ or u/ prefixes
+                        handle = urlParts.pop() || urlParts.pop(); 
+                        handle = handle.split('?')[0].replace(/^@/, '').replace(/^in\//, '').replace(/^u\//, '');
+                      } catch (e) {
+                        handle = '';
+                      }
+
+                      // 2. STRICT EXACT MATCH CHECK
+                      const isExactHandle = handle.toLowerCase() === lastUsername.toLowerCase();
+                      
+                      // 3. TITLE FALLBACK (If URL extraction is ambiguous)
+                      const isExactTitle = res.title?.toLowerCase().trim() === lastUsername.toLowerCase().trim();
+
+                      return isExactHandle || isExactTitle;
+                    })
+                    .map((res, i) => (
+                      <FadeInSection key={i} delay={i * 0.05} direction="up">
+                        <div className={`platform-card glass ${res.status.toLowerCase()}`}>
+                          <div className="platform-header">
+                            <div 
+                              className={`platform-icon-box ${res.status.toLowerCase()}`}
+                              style={{ background: '#000', border: `1px solid ${getPlatformIconData(res.platform).color}` }}
+                            >
+                              {getPlatformIconData(res.platform).icon}
+                            </div>
+                            <div className="discovery-badges">
+                              <div className={`status-tag confidence-badge`}>
+                                {res.confidence} Match
+                              </div>
+                              <div className={`status-tag ${res.status.toLowerCase()}`}>
+                                {res.status}
+                              </div>
+                            </div>
                           </div>
-                          <div className={`status-tag ${res.status.toLowerCase()}`}>
-                            {res.status}
+                          <div className="platform-info">
+                            <h3>{res.platform}</h3>
+                            {res.title && <p className="platform-title">{res.title}</p>}
+                            <p className="platform-url">{res.link}</p>
+                            {res.snippet && <p className="platform-snippet">"{res.snippet}"</p>}
+                          </div>
+                          <div className="platform-footer">
+                            <div className="source-list">
+                              {res.sources?.map(s => (
+                                <span key={s} className="source-tag">{s}</span>
+                              ))}
+                            </div>
+                            <a href={res.link} target="_blank" rel="noreferrer" className="btn-visit">
+                              Visit Profile <ExternalLink size={14} />
+                            </a>
                           </div>
                         </div>
-                      </div>
-                      <div className="platform-info">
-                        <h3>{res.platform}</h3>
-                        {res.title && <p className="platform-title">{res.title}</p>}
-                        <p className="platform-url">{res.link}</p>
-                        {res.snippet && <p className="platform-snippet">"{res.snippet}"</p>}
-                      </div>
-                      <div className="platform-footer">
-                        <div className="source-list">
-                          {res.sources?.map(s => (
-                            <span key={s} className="source-tag">{s}</span>
-                          ))}
-                        </div>
-                        <a href={res.link} target="_blank" rel="noreferrer" className="btn-visit">
-                          Visit Profile <ExternalLink size={14} />
-                        </a>
-                      </div>
-                    </div>
-                  </FadeInSection>
-                ))
+                      </FadeInSection>
+                    ))
               ) : (
                 <div className="engine-error glass">
                   <p>INTELLIGENCE ENGINE OFFLINE: {usernameResults.message || 'Unknown Error'}</p>

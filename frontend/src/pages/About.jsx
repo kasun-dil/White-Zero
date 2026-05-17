@@ -137,6 +137,8 @@ const About = () => {
 
 
 
+
+
           {/* Final Tech Blog Section - Last before Footer */}
           <section style={{
             position: 'relative',

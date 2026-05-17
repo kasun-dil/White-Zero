@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
+import authBg from '../assets/auth-bg.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, Hexagon, Eye, EyeOff } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
@@ -58,9 +59,51 @@ const Login = () => {
   };
 
   return (
-    <div className="page-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      minHeight: '100vh',
+      width: '100vw',
+      position: 'relative',
+      overflowY: 'auto',
+      padding: '4rem 1rem'
+    }}>
+      {/* Cinematic Background Layer */}
+      <div style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        width: '100%', 
+        height: '100%', 
+        zIndex: -1,
+        backgroundImage: `url(${authBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        filter: 'blur(10px) brightness(0.3)',
+        transform: 'scale(1.1)' // Prevent blur edges
+      }} />
+      <div style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        width: '100%', 
+        height: '100%', 
+        zIndex: -1,
+        background: 'radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.8) 100%)'
+      }} />
+
       <FadeInSection direction="up">
-        <div className="glass auth-card" style={{ width: '100%', maxWidth: '900px', padding: 'var(--auth-padding, 4rem 5rem)', borderRadius: '30px' }}>
+        <div className="glass auth-card" style={{ 
+          width: '100%', 
+          maxWidth: '500px', 
+          padding: '2.5rem', 
+          borderRadius: '24px',
+          background: 'rgba(5, 8, 15, 0.9)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
+          margin: '2rem'
+        }}>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{ position: 'relative', width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
               <Hexagon size={64} className="text-[#00d2ff]" style={{ position: 'absolute' }} />

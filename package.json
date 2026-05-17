@@ -5,8 +5,9 @@
   "scripts": {
     "frontend:test": "npm test --prefix frontend",
     "frontend:report": "npm run test:report --prefix frontend",
-    "test": "playwright test -c INTEGRITY_AUDIT/playwright.config.js",
-    "test:report": "playwright show-report INTEGRITY_AUDIT/playwright-report",
+    "test": "npx playwright test -c TEST/playwright.config.js",
+    "test:report": "npx playwright show-report TEST_REPORT",
+    "audit:ui": "npx playwright test -c TEST/playwright.config.js --ui",
     "dev": "npm run dev --prefix frontend & npm run dev --prefix backend"
   },
   "author": "White Zero Team",

@@ -127,10 +127,7 @@ const MyReports = () => {
         
         {/* Header Section */}
         <div className="fade-in" style={{ marginBottom: '3rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-            <div style={{ padding: '0.75rem', background: 'rgba(0, 210, 255, 0.1)', borderRadius: '12px', border: '1px solid rgba(0, 210, 255, 0.2)' }}>
-              <Shield className="text-[#00d2ff]" size={32} />
-            </div>
+          <div style={{ marginBottom: '1rem' }}>
             <div>
               <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, letterSpacing: '-1px' }}>
                 Forensic <span className="text-gradient">Command Center</span>

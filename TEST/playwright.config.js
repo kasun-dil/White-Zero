@@ -1,12 +1,12 @@
-import { defineConfig, devices } from '@playwright/test';
+const { defineConfig, devices } = require('@playwright/test');
 
-export default defineConfig({
-  testDir: './tests',
+module.exports = defineConfig({
+  testDir: './',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [['list'], ['html']],
+  reporter: [['list'], ['html', { outputFolder: '../TEST_REPORT' }]],
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
@@ -22,5 +22,6 @@ export default defineConfig({
     command: 'npm run dev --prefix ../frontend',
     url: 'http://localhost:5173',
     reuseExistingServer: true,
+    timeout: 120000,
   },
 });

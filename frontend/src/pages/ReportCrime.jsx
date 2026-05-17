@@ -405,6 +405,32 @@ Official Documentation by White Zero Intelligence Framework
     window.location.href = `mailto:${guide.email}?subject=${subject}&body=${body}`;
   };
 
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>White Zero Forensic Report - ${reportRefId}</title>
+          <style>
+            body { font-family: 'Courier New', Courier, monospace; padding: 40px; background: #fff; color: #000; }
+            h1 { border-bottom: 2px solid #000; padding-bottom: 10px; }
+            pre { white-space: pre-wrap; word-wrap: break-word; }
+          </style>
+        </head>
+        <body>
+          <h1>WHITE ZERO FORENSIC INTELLIGENCE</h1>
+          <p>REFERENCE ID: ${reportRefId}</p>
+          <hr />
+          <pre>${generatedReport}</pre>
+          <hr />
+          <p style="font-size: 10px; color: #666;">Generated via White Zero Intelligence Framework</p>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   const currentGuide = SUBMISSION_GUIDES[formData.platform] || SUBMISSION_GUIDES.Facebook;
 
   // RENDER SELECTION SCREEN

@@ -280,6 +280,10 @@ async def check_browser(platform, url):
 
 # --- Endpoints ---
 
+@app.get("/health")
+async def health_check():
+    return {"status": "operational", "engine": "White Zero OSINT", "browser_active": scanner.browser is not None}
+
 @app.post("/search_username")
 async def search_username(query: UsernameQuery):
     # 1. Multi-Engine Discovery phase

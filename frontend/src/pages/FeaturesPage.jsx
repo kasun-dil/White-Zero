@@ -57,7 +57,7 @@ const FeaturesPage = () => {
         </div>
       </div>
 
-      <div className="features-content" style={{ paddingTop: '5rem', paddingLeft: '2rem', paddingRight: '2rem' }}>
+      <div className="features-content" style={{ paddingTop: '5rem', paddingBottom: '10rem', paddingLeft: '2rem', paddingRight: '2rem' }}>
 
         <div className="features-grid-premium">
           {features.map((f, i) => (
