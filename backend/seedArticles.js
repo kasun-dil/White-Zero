@@ -89,7 +89,90 @@ Beyond standard response, we are exploring "Digital Decoys"—synthetic environm
 The future of White Zero intelligence is not just reactive; it is pro-active, predictive, and pervasive. We are building the ultimate digital shield for a world that never sleeps.
 `;
 
-    const fullArticles = [];
+    const fullArticles = [
+      {
+        title: "How-To: Deploying OSINT Intelligence Search",
+        category: "Intelligence",
+        image: "https://cyesec.com/wp-content/uploads/2022/06/social-tips-min.jpg",
+        galleryImages: [], 
+        introBold: "", 
+        excerpt: "Learn how to master the White Zero OSINT data harvesting engine, utilize target social dorks, and extract precise public digital footprints across global networks.",
+        content: `## STEP-BY-STEP OPERATION GUIDE
+
+The OSINT Intelligence Search module is designed to query multiple open-source indices in parallel and establish a digital footprint signature. Follow these instructions to conduct a standard inquiry:
+
+### 1. SPECIFYING THE TARGET HANDLE
+Enter the exact username or online pseudonym of the subject. The engine will perform a dual lookup:
+- **Raw Query**: General search engine matching across Google, DuckDuckGo, and Yahoo.
+- **Targeted Dorks**: Domain-specific constraint scoping on major social nodes like Facebook, X (formerly Twitter), Instagram, and LinkedIn.
+
+### 2. EVALUATING RESULTS AND STRENGTHS
+Results are categorized into:
+- **Exact Matches**: Profiles where the handle or title is an identical match.
+- **Related Profiles**: Expanded variations discovered during Heuristic Discovery (e.g. searching 'kasun' reveals related accounts like 'kasun.dilshan').
+
+### 3. EXPORTING EVIDENCE
+Use the "Export Analysis" command to capture a digitally timestamped plaintext brief of all discovered endpoints for your case ledger.`,
+        conclusion: "Mastering OSINT ensures complete digital visibility. Always run verification checks on discovered related nodes.",
+        author: adminUser.name,
+        authorId: adminUser._id,
+        authorRole: "admin",
+        isFeatured: true,
+        createdAt: new Date()
+      },
+      {
+        title: "How-To: Generating Forensic Incident Reports",
+        category: "Forensics",
+        image: "https://gendermatters.in/wp-content/uploads/2018/07/Police-Surveillance-Social-Media-Monitoring.jpg",
+        galleryImages: [], 
+        introBold: "", 
+        excerpt: "A professional guide to translating digital evidence and incident narratives into courtroom-grade case reports following forensic integrity standards.",
+        content: `## METHODOLOGY OF DOCUMENTATION
+
+Forensic reporting bridges raw digital data and legal admissibility. White Zero conforms to strict intelligence led standards:
+
+### 1. LOGGING BIO-DATA & TRANSMISSIONS
+Begin by establishing the reporter metadata, subject identification parameters, and critical incident timelines. Ensure dates align with system logs.
+
+### 2. CONTEXT SYNTHESIS
+Write a structured narrative describing the breach, incident, or social engineering exploit. Avoid emotive language; state observed actions and packet records clearly.
+
+### 3. OFFICIAL CORRESPONDENCE
+Use the "Investigative Dialogue" feature to maintain verified correspondence between victims and police officers. Transmissions are indexed chronologically.`,
+        conclusion: "A meticulously written forensic report accelerates justice and provides bulletproof documentation for subsequent litigation.",
+        author: adminUser.name,
+        authorId: adminUser._id,
+        authorRole: "admin",
+        isFeatured: true,
+        createdAt: new Date()
+      },
+      {
+        title: "How-To: Executing Security Posture Audits",
+        category: "Privacy",
+        image: "https://www.socialchamp.com/blog/wp-content/uploads/2024/03/Content-Blog-Banner_Q1-2024_1125x600_063_Social-Media-Security.png",
+        galleryImages: [], 
+        introBold: "", 
+        excerpt: "Maximize platform privacy, conduct autonomous social audits, map credential vulnerabilities, and implement critical profile hardening.",
+        content: `## HARDENING DEPLOYMENT MANUAL
+
+The Security Posture Auditor analyzes exposed elements of online entities to recommend structural enhancements:
+
+### 1. INGESTING POSTURE CHECKS
+Execute the profile scanner to pull public accessibility fields. The auditor inspects bio structures, visible email hashes, and cross-platform connection leakage.
+
+### 2. VULNERABILITY MAPPING
+Each vulnerability is scored against the OWASP Threat Scoring matrix to compute an aggregate Security Posture Rating.
+
+### 3. HARDENING ACTIONS
+Deploy the automated hardening recommendations. This includes locking down visible email fields, obfuscating birthday meta-tags, and severing unverified cross-network authentication hubs.`,
+        conclusion: "Regular security posture audits significantly minimize attack vectors and preserve personal digital sovereignty.",
+        author: adminUser.name,
+        authorId: adminUser._id,
+        authorRole: "admin",
+        isFeatured: true,
+        createdAt: new Date()
+      }
+    ];
     for (let i = 0; i < 25; i++) {
       const cat = categories[i % categories.length];
       const role = i % 2 === 0 ? 'admin' : 'police';

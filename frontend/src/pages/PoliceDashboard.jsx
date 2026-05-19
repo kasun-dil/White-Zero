@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { 
   Shield, Mail, Phone, Clock, CheckCircle, MessageSquare, 
@@ -19,10 +19,40 @@ const PoliceDashboard = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [focusReports, setFocusReports] = useState(new Set());
-  const [showOnlyFocus, setShowOnlyFocus] = useState(false);
+  const [filterTab, setFilterTab] = useState('all'); // 'all', 'done', 'focus', '7days'
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const chatContainerRef = useRef(null);
+  const prevReportIdRef = useRef(null);
+
+  const scrollToBottom = (behavior = 'smooth') => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior
+      });
+    }
+  };
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
+  useEffect(() => {
+    if (selectedReport) {
+      if (prevReportIdRef.current !== selectedReport._id) {
+        // Switch report -> scroll site to top, and dialogue feed to bottom
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        setTimeout(() => scrollToBottom('auto'), 50);
+        prevReportIdRef.current = selectedReport._id;
+      } else {
+        // New message -> smooth scroll dialogue feed to bottom
+        setTimeout(() => scrollToBottom('smooth'), 50);
+      }
+    }
+  }, [selectedReport?._id, selectedReport?.responses?.length]);
 
   // Article State
   const [showAddArticle, setShowAddArticle] = useState(false);
@@ -250,17 +280,32 @@ const PoliceDashboard = () => {
         r.referenceId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         r.title?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesFocus = showOnlyFocus ? focusReports.has(r._id) : true;
-      return matchesSearch && matchesFocus;
+      if (!matchesSearch) return false;
+      
+      if (filterTab === 'focus') {
+        return focusReports.has(r._id);
+      }
+      if (filterTab === 'done') {
+        return r.isClosed;
+      }
+      if (filterTab === '7days') {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        return new Date(r.createdAt) >= sevenDaysAgo;
+      }
+      
+      return true; // 'all'
     })
     .sort((a, b) => {
       // Prioritize focus cases
       if (focusReports.has(a._id) && !focusReports.has(b._id)) return -1;
       if (!focusReports.has(a._id) && focusReports.has(b._id)) return 1;
       
-      // Send closed cases to bottom
-      if (a.isClosed && !b.isClosed) return 1;
-      if (!a.isClosed && b.isClosed) return -1;
+      // Send closed cases to bottom if not explicitly viewing 'done' tab
+      if (filterTab !== 'done') {
+        if (a.isClosed && !b.isClosed) return 1;
+        if (!a.isClosed && b.isClosed) return -1;
+      }
       
       // Sort by latest activity (updatedAt)
       return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
@@ -442,7 +487,14 @@ const PoliceDashboard = () => {
         {activeTab === 'reports' ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
             {/* List */}
-            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', height: 'fit-content' }}>
+            <div className="glass thin-scrollbar" style={{ 
+              padding: '1.5rem', 
+              borderRadius: '20px', 
+              height: 'calc(100vh - 180px)', 
+              overflowY: 'auto', 
+              position: 'sticky', 
+              top: '120px' 
+            }}>
               <div className="osint-search-box" style={{ 
                 marginBottom: '2rem',
                 border: '1px solid rgba(16, 185, 129, 0.2)',
@@ -473,14 +525,80 @@ const PoliceDashboard = () => {
                 />
               </div>
               
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1rem', opacity: 0.6 }}>Assigned Intelligence</h3>
-                <button 
-                  onClick={() => setShowOnlyFocus(!showOnlyFocus)}
-                  style={{ background: showOnlyFocus ? 'rgba(0, 210, 255, 0.1)' : 'transparent', border: '1px solid rgba(0, 210, 255, 0.2)', color: showOnlyFocus ? '#00d2ff' : '#888', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
-                >
-                  <Star size={12} fill={showOnlyFocus ? "#00d2ff" : "none"} /> {showOnlyFocus ? 'Focused' : 'All'}
-                </button>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1rem', opacity: 0.6, marginBottom: '0.75rem' }}>Assigned Intelligence</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <button 
+                    onClick={() => setFilterTab('all')}
+                    style={{ 
+                      background: filterTab === 'all' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.02)', 
+                      border: `1px solid ${filterTab === 'all' ? '#10b981' : 'rgba(255,255,255,0.05)'}`, 
+                      color: filterTab === 'all' ? '#10b981' : 'rgba(255,255,255,0.6)', 
+                      padding: '8px', 
+                      borderRadius: '8px', 
+                      fontSize: '0.75rem', 
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    All Cases
+                  </button>
+                  <button 
+                    onClick={() => setFilterTab('focus')}
+                    style={{ 
+                      background: filterTab === 'focus' ? 'rgba(0, 210, 255, 0.15)' : 'rgba(255,255,255,0.02)', 
+                      border: `1px solid ${filterTab === 'focus' ? '#00d2ff' : 'rgba(255,255,255,0.05)'}`, 
+                      color: filterTab === 'focus' ? '#00d2ff' : 'rgba(255,255,255,0.6)', 
+                      padding: '8px', 
+                      borderRadius: '8px', 
+                      fontSize: '0.75rem', 
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <Star size={11} fill={filterTab === 'focus' ? "#00d2ff" : "none"} /> Focus Cases
+                  </button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  <button 
+                    onClick={() => setFilterTab('done')}
+                    style={{ 
+                      background: filterTab === 'done' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.02)', 
+                      border: `1px solid ${filterTab === 'done' ? '#10b981' : 'rgba(255,255,255,0.05)'}`, 
+                      color: filterTab === 'done' ? '#10b981' : 'rgba(255,255,255,0.6)', 
+                      padding: '8px', 
+                      borderRadius: '8px', 
+                      fontSize: '0.75rem', 
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    Done Cases
+                  </button>
+                  <button 
+                    onClick={() => setFilterTab('7days')}
+                    style={{ 
+                      background: filterTab === '7days' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255,255,255,0.02)', 
+                      border: `1px solid ${filterTab === '7days' ? '#f59e0b' : 'rgba(255,255,255,0.05)'}`, 
+                      color: filterTab === '7days' ? '#f59e0b' : 'rgba(255,255,255,0.6)', 
+                      padding: '8px', 
+                      borderRadius: '8px', 
+                      fontSize: '0.75rem', 
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    Last 7 Days
+                  </button>
+                </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {Array.isArray(filteredReports) && filteredReports.map(r => (
@@ -518,7 +636,12 @@ const PoliceDashboard = () => {
             </div>
 
             {/* Detail */}
-            <div className="glass" style={{ padding: '2.5rem', borderRadius: '25px', minHeight: '80vh' }}>
+            <div className="glass thin-scrollbar" style={{ 
+              padding: '2.5rem', 
+              borderRadius: '25px', 
+              height: 'calc(100vh - 180px)', 
+              overflowY: 'auto' 
+            }}>
               {selectedReport ? (
                 <FadeInSection>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
@@ -560,7 +683,7 @@ const PoliceDashboard = () => {
 
                   <div className="investigation-log">
                     <h4 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MessageSquare size={18} /> Investigative Dialogue</h4>
-                    <div style={{ 
+                    <div ref={chatContainerRef} style={{ 
                       display: 'flex', 
                       flexDirection: 'column', 
                       gap: '1.2rem', 
@@ -572,21 +695,21 @@ const PoliceDashboard = () => {
                       marginBottom: '1.5rem',
                       border: '1px solid rgba(255,255,255,0.02)'
                     }}>
-                      {selectedReport.responses?.map((resp, i) => (
+                      {selectedReport.responses && selectedReport.responses.map((resp, i) => (
                         <div key={i} className="message-animation" style={{ 
                           alignSelf: resp.role === 'user' ? 'flex-start' : 'flex-end',
                           maxWidth: '80%',
-                          background: resp.role === 'user' ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #10b981, #059669)',
+                          background: resp.role === 'user' ? '#1e3a8a' : '#064e3b',
                           padding: '1.2rem',
                           borderRadius: resp.role === 'user' ? '20px 20px 20px 4px' : '20px 20px 4px 20px',
-                          boxShadow: resp.role !== 'user' ? '0 4px 15px rgba(16, 185, 129, 0.2)' : 'none',
-                          border: '1px solid rgba(255,255,255,0.05)'
+                          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+                          border: resp.role === 'user' ? '1px solid rgba(0, 210, 255, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)'
                         }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', marginBottom: '0.6rem' }}>
                             <span style={{ 
                               fontSize: '0.65rem', 
                               fontWeight: 'bold', 
-                              color: resp.role === 'user' ? '#00d2ff' : 'rgba(255,255,255,0.8)',
+                              color: resp.role === 'user' ? '#00d2ff' : '#10b981',
                               letterSpacing: '1px'
                             }}>
                               {resp.role === 'user' ? 'VICTIM / INFORMANT' : 'YOU (OFFICER)'}

@@ -287,10 +287,15 @@ async def health_check():
 @app.post("/search_username")
 async def search_username(query: UsernameQuery):
     # 1. Multi-Engine Discovery phase
+    # Query raw username and targeted social media platform dorks in parallel for optimal discovery
+    dork_query = f'"{query.username}" (site:facebook.com OR site:instagram.com OR site:x.com OR site:linkedin.com OR site:reddit.com OR site:github.com)'
     discovery_tasks = [
         get_ddg_results(query.username),
+        get_ddg_results(dork_query),
         get_google_results(query.username),
-        get_yahoo_results(query.username)
+        get_google_results(dork_query),
+        get_yahoo_results(query.username),
+        get_yahoo_results(dork_query)
     ]
     
     discovery_results = await asyncio.gather(*discovery_tasks)

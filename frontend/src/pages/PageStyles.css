@@ -1319,3 +1319,38 @@
   gap: 0.5rem;
   letter-spacing: 1px;
 }
+
+.btn-secondary-how {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.btn-secondary-how:hover {
+  background: rgba(0, 210, 255, 0.15) !important;
+  box-shadow: 0 0 15px rgba(0, 210, 255, 0.35);
+  transform: translateY(-2px);
+  border-color: #00d2ff !important;
+}
+
+/* Thin Scrollbars for Sidebar and Detail containers */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}

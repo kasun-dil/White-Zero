@@ -17,6 +17,8 @@ const OSINTDashboard = () => {
   const [usernameResults, setUsernameResults] = useState(null);
   const [phoneResults, setPhoneResults] = useState(null);
   const [lastUsername, setLastUsername] = useState('');
+  const [showRelated, setShowRelated] = useState(false);
+  const [activeResultsTab, setActiveResultsTab] = useState('exact');
   const { user } = useContext(AuthContext);
 
   const handleSearch = async () => {
@@ -24,6 +26,8 @@ const OSINTDashboard = () => {
     setLoading(true);
     setScanning(true);
     setUsernameResults(null);
+    setShowRelated(false);
+    setActiveResultsTab('exact');
     setLastUsername(query); // Save for potential deep scan
     try {
       let data;
@@ -93,6 +97,8 @@ const OSINTDashboard = () => {
     if (!lastUsername) return;
     setLoading(true);
     setScanning(true);
+    setShowRelated(false);
+    setActiveResultsTab('exact');
     try {
       console.log('Initiating Deep Forensic Scan for:', lastUsername);
       const response = await fetch('/api/osint/username', {
@@ -323,103 +329,212 @@ const OSINTDashboard = () => {
             <h2>INTELLIGENCE RETRIEVAL IN PROGRESS</h2>
             <p>Accessing public nodes and analyzing metadata patterns...</p>
           </div>
-        ) : usernameResults ? (
-          <div className="username-investigation">
-            <FadeInSection direction="down">
-              <div className="dashboard-header glass">
-                <div className="entity-meta">
-                  <div className="avatar-placeholder">@</div>
-                  <div>
-                    <h1>Username: {usernameResults.username}</h1>
-                    <p>Cross-Platform Digital Footprint Analysis</p>
+        ) : usernameResults ? (() => {
+          const processedResults = (usernameResults.results || [])
+            .filter(res => res.status === 'Found')
+            .map(res => {
+              let handle = '';
+              try {
+                const urlParts = res.link.split('/');
+                handle = urlParts.pop() || urlParts.pop(); 
+                handle = handle.split('?')[0].replace(/^@/, '').replace(/^in\//, '').replace(/^u\//, '');
+              } catch (e) {
+                handle = '';
+              }
+              
+              const lastUsernameLower = lastUsername.toLowerCase();
+              const handleLower = handle.toLowerCase();
+              const titleLower = (res.title || '').toLowerCase().trim();
+
+              const isExact = handleLower === lastUsernameLower || titleLower === lastUsernameLower;
+              const isRelated = !isExact && (
+                handleLower.includes(lastUsernameLower) || 
+                lastUsernameLower.includes(handleLower) ||
+                titleLower.includes(lastUsernameLower)
+              );
+
+              return { ...res, handle, isExact, isRelated };
+            });
+
+          const exactMatches = processedResults.filter(r => r.isExact);
+          const relatedMatches = processedResults.filter(r => r.isRelated);
+          const displayMatches = activeResultsTab === 'exact' ? exactMatches : relatedMatches;
+
+          return (
+            <div className="username-investigation">
+              <FadeInSection direction="down">
+                <div className="dashboard-header glass">
+                  <div className="entity-meta">
+                    <div className="avatar-placeholder">@</div>
+                    <div>
+                      <h1>Username: {usernameResults.username}</h1>
+                      <p>Cross-Platform Digital Footprint Analysis</p>
+                    </div>
+                  </div>
+                  <div className="header-actions">
+                    <button className="btn-primary" onClick={handleExport}>Export Analysis</button>
                   </div>
                 </div>
-                <div className="header-actions">
-                  <button className="btn-primary" onClick={handleExport}>Export Analysis</button>
-                </div>
+              </FadeInSection>
+
+              {/* Tab Selector */}
+              <div className="osint-results-tabs glass" style={{
+                display: 'flex',
+                gap: '0.5rem',
+                padding: '0.4rem',
+                borderRadius: '12px',
+                marginBottom: '2rem',
+                background: 'rgba(0, 0, 0, 0.4)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                width: 'fit-content'
+              }}>
+                <button 
+                  onClick={() => setActiveResultsTab('exact')}
+                  style={{
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: activeResultsTab === 'exact' ? '#00d2ff' : 'transparent',
+                    color: activeResultsTab === 'exact' ? '#000' : 'rgba(255,255,255,0.6)',
+                    fontWeight: 'bold',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    width: '220px'
+                  }}
+                >
+                  <User size={14} /> Exact Footprint ({exactMatches.length})
+                </button>
+                <button 
+                  onClick={() => setActiveResultsTab('related')}
+                  style={{
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: activeResultsTab === 'related' ? '#00d2ff' : 'transparent',
+                    color: activeResultsTab === 'related' ? '#000' : 'rgba(255,255,255,0.6)',
+                    fontWeight: 'bold',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    width: '220px'
+                  }}
+                >
+                  <Users size={14} /> Related Suggestions ({relatedMatches.length})
+                </button>
               </div>
-            </FadeInSection>
+
+              {activeResultsTab === 'exact' && exactMatches.length === 0 && (
+                <div className="no-exact-matches glass" style={{
+                  padding: '3rem 2rem',
+                  textAlign: 'center',
+                  borderRadius: '20px',
+                  background: 'rgba(255,255,255,0.01)',
+                  border: '1px dashed rgba(255,255,255,0.05)',
+                  marginBottom: '2rem'
+                }}>
+                  <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem', fontWeight: '700' }}>
+                    No exact digital footprint found for <strong>@{lastUsername}</strong>
+                  </p>
+                  {relatedMatches.length > 0 ? (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+                      We discovered {relatedMatches.length} closely matching profiles under the <strong>Related Suggestions</strong> tab.
+                    </p>
+                  ) : (
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+                      No public digital footprint detected in primary nodes.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {activeResultsTab === 'related' && relatedMatches.length === 0 && (
+                <div className="no-exact-matches glass" style={{
+                  padding: '3rem 2rem',
+                  textAlign: 'center',
+                  borderRadius: '20px',
+                  background: 'rgba(255,255,255,0.01)',
+                  border: '1px dashed rgba(255,255,255,0.05)',
+                  marginBottom: '2rem'
+                }}>
+                  <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem', fontWeight: '700' }}>
+                    No related alternative profiles found
+                  </p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+                    All scanned footprint matches were exact handle matches.
+                  </p>
+                </div>
+              )}
 
               <div className="platforms-grid">
-                {usernameResults.results ? (
-                  usernameResults.results
-                    .filter(res => {
-                      if (res.status !== 'Found') return false;
-                      
-                      // 1. CLEAN URL HANDLE EXTRACTION
-                      let handle = '';
-                      try {
-                        const urlParts = res.link.split('/');
-                        // Get last part, remove query params, remove @ or in/ or u/ prefixes
-                        handle = urlParts.pop() || urlParts.pop(); 
-                        handle = handle.split('?')[0].replace(/^@/, '').replace(/^in\//, '').replace(/^u\//, '');
-                      } catch (e) {
-                        handle = '';
-                      }
-
-                      // 2. STRICT EXACT MATCH CHECK
-                      const isExactHandle = handle.toLowerCase() === lastUsername.toLowerCase();
-                      
-                      // 3. TITLE FALLBACK (If URL extraction is ambiguous)
-                      const isExactTitle = res.title?.toLowerCase().trim() === lastUsername.toLowerCase().trim();
-
-                      return isExactHandle || isExactTitle;
-                    })
-                    .map((res, i) => (
-                      <FadeInSection key={i} delay={i * 0.05} direction="up">
-                        <div className={`platform-card glass ${res.status.toLowerCase()}`}>
-                          <div className="platform-header">
-                            <div 
-                              className={`platform-icon-box ${res.status.toLowerCase()}`}
-                              style={{ background: '#000', border: `1px solid ${getPlatformIconData(res.platform).color}` }}
-                            >
-                              {getPlatformIconData(res.platform).icon}
-                            </div>
-                            <div className="discovery-badges">
-                              <div className={`status-tag confidence-badge`}>
-                                {res.confidence} Match
-                              </div>
-                              <div className={`status-tag ${res.status.toLowerCase()}`}>
-                                {res.status}
-                              </div>
-                            </div>
+                {displayMatches.length > 0 ? (
+                  displayMatches.map((res, i) => (
+                    <FadeInSection key={i} delay={i * 0.05} direction="up">
+                      <div className={`platform-card glass ${res.status.toLowerCase()}`}>
+                        <div className="platform-header">
+                          <div 
+                            className={`platform-icon-box ${res.status.toLowerCase()}`}
+                            style={{ background: '#000', border: `1px solid ${getPlatformIconData(res.platform).color}` }}
+                          >
+                            {getPlatformIconData(res.platform).icon}
                           </div>
-                          <div className="platform-info">
-                            <h3>{res.platform}</h3>
-                            {res.title && <p className="platform-title">{res.title}</p>}
-                            <p className="platform-url">{res.link}</p>
-                            {res.snippet && <p className="platform-snippet">"{res.snippet}"</p>}
-                          </div>
-                          <div className="platform-footer">
-                            <div className="source-list">
-                              {res.sources?.map(s => (
-                                <span key={s} className="source-tag">{s}</span>
-                              ))}
+                          <div className="discovery-badges">
+                            <div className="status-tag confidence-badge">
+                              {res.isExact ? `${res.confidence} Match` : 'Related Profile'}
                             </div>
-                            <a href={res.link} target="_blank" rel="noreferrer" className="btn-visit">
-                              Visit Profile <ExternalLink size={14} />
-                            </a>
+                            <div className={`status-tag ${res.status.toLowerCase()}`}>
+                              {res.status}
+                            </div>
                           </div>
                         </div>
-                      </FadeInSection>
-                    ))
-              ) : (
-                <div className="engine-error glass">
-                  <p>INTELLIGENCE ENGINE OFFLINE: {usernameResults.message || 'Unknown Error'}</p>
+                        <div className="platform-info">
+                          <h3>{res.platform}</h3>
+                          {res.title && <p className="platform-title">{res.title}</p>}
+                          <p className="platform-url">{res.link}</p>
+                          {res.snippet && <p className="platform-snippet">"{res.snippet}"</p>}
+                        </div>
+                        <div className="platform-footer">
+                          <div className="source-list">
+                            {res.sources?.map(s => (
+                              <span key={s} className="source-tag">{s}</span>
+                            ))}
+                          </div>
+                          <a href={res.link} target="_blank" rel="noreferrer" className="btn-visit">
+                            Visit Profile <ExternalLink size={14} />
+                          </a>
+                        </div>
+                      </div>
+                    </FadeInSection>
+                  ))
+                ) : (
+                  usernameResults.results ? null : (
+                    <div className="engine-error glass" style={{ gridColumn: '1 / -1' }}>
+                      <p>INTELLIGENCE ENGINE OFFLINE: {usernameResults.message || 'Unknown Error'}</p>
+                    </div>
+                  )
+                )}
+              </div>
+
+              {usernameResults && !usernameResults.deep_scan && (
+                <div className="deep-scan-cta">
+                  <button className="btn-secondary" onClick={handleDeepScan} disabled={loading}>
+                    {loading ? <Loader2 className="animate-spin" /> : <Globe size={18} />}
+                    Deep Scan All Global Platforms
+                  </button>
                 </div>
               )}
             </div>
-
-            {usernameResults && !usernameResults.deep_scan && (
-              <div className="deep-scan-cta">
-                <button className="btn-secondary" onClick={handleDeepScan} disabled={loading}>
-                  {loading ? <Loader2 className="animate-spin" /> : <Globe size={18} />}
-                  Deep Scan All Global Platforms
-                </button>
-              </div>
-            )}
-          </div>
-        ) : phoneResults ? (
+          );
+        })()
+        : phoneResults ? (
             <div className="username-investigation">
               <FadeInSection direction="down">
                 <div className="dashboard-header glass">
@@ -448,9 +563,9 @@ const OSINTDashboard = () => {
 
               {phoneResults.ai_summary && (
                 <FadeInSection direction="up" delay={0.1}>
-                  <div className="ai-intelligence-brief glass">
+                  <div className="forensic-intelligence-brief glass">
                     <div className="brief-header">
-                      <h3><Filter size={18} /> AI INTELLIGENCE BRIEF</h3>
+                      <h3><Filter size={18} /> FORENSIC INTELLIGENCE BRIEF</h3>
                       <span className={`confidence-badge ${phoneResults.confidence?.toLowerCase()}`}>
                         {phoneResults.confidence} Confidence
                       </span>

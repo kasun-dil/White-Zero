@@ -789,36 +789,119 @@ const AdminDashboard = () => {
 
   function renderFeedbackSection() {
     return (
-      <div className="glass" style={{ padding: '2rem', borderRadius: '25px' }}>
-        <h2>Feedback Moderation</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+      <div className="glass" style={{ padding: '2.5rem', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', background: 'rgba(10, 11, 16, 0.6)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '1.5rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#fff', margin: 0 }}>
+              <MessageSquare className="text-[#f59e0b]" size={28} /> Feedback Moderation
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0.25rem 0 0 0' }}>Approve or reject community user feedback testimonials</p>
+          </div>
+          <span style={{ fontSize: '0.8rem', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '6px 16px', borderRadius: '50px', fontWeight: '700', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+            {feedbacks.length} Testimonials
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {feedbacks.map(f => (
-            <div key={f._id} className="glass" style={{ padding: '1.5rem', borderRadius: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={f._id} style={{ 
+              padding: '1.8rem', 
+              borderRadius: '16px', 
+              background: '#0d0e15',
+              border: '1px solid rgba(255, 255, 255, 0.03)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '2rem'
+            }} className="feedback-moderation-item">
               <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                  <strong style={{ fontSize: '1.1rem' }}>{f.name}</strong>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({f.userId?.email || 'No Email'})</span>
-                  <div style={{ display: 'flex', gap: '2px', color: '#f59e0b', marginLeft: 'auto', marginRight: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.8rem' }}>
+                  <strong style={{ fontSize: '1.15rem', color: '#fff', fontWeight: '800' }}>{f.name}</strong>
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.4)', background: 'rgba(255, 255, 255, 0.03)', padding: '2px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    {f.userId?.email || 'System Logged'}
+                  </span>
+                  <div style={{ display: 'flex', gap: '3px', color: '#f59e0b' }}>
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={14} fill={i < f.rating ? "#f59e0b" : "none"} />
+                      <Star key={i} size={15} fill={i < f.rating ? "#f59e0b" : "none"} stroke="#f59e0b" />
                     ))}
                   </div>
                 </div>
-                <p style={{ margin: '0.5rem 0', fontStyle: 'italic', color: '#eee' }}>"{f.text}"</p>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.5rem' }}>
-                  <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: f.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)', color: f.status === 'approved' ? '#10b981' : '#f59e0b' }}>
+                <p style={{ margin: '0.75rem 0', fontStyle: 'italic', color: '#e0e0e0', fontSize: '1.05rem', lineHeight: '1.6', background: 'rgba(255,255,255,0.01)', padding: '1.2rem', borderRadius: '10px', borderLeft: '3px solid rgba(245, 158, 11, 0.3)' }}>
+                  "{f.text}"
+                </p>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.8rem' }}>
+                  <span style={{ 
+                    fontSize: '0.7rem', 
+                    padding: '3px 10px', 
+                    borderRadius: '6px', 
+                    fontWeight: '700',
+                    letterSpacing: '0.5px',
+                    background: f.status === 'approved' ? 'rgba(16, 185, 129, 0.12)' : (f.status === 'rejected' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.12)'), 
+                    color: f.status === 'approved' ? '#10b981' : (f.status === 'rejected' ? '#ef4444' : '#f59e0b'),
+                    border: `1px solid ${f.status === 'approved' ? 'rgba(16, 185, 129, 0.2)' : (f.status === 'rejected' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)')}`
+                  }}>
                     {f.status.toUpperCase()}
                   </span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(f.createdAt).toLocaleString()}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>
+                    {new Date(f.createdAt).toLocaleString()}
+                  </span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {f.status !== 'approved' && <button onClick={() => handleUpdateFeedbackStatus(f._id, 'approved')} className="btn-primary" style={{ padding: '0.6rem', borderRadius: '10px' }} title="Approve"><Check size={18} /></button>}
-                {f.status !== 'rejected' && <button onClick={() => handleUpdateFeedbackStatus(f._id, 'rejected')} className="btn-outline" style={{ padding: '0.6rem', borderRadius: '10px' }} title="Reject"><X size={18} /></button>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flexShrink: 0 }}>
+                {f.status !== 'approved' && (
+                  <button 
+                    onClick={() => handleUpdateFeedbackStatus(f._id, 'approved')} 
+                    style={{ 
+                      padding: '0.75rem 1.25rem', 
+                      borderRadius: '10px',
+                      background: 'rgba(16, 185, 129, 0.1)',
+                      border: '1px solid rgba(16, 185, 129, 0.4)',
+                      color: '#10b981',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.color = '#000'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'; e.currentTarget.style.color = '#10b981'; }}
+                  >
+                    <Check size={16} /> Approve
+                  </button>
+                )}
+                {f.status !== 'rejected' && (
+                  <button 
+                    onClick={() => handleUpdateFeedbackStatus(f._id, 'rejected')} 
+                    style={{ 
+                      padding: '0.75rem 1.25rem', 
+                      borderRadius: '10px',
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      color: '#ef4444',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+                  >
+                    <X size={16} /> Reject
+                  </button>
+                )}
               </div>
             </div>
           ))}
-          {feedbacks.length === 0 && <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>No feedback received yet.</p>}
+          {feedbacks.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'rgba(255,255,255,0.3)' }}>
+              <MessageSquare size={48} style={{ opacity: 0.15, marginBottom: '1.5rem' }} />
+              <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>No feedbacks logged in moderation queue.</p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -826,34 +909,84 @@ const AdminDashboard = () => {
 
   function renderMessagesSection() {
     return (
-      <div className="glass" style={{ padding: '2rem', borderRadius: '25px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Mail className="text-[#00d2ff]" /> Command Center Messages
-          </h2>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{messages.length} total transmissions</span>
+      <div className="glass" style={{ padding: '2.5rem', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.05)', background: 'rgba(10, 11, 16, 0.6)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '1.5rem' }}>
+          <div>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#fff', margin: 0 }}>
+              <Mail className="text-[#00d2ff]" size={28} /> Command Transmissions
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0.25rem 0 0 0' }}>Security-logged communication records</p>
+          </div>
+          <span style={{ fontSize: '0.8rem', background: 'rgba(0, 210, 255, 0.1)', color: '#00d2ff', padding: '6px 16px', borderRadius: '50px', fontWeight: '700', border: '1px solid rgba(0, 210, 255, 0.2)' }}>
+            {messages.length} Active Records
+          </span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {messages?.map(m => (
-            <div key={m?._id} className="glass" style={{ padding: '1.5rem', borderRadius: '15px', borderLeft: '4px solid #00d2ff' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+            <div key={m?._id} style={{ 
+              padding: '1.8rem', 
+              borderRadius: '16px', 
+              borderLeft: '4px solid #00d2ff', 
+              background: '#0d0e15',
+              borderTop: '1px solid rgba(255,255,255,0.02)',
+              borderRight: '1px solid rgba(255,255,255,0.02)',
+              borderBottom: '1px solid rgba(255,255,255,0.02)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              transition: 'all 0.3s ease'
+            }} className="message-box-item">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.2rem', gap: '1rem' }}>
                 <div>
-                  <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{m?.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#00d2ff' }}>{m?.email}</div>
+                  <div style={{ fontWeight: '800', fontSize: '1.15rem', color: '#ffffff', letterSpacing: '-0.2px' }}>{m?.name}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#00d2ff', fontWeight: '600', marginTop: '2px' }}>{m?.email}</div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{m?.createdAt ? new Date(m.createdAt).toLocaleString() : ''}</div>
-                  <button onClick={() => handleDeleteMessage(m?._id)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', padding: '6px', borderRadius: '6px', cursor: 'pointer' }}>
-                    <Trash2 size={14} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)', fontFamily: 'monospace' }}>
+                    {m?.createdAt ? new Date(m.createdAt).toLocaleString() : ''}
+                  </div>
+                  <button 
+                    onClick={() => handleDeleteMessage(m?._id)} 
+                    style={{ 
+                      background: 'rgba(239, 68, 68, 0.08)', 
+                      border: '1px solid rgba(239, 68, 68, 0.2)', 
+                      color: '#ef4444', 
+                      padding: '8px', 
+                      borderRadius: '8px', 
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; e.currentTarget.style.color = '#ef4444'; }}
+                    title="Purge Transmission"
+                  >
+                    <Trash2 size={15} />
                   </button>
                 </div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', fontSize: '0.95rem', lineHeight: '1.6', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ 
+                background: 'rgba(0,0,0,0.2)', 
+                padding: '1.2rem', 
+                borderRadius: '12px', 
+                fontSize: '0.95rem', 
+                lineHeight: '1.7', 
+                color: 'rgba(255, 255, 255, 0.8)',
+                border: '1px solid rgba(255,255,255,0.04)',
+                whiteSpace: 'pre-line'
+              }}>
                 {m?.message}
               </div>
             </div>
           ))}
-          {messages.length === 0 && <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '3rem' }}>No messages in the command center.</p>}
+          {messages.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '5rem 2rem', color: 'rgba(255,255,255,0.3)' }}>
+              <Mail size={48} style={{ opacity: 0.15, marginBottom: '1.5rem' }} />
+              <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>No active transmissions logged in the Command Center.</p>
+              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem' }}>Platform traffic and inquiry logs are currently secure.</p>
+            </div>
+          )}
         </div>
       </div>
     );

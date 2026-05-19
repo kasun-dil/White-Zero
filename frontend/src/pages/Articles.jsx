@@ -84,8 +84,11 @@ const Articles = () => {
       </FadeInSection>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '5rem' }}>
-          <div className="loader">Synchronizing Repository...</div>
+        <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div className="loader" style={{ marginBottom: '1.5rem' }}></div>
+            <p style={{ color: '#00d2ff', fontSize: '0.9rem', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 'bold' }}>Synchronizing Repository...</p>
+          </div>
         </div>
       ) : (
         <>

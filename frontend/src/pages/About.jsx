@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, Target, Users, Search, Cpu, FileText, Layout, CheckCircle, Zap, Globe, MessageSquare, BookOpen, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import FadeInSection from '../components/FadeInSection';
 import './PageStyles.css';
 
-const FeatureDetailSection = ({ title, desc, image, color, reverse = false, link }) => (
+const FeatureDetailSection = ({ title, desc, image, color, reverse = false, link, howToLink }) => (
   <section style={{
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))',
@@ -23,9 +23,16 @@ const FeatureDetailSection = ({ title, desc, image, color, reverse = false, link
         <FadeInSection direction="left">
           <h2 style={{ fontSize: '3rem', marginBottom: '1.5rem', fontWeight: '900' }}>{title}</h2>
           <p style={{ fontSize: '1.1rem', lineHeight: '1.8', color: 'rgba(255,255,255,0.6)', marginBottom: '2.5rem' }}>{desc}</p>
-          <Link to={link} className="btn-glass" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.8rem', padding: '1rem 2rem' }}>
-            EXPLORE MODULE <ArrowRight size={18} />
-          </Link>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <Link to={link} className="btn-glass" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.8rem', padding: '1rem 2rem' }}>
+              EXPLORE MODULE <ArrowRight size={18} />
+            </Link>
+            {howToLink && (
+              <Link to={howToLink} className="btn-secondary-how" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.8rem', padding: '1rem 2rem', border: '1px solid rgba(0, 210, 255, 0.4)', color: '#00d2ff', borderRadius: '50px', background: 'transparent', transition: 'all 0.3s ease', textDecoration: 'none', fontWeight: '600' }}>
+                <BookOpen size={18} /> HOW TO USE
+              </Link>
+            )}
+          </div>
         </FadeInSection>
       </>
     ) : (
@@ -33,9 +40,16 @@ const FeatureDetailSection = ({ title, desc, image, color, reverse = false, link
         <FadeInSection direction="right">
           <h2 style={{ fontSize: '3rem', marginBottom: '1.5rem', fontWeight: '900' }}>{title}</h2>
           <p style={{ fontSize: '1.1rem', lineHeight: '1.8', color: 'rgba(255,255,255,0.6)', marginBottom: '2.5rem' }}>{desc}</p>
-          <Link to={link} className="btn-glass" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.8rem', padding: '1rem 2rem' }}>
-            EXPLORE MODULE <ArrowRight size={18} />
-          </Link>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <Link to={link} className="btn-glass" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.8rem', padding: '1rem 2rem' }}>
+              EXPLORE MODULE <ArrowRight size={18} />
+            </Link>
+            {howToLink && (
+              <Link to={howToLink} className="btn-secondary-how" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.8rem', padding: '1rem 2rem', border: '1px solid rgba(0, 210, 255, 0.4)', color: '#00d2ff', borderRadius: '50px', background: 'transparent', transition: 'all 0.3s ease', textDecoration: 'none', fontWeight: '600' }}>
+                <BookOpen size={18} /> HOW TO USE
+              </Link>
+            )}
+          </div>
         </FadeInSection>
         <FadeInSection direction="left">
           <div style={{ position: 'relative' }}>
@@ -49,6 +63,23 @@ const FeatureDetailSection = ({ title, desc, image, color, reverse = false, link
 );
 
 const About = () => {
+  const [articles, setArticles] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/articles')
+      .then(res => res.json())
+      .then(data => setArticles(data))
+      .catch(err => console.error(err));
+  }, []);
+
+  const osintArt = articles.find(a => a.title && a.title.includes("OSINT"));
+  const reportArt = articles.find(a => a.title && a.title.includes("Forensic Incident"));
+  const auditArt = articles.find(a => a.title && a.title.includes("Posture"));
+
+  const osintLink = osintArt ? `/articles/${osintArt._id}` : '/articles';
+  const reportLink = reportArt ? `/articles/${reportArt._id}` : '/articles';
+  const auditLink = auditArt ? `/articles/${auditArt._id}` : '/articles';
+
   return (
     <div style={{ minHeight: '100vh', background: '#05050a', width: '100%', position: 'relative', paddingTop: 0 }}>
       {/* Hero Section */}
@@ -114,6 +145,7 @@ const About = () => {
             image="https://cyesec.com/wp-content/uploads/2022/06/social-tips-min.jpg"
             color="#00d2ff"
             link="/osint-trial"
+            howToLink={osintLink}
           />
 
           {/* Feature 2: Forensic Reporting */}
@@ -124,15 +156,17 @@ const About = () => {
             color="#10b981"
             reverse={true}
             link="/report-crime"
+            howToLink={reportLink}
           />
 
-          {/* Feature 3: AI Security Auditor */}
+          {/* Feature 3: Security Posture Auditor */}
           <FeatureDetailSection
-            title="AI Security Auditor"
+            title="Security Posture Auditor"
             desc="The final layer of defense. A high-fidelity neural diagnostic tool that audits social media security postures with real-time vulnerability mapping and automated hardening recommendations."
             image="https://www.socialchamp.com/blog/wp-content/uploads/2024/03/Content-Blog-Banner_Q1-2024_1125x600_063_Social-Media-Security.png"
             color="#3a7bd5"
             link="/security-auditor"
+            howToLink={auditLink}
           />
 
 

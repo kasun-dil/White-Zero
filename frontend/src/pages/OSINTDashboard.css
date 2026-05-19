@@ -713,53 +713,54 @@
 
 .platforms-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 .platform-card {
-  padding: 1.5rem;
-  border-radius: 20px;
+  padding: 1.2rem;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 0.8rem;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.319);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  min-height: 420px; /* Standardized card height for grid symmetry */
-  display: flex;
-  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 15, 25, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  min-height: 230px; /* Highly optimized card height for symmetry */
 }
 
 .platform-snippet {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
-  line-height: 1.5;
-  margin-top: 0.8rem;
-  opacity: 0.7;
+  line-height: 1.45;
+  margin-top: 0.4rem;
+  opacity: 0.85;
   display: -webkit-box;
-  -webkit-line-clamp: 4; /* Truncate after 4 lines */
+  -webkit-line-clamp: 3; /* Truncate after 3 lines */
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-style: italic;
 }
 
 .platform-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--primary);
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-top: -0.5rem;
-  margin-bottom: 0.5rem;
+  margin-top: -0.3rem;
+  margin-bottom: 0.3rem;
   opacity: 0.8;
 }
 
 .platform-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-4px);
   border-color: var(--primary);
-  background: rgba(255, 255, 255, 0.02);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .platform-header {
@@ -769,10 +770,10 @@
 }
 
 .platform-icon-box {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -782,7 +783,7 @@
 .platform-icon-box.found {
   background: rgba(0, 255, 157, 0.1);
   color: #00ff9d;
-  box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
+  box-shadow: 0 0 10px rgba(0, 255, 157, 0.15);
 }
 
 .platform-info {
@@ -792,8 +793,8 @@
 }
 
 .platform-info h3 {
-  font-size: 1.2rem;
-  margin-bottom: 0.3rem;
+  font-size: 1.05rem;
+  margin-bottom: 0.2rem;
   color: white;
 }
 
@@ -1020,7 +1021,7 @@
   filter: grayscale(1);
 }
 
-.ai-intelligence-brief {
+.forensic-intelligence-brief {
   margin-top: 2rem;
   padding: 2rem;
   border-radius: 15px;
@@ -1031,7 +1032,7 @@
   overflow: hidden;
 }
 
-.ai-intelligence-brief::before {
+.forensic-intelligence-brief::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1099,4 +1100,78 @@
   font-size: 1rem;
   line-height: 1.6;
   color: var(--text-muted);
+}
+
+/* Related Usernames & Dashboard UI Refinements */
+.related-toggle-container {
+  display: flex;
+  justify-content: flex-end;
+  margin: 1rem 0;
+  animation: fadeIn 0.4s ease;
+}
+
+.btn-related-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  background: rgba(10, 20, 40, 0.4);
+  border: 1px solid rgba(0, 210, 255, 0.3);
+  border-radius: 6px;
+  color: #00d2ff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-related-toggle:hover,
+.btn-related-toggle.active {
+  background: rgba(0, 210, 255, 0.1);
+  border-color: #00d2ff;
+  box-shadow: 0 0 12px rgba(0, 210, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.platform-card.related {
+  border: 1px dashed rgba(0, 210, 255, 0.3);
+  background: rgba(0, 210, 255, 0.01);
+}
+
+.platform-card.related:hover {
+  border-color: #00d2ff;
+  background: rgba(0, 210, 255, 0.02);
+}
+
+.status-tag.confidence-badge.related {
+  background: rgba(0, 210, 255, 0.12);
+  color: #00d2ff;
+  border: 1px solid rgba(0, 210, 255, 0.25);
+}
+
+.no-exact-matches {
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  margin: 1.2rem 0;
+  text-align: center;
+  animation: fadeIn 0.4s ease;
+}
+
+.no-exact-matches p {
+  font-size: 0.92rem;
+  color: #e2e8f0;
+  margin-bottom: 0.3rem;
+}
+
+.no-exact-matches strong {
+  color: #00d2ff;
+}
+
+.no-exact-matches .related-hint {
+  font-size: 0.82rem;
+  color: #00d2ff;
+  opacity: 0.85;
+  display: block;
 }

@@ -172,7 +172,14 @@ const ArticleDetail = () => {
     }
   };
 
-  if (loading) return <div className="page-container" style={{ textAlign: 'center', padding: '10rem' }}><div className="loader">Analyzing Report...</div></div>;
+  if (loading) return (
+    <div className="page-container" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div className="loader" style={{ marginBottom: '1.5rem' }}></div>
+        <p style={{ color: '#00d2ff', fontSize: '0.9rem', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 'bold' }}>Analyzing Report...</p>
+      </div>
+    </div>
+  );
   if (!article) return <div className="page-container" style={{ textAlign: 'center', padding: '10rem' }}><h1>Not Found</h1><Link to="/articles" className="btn-primary">Back</Link></div>;
 
   return (
@@ -197,7 +204,7 @@ const ArticleDetail = () => {
           <article style={{ maxWidth: '1000px', margin: '0 auto' }}>
             <FadeInSection direction="up">
               <div style={{ marginBottom: '4rem' }}>
-                <h1 style={{ fontSize: '4.2rem', color: '#00d2ff', fontWeight: '950', lineHeight: '1.0', textTransform: 'uppercase', marginBottom: '2.5rem', textShadow: '0 0 40px rgba(0, 210, 255, 0.3)' }}>
+                <h1 style={{ fontSize: '4.2rem', color: '#ffffff', fontWeight: '950', lineHeight: '1.0', textTransform: 'uppercase', marginBottom: '2.5rem', textShadow: '0 0 40px rgba(255, 255, 255, 0.2)' }}>
                   {article.title}
                 </h1>
                 
