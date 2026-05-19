@@ -1037,8 +1037,15 @@ const AdminDashboard = () => {
                   r.victimName?.toLowerCase().includes(policeSearchTerm.toLowerCase())
                 )
                 .map(r => (
-                  <tr key={r._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '1rem', color: '#00d2ff', fontWeight: 'bold', fontFamily: 'monospace' }}>{r.referenceId}</td>
+                  <tr key={r._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: !r.isReadByPolice && !r.isClosed ? 'rgba(16, 185, 129, 0.03)' : 'transparent' }}>
+                    <td style={{ padding: '1rem', color: '#00d2ff', fontWeight: 'bold', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {r.referenceId}
+                      {!r.isReadByPolice && !r.isClosed && (
+                        <span style={{ fontSize: '0.65rem', background: '#10b981', color: 'black', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          New Case
+                        </span>
+                      )}
+                    </td>
                     <td style={{ padding: '1rem' }}>{r.victimName}</td>
                     <td style={{ padding: '1rem' }}>{r.victimEmail}</td>
                     <td style={{ padding: '1rem' }}>{r.title}</td>

@@ -1197,7 +1197,8 @@ app.post('/api/police-reports', protect, async (req, res) => {
       platformDetails,
       evidenceLinks,
       referenceId,
-      contactVerified: true
+      contactVerified: true,
+      isReadByPolice: false
     });
 
     // Send confirmation email to user
@@ -1382,7 +1383,7 @@ app.post('/api/reports/police/:id/close', protect, async (req, res) => {
 app.get('/api/admin/police-reports/metadata', protect, admin, async (req, res) => {
   try {
     const reports = await PoliceReport.find({})
-      .select('victimName victimEmail title createdAt isClosed conclusion status referenceId')
+      .select('victimName victimEmail title createdAt isClosed conclusion status referenceId isReadByPolice')
       .sort({ createdAt: -1 });
     res.json(reports);
   } catch (error) {

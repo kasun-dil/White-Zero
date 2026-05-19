@@ -31,7 +31,7 @@ const policeReportSchema = mongoose.Schema({
   isClosed: { type: Boolean, default: false },
   conclusion: { type: String },
   isReadByUser: { type: Boolean, default: true },
-  isReadByPolice: { type: Boolean, default: true },
+  isReadByPolice: { type: Boolean, default: false },
   isClearedByUser: { type: Boolean, default: false },
   isClearedByPolice: { type: Boolean, default: false },
   referenceId: { type: String, unique: true }
