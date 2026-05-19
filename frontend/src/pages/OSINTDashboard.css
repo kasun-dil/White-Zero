@@ -730,7 +730,11 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  min-height: 230px; /* Highly optimized card height for symmetry */
+  height: 100%; /* Stretch to fill grid cell */
+}
+
+.platforms-grid > div {
+  height: 100%; /* Ensure the animation wrapper also stretches */
 }
 
 .platform-snippet {
