@@ -1,0 +1,112 @@
+/* Isolated CSS Scroll Snapping for the Home Page */
+
+.snap-container {
+  height: 100vh;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  /* Thin custom neon Cyan scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 210, 255, 0.3) transparent;
+}
+
+.snap-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.snap-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.snap-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 210, 255, 0.35);
+  border-radius: 20px;
+  border: 2px solid transparent;
+}
+
+.snap-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 210, 255, 0.6);
+}
+
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.focus-section {
+  position: relative;
+  padding: 8rem 2rem;
+  width: 100vw;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.94) 0%, rgba(2, 6, 23, 0.88) 50%, rgba(2, 6, 23, 0.96) 100%),
+    url('https://scitechdaily.com/images/Coded-Message-Cybersecurity-Concept.gif') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.osint-home-section {
+  position: relative;
+  padding: 6rem 2rem;
+  width: 100vw;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.93) 0%, rgba(2, 6, 23, 0.85) 50%, rgba(2, 6, 23, 0.94) 100%),
+    url('https://cybersecurityresourcesforwomen.com/wp-content/uploads/2022/06/green-dots-over-waves-cyber-security-resources-for-women.gif') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.blog-home-section {
+  position: relative;
+  padding: 6rem 2rem;
+  width: 100vw;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.94) 0%, rgba(2, 6, 23, 0.88) 50%, rgba(2, 6, 23, 0.95) 100%),
+    url('https://i.pinimg.com/originals/f5/a8/e9/f5a8e912d16544ea9137ab8b4cf6d771.gif') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Disable scroll snapping on smaller mobile screens for best native scrolling usability */
+@media (max-width: 1024px) {
+  .snap-container {
+    scroll-snap-type: none;
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .snap-section {
+    min-height: auto;
+    padding: 6rem 2rem !important;
+  }
+}

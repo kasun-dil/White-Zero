@@ -1425,8 +1425,10 @@ app.patch('/api/police-reports/:id/read', protect, async (req, res) => {
     if (report) {
       if (req.user.role === 'police' || req.user.role === 'admin') {
         report.isReadByPolice = true;
+        report.isClearedByPolice = true; // Auto-clear once read
       } else {
         report.isReadByUser = true;
+        report.isClearedByUser = true; // Auto-clear once read
       }
       await report.save();
       res.json({ success: true });
@@ -1452,22 +1454,73 @@ app.delete('/api/police/reports/:id', protect, policeOrAdmin, async (req, res) =
   }
 });
 
+// Clear all notifications
+app.patch('/api/police-reports/clear-all', protect, async (req, res) => {
+  try {
+    let query = {};
+    let update = {};
+    if (req.user.role === 'police' || req.user.role === 'admin') {
+      query = { isClearedByPolice: { $ne: true } };
+      update = { isClearedByPolice: true, isReadByPolice: true };
+    } else {
+      query = { user: req.user._id, isClearedByUser: { $ne: true } };
+      update = { isClearedByUser: true, isReadByUser: true };
+    }
+    await PoliceReport.updateMany(query, { $set: update });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Clear a specific notification
+app.patch('/api/police-reports/:id/clear', protect, async (req, res) => {
+  try {
+    const report = await PoliceReport.findById(req.params.id);
+    if (report) {
+      if (req.user.role === 'police' || req.user.role === 'admin') {
+        report.isClearedByPolice = true;
+        report.isReadByPolice = true;
+      } else {
+        if (report.user.toString() !== req.user._id.toString()) {
+          return res.status(401).json({ message: 'Unauthorized' });
+        }
+        report.isClearedByUser = true;
+        report.isReadByUser = true;
+      }
+      await report.save();
+      res.json({ success: true });
+    } else {
+      res.status(404).json({ message: 'Report not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get unread counts and notifications
 app.get('/api/police-reports/unread-count', protect, async (req, res) => {
   try {
     let query = {};
     if (req.user.role === 'police' || req.user.role === 'admin') {
-      query = { isReadByPolice: false };
+      query = { isReadByPolice: false, isClearedByPolice: { $ne: true } };
     } else {
-      query = { user: req.user._id, isReadByUser: false };
+      query = { user: req.user._id, isReadByUser: false, isClearedByUser: { $ne: true } };
     }
     const count = await PoliceReport.countDocuments(query);
-    const totalCount = await PoliceReport.countDocuments(req.user.role === 'user' ? { user: req.user._id } : {});
     
-    // Show 5 most recent reports in the dropdown, not just unread ones
+    let totalQuery = {};
+    if (req.user.role === 'police' || req.user.role === 'admin') {
+      totalQuery = { isClearedByPolice: { $ne: true } };
+    } else {
+      totalQuery = { user: req.user._id, isClearedByUser: { $ne: true } };
+    }
+    const totalCount = await PoliceReport.countDocuments(totalQuery);
+    
+    // Show 5 most recent reports in the dropdown that are NOT cleared
     const notificationsQuery = req.user.role === 'police' || req.user.role === 'admin' 
-      ? {} 
-      : { user: req.user._id };
+      ? { isClearedByPolice: { $ne: true } } 
+      : { user: req.user._id, isClearedByUser: { $ne: true } };
       
     const notifications = await PoliceReport.find(notificationsQuery)
       .sort({ updatedAt: -1 })

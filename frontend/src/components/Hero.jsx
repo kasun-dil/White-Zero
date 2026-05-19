@@ -6,24 +6,24 @@ import './Hero.css';
 const slides = [
   {
     id: 1,
-    title: "Neural Intelligence Lab",
-    subtitle: "Real-time threat monitoring and OSINT forensics powered by advanced machine learning models.",
+    title: "OSINT Intelligence Search",
+    subtitle: "Deploy our advanced OSINT harvesting engine to extract public posts, engagement metrics, and verified search index patterns.",
     image: "/hero/lab_pro.png",
     color: "#00f2fe",
-    link: "/intelligence-lab"
+    link: "/osint-trial"
   },
   {
     id: 2,
-    title: "Automated Crime Reporting",
-    subtitle: "Guided documentation for cybercrime victims. Generate professional reports for official submission.",
+    title: "Forensic Case Reporting",
+    subtitle: "Guided incident reporting wizard to generate legal-grade forensic cases and sync timelines directly to active police officers.",
     image: "/hero/reporting_pro.png",
     color: "#10b981",
     link: "/report-crime"
   },
   {
     id: 3,
-    title: "AI Misinformation Detection",
-    subtitle: "Identify fake news and social media manipulation with our specialized NLP engine.",
+    title: "AI Security Auditor",
+    subtitle: "Audit source code, file integrity, and social metadata layers for malicious exploits using advanced SecOps models.",
     image: "/hero/detection_pro.png",
     color: "#8b5cf6",
     link: "/content-sentinel"
@@ -32,6 +32,20 @@ const slides = [
 
 const Hero = () => {
   const [current, setCurrent] = useState(0);
+  const [articles, setArticles] = useState([]);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const res = await fetch('/api/articles');
+        const data = await res.json();
+        setArticles(data);
+      } catch (err) {
+        console.error('Failed to fetch articles for hero links', err);
+      }
+    };
+    fetchArticles();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -39,6 +53,20 @@ const Hero = () => {
     }, 6000);
     return () => clearInterval(timer);
   }, []);
+
+  const getMethodologyLink = (slideTitle) => {
+    let targetTitle = "";
+    if (slideTitle === "OSINT Intelligence Search") {
+      targetTitle = "How-To: Deploying OSINT Intelligence Search";
+    } else if (slideTitle === "Forensic Case Reporting") {
+      targetTitle = "How-To: Generating Forensic Incident Reports";
+    } else if (slideTitle === "AI Security Auditor") {
+      targetTitle = "How-To: Executing Security Posture Audits";
+    }
+
+    const found = articles.find(a => a.title === targetTitle);
+    return found ? `/articles/${found._id}` : "/articles";
+  };
 
   return (
     <div className="hero" style={{ '--slide-color': slides[current].color }}>
@@ -80,7 +108,7 @@ const Hero = () => {
                   Launch Platform
                 </Link>
                 <Link 
-                  to="/about" 
+                  to={getMethodologyLink(slides[current].title)} 
                   className="btn-outline"
                   style={{ 
                     borderColor: slides[current].color,

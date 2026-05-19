@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Shield, MessageSquare, Send, Clock, CheckCircle, X, AlertTriangle, Bell, Hexagon } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 const MyReports = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [reports, setReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
   const [reply, setReply] = useState('');
@@ -26,6 +27,15 @@ const MyReports = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
+
+  useEffect(() => {
+    if (reports.length > 0 && location.state?.reportId) {
+      const matched = reports.find(r => r._id === location.state.reportId);
+      if (matched) {
+        setSelectedReport(matched);
+      }
+    }
+  }, [reports, location.state?.reportId]);
 
   useEffect(() => {
     if (selectedReport) {

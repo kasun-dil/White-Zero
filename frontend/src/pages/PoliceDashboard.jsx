@@ -6,7 +6,7 @@ import {
   BookOpen, Trash2, Edit3, X, Plus, LogOut, Globe, Hexagon, Star,
   Eye, EyeOff, Camera, Link as LinkIcon
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { getAvatarUrl } from '../utils/avatar';
 import FadeInSection from '../components/FadeInSection';
@@ -23,6 +23,7 @@ const PoliceDashboard = () => {
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const chatContainerRef = useRef(null);
   const prevReportIdRef = useRef(null);
@@ -39,6 +40,15 @@ const PoliceDashboard = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
+
+  useEffect(() => {
+    if (reports.length > 0 && location.state?.reportId) {
+      const matched = reports.find(r => r._id === location.state.reportId);
+      if (matched) {
+        setSelectedReport(matched);
+      }
+    }
+  }, [reports, location.state?.reportId]);
 
   useEffect(() => {
     if (selectedReport) {

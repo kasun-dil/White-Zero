@@ -13,6 +13,20 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
   
+  const getRelativeTime = (dateString) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `- ${diffMins}m ago`;
+    if (diffHours < 24) return `- ${diffHours} hours ago`;
+    return `- ${diffDays} days ago`;
+  };
+
   const [unreadCount, setUnreadCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
@@ -93,21 +107,45 @@ const Navbar = () => {
     e.stopPropagation();
     if (!user || !user.token) return;
     try {
-      const res = await fetch('/api/police-reports/read-all', {
+      const res = await fetch('/api/police-reports/clear-all', {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${user.token}` }
       });
       if (res.ok) {
         setUnreadCount(0);
-        // Mark local notifications as read too
-        setNotifications(prev => prev.map(n => ({
-          ...n,
-          isReadByUser: user.role === 'user' ? true : n.isReadByUser,
-          isReadByPolice: user.role !== 'user' ? true : n.isReadByPolice
-        })));
+        setTotalCount(0);
+        setNotifications([]);
       }
     } catch (err) {
-      console.error('[CLEAR NOTIFICATIONS ERROR]', err);
+      console.error('[CLEAR ALL NOTIFICATIONS ERROR]', err);
+    }
+  };
+
+  const handleClearIndividualNotification = async (e, reportId) => {
+    e.stopPropagation();
+    if (!user || !user.token) return;
+    
+    // Optimistic UI updates
+    setNotifications(prev => prev.filter(n => n._id !== reportId));
+    
+    try {
+      const res = await fetch(`/api/police-reports/${reportId}/clear`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+      if (res.ok) {
+        // Fetch updated counts
+        const countRes = await fetch('/api/police-reports/unread-count', {
+          headers: { 'Authorization': `Bearer ${user.token}` }
+        });
+        if (countRes.ok) {
+          const data = await countRes.json();
+          setUnreadCount(data.count || 0);
+          setTotalCount(data.totalCount || 0);
+        }
+      }
+    } catch (err) {
+      console.error('[CLEAR INDIVIDUAL NOTIFICATION ERROR]', err);
     }
   };
 
@@ -190,48 +228,76 @@ const Navbar = () => {
                 {showNotifications && (
                   <div className="notifications-dropdown glass">
                     <div className="dropdown-header">
-                      <span>FORENSIC ALERTS</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {unreadCount > 0 && (
-                          <button 
-                            onClick={handleClearNotifications}
-                            className="clear-all-btn"
-                          >
-                            Clear All
-                          </button>
-                        )}
+                      <span>Notifications</span>
+                      {notifications && notifications.length > 0 && (
                         <button 
-                          onClick={(e) => { e.stopPropagation(); setShowNotifications(false); }}
-                          style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: '5px', display: 'flex', alignItems: 'center' }}
-                          onMouseOver={(e) => e.currentTarget.style.color = '#00d2ff'}
-                          onMouseOut={(e) => e.currentTarget.style.color = '#888'}
+                          onClick={handleClearNotifications}
+                          className="clear-all-btn"
                         >
-                          <X size={16} />
+                          Clear All
                         </button>
-                      </div>
+                      )}
                     </div>
                     <div className="notifications-list">
-                      {notifications && notifications.length > 0 ? notifications.map((n, i) => (
-                        <div 
-                          key={i} 
-                          onClick={() => {
-                            setShowNotifications(false);
-                            navigate(user.role === 'user' ? '/my-reports' : '/police-dashboard');
-                          }}
-                          className="notification-item"
-                        >
-                          <div className="item-meta">
-                            <div className="item-ref">
-                              {((user.role === 'user' && !n.isReadByUser) || (user.role !== 'user' && !n.isReadByPolice)) && (
-                                <div className="unread-dot"></div>
-                              )}
-                              <span>{n.referenceId}</span>
+                      {notifications && notifications.length > 0 ? notifications.map((n, i) => {
+                        const isUnread = (user.role === 'user' && !n.isReadByUser) || (user.role !== 'user' && !n.isReadByPolice);
+                        return (
+                          <div 
+                            key={n._id || i} 
+                            onClick={async () => {
+                              setShowNotifications(false);
+                              navigate(
+                                user.role === 'user' ? '/my-reports' : '/police-dashboard',
+                                { state: { reportId: n._id } }
+                              );
+                              
+                              // Optimistically clear the notification item from the dropdown list instantly
+                              setNotifications(prev => prev.filter(item => item._id !== n._id));
+                              
+                              // If it was unread, optimistically decrement the unread badge count
+                              if (isUnread) {
+                                setUnreadCount(prev => Math.max(0, prev - 1));
+                              }
+
+                              try {
+                                // Mark as read/cleared on backend
+                                const res = await fetch(`/api/police-reports/${n._id}/read`, {
+                                  method: 'PATCH',
+                                  headers: { 'Authorization': `Bearer ${user.token}` }
+                                });
+                                if (res.ok) {
+                                  // Fetch fresh server-side counts to keep states perfectly in sync
+                                  const countRes = await fetch('/api/police-reports/unread-count', {
+                                    headers: { 'Authorization': `Bearer ${user.token}` }
+                                  });
+                                  if (countRes.ok) {
+                                    const data = await countRes.json();
+                                    setUnreadCount(data.count || 0);
+                                    setTotalCount(data.totalCount || 0);
+                                  }
+                                }
+                              } catch (err) {
+                                console.error('[AUTO CLEAR ON READ ERROR]', err);
+                              }
+                            }}
+                            className={`notification-item ${isUnread ? 'unread' : 'read'}`}
+                            style={{ animationDelay: `${i * 0.05}s` }}
+                          >
+                            <span className={`status-bullet ${isUnread ? 'bullet-unread' : 'bullet-read'}`}></span>
+                            <div className="notification-details">
+                              <span className="notification-title">{n.title}</span>
+                              <span className="notification-time">{getRelativeTime(n.updatedAt)}</span>
                             </div>
-                            <span className="item-time">{new Date(n.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <button 
+                              onClick={(e) => handleClearIndividualNotification(e, n._id)}
+                              className="clear-item-btn"
+                              title="Clear notification"
+                            >
+                              <X size={14} />
+                            </button>
                           </div>
-                          <div className="item-title">{n.title}</div>
-                        </div>
-                      )) : (
+                        );
+                      }) : (
                         <div className="empty-notifications">
                           <Bell size={32} />
                           <p>No active transmissions detected.</p>
@@ -239,7 +305,7 @@ const Navbar = () => {
                       )}
                     </div>
                     <Link to={user.role === 'user' ? '/my-reports' : '/police-dashboard'} onClick={() => setShowNotifications(false)} className="view-all-link">
-                      ACCESS COMMAND CENTER
+                      Show all notifications
                     </Link>
                   </div>
                 )}

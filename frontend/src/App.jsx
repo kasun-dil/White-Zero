@@ -27,7 +27,7 @@ import { Toaster } from 'react-hot-toast';
 function AppContent() {
   const location = useLocation();
   const isAdminPage = location.pathname === '/admin' || location.pathname === '/police-dashboard';
-  const hideLayout = isAdminPage || location.pathname === '/login' || location.pathname === '/signup';
+  const hideLayout = isAdminPage || location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup';
 
   return (
     <>
