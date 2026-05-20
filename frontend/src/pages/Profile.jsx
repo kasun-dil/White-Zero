@@ -223,17 +223,6 @@ const Profile = () => {
     };
   };
 
-  const reportsScrollRef = useRef(null);
-
-  const scrollReports = (direction) => {
-    if (reportsScrollRef.current) {
-      const { scrollLeft, clientWidth } = reportsScrollRef.current;
-      const scrollTo = direction === 'left'
-        ? scrollLeft - clientWidth
-        : scrollLeft + clientWidth;
-      reportsScrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
-    }
-  };
 
   const handleDeleteReport = async (reportId) => {
     if (!window.confirm('PERMANENT DELETION: Are you sure you want to purge this forensic report from the secure archive?')) return;
@@ -448,19 +437,13 @@ const Profile = () => {
           {activeTab === 'reports' && (
             <FadeInSection direction="up">
               <div className="premium-content-card">
-                <div className="section-header">
-                  <h3 className="section-title">
-                    <FileText size={22} className="text-[#f59e0b]" /> Intelligence Archive
-                  </h3>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button className="btn-icon" onClick={() => scrollReports('left')}><ChevronLeft size={20} /></button>
-                    <button className="btn-icon" onClick={() => scrollReports('right')}><ChevronRight size={20} /></button>
-                  </div>
-                </div>
+                <h3 className="section-title">
+                  <FileText size={22} className="text-[#f59e0b]" /> Intelligence Archive
+                </h3>
 
-                <div className="modern-scroll-container" ref={reportsScrollRef} style={{ display: 'flex', gap: '1.5rem', overflowX: 'auto', paddingBottom: '1rem', scrollSnapType: 'x mandatory' }}>
+                <div className="blog-archive-grid" style={{ marginTop: '2rem' }}>
                   {reports.map((report) => (
-                    <div key={report._id} className="report-item-professional" style={{ minWidth: '350px', flex: '0 0 auto', scrollSnapAlign: 'start' }}>
+                    <div key={report._id} className="report-item-professional">
                       <div style={{ flex: 1 }}>
                         <div className="report-tag-lux">INCIDENT LOG • {report.platform}</div>
                         <h4 className="report-title-lux">{report.incidentType}</h4>
@@ -483,8 +466,8 @@ const Profile = () => {
           {activeTab === 'search' && (
             <FadeInSection direction="up">
               <div className="premium-content-card">
-                <div className="section-header">
-                  <h3 className="section-title"><Search size={20} className="text-[#00d2ff]" /> Investigation Log</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                  <h3 className="section-title" style={{ margin: 0 }}><Search size={20} className="text-[#00d2ff]" /> Investigation Log</h3>
                   <div className="pagination-controls">
                     <button 
                       className="btn-icon-small" 
@@ -824,7 +807,7 @@ const Profile = () => {
     <div className="page-container">
       {isAligning && renderAlignerModal()}
       <FadeInSection direction="down">
-        <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '4rem' }}>
+        <div style={{ width: '100%', paddingBottom: '4rem' }}>
           {isEditing ? renderEditMode() : renderViewMode()}
         </div>
       </FadeInSection>
