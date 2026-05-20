@@ -168,7 +168,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 style={{ fontSize: '1rem', marginBottom: '0.1rem' }}>Email</h4>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>support@whitezero.lk</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>whitezero.lk@gmail.com</p>
                   </div>
                 </div>
                 <div className="info-item" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>

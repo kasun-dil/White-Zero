@@ -489,7 +489,7 @@ Official Documentation by White Zero Intelligence Framework
             </div>
           ))}
           <div className="step-line">
-            <div className="step-line-progress" style={{ width: `${((step - 1) / 4) * 100}%` }}></div>
+            <div className="step-line-progress" style={{ width: `${((step - 1) / 3) * 100}%` }}></div>
           </div>
         </div>
 

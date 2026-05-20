@@ -10,9 +10,9 @@ import {
 import FadeInSection from '../../components/FadeInSection';
 import { toast } from 'react-hot-toast';
 import { getAvatarUrl } from '../../utils/avatar';
-import { 
-  ResponsiveContainer, PieChart, Pie, Cell, 
-  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LabelList 
+import {
+  ResponsiveContainer, PieChart, Pie, Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LabelList
 } from 'recharts';
 import '../PageStyles.css';
 import '../DashboardStyles.css';
@@ -418,17 +418,17 @@ const AdminDashboard = () => {
             </h1>
             <p className="admin-subtitle">Real-time platform insights and moderation controls.</p>
           </div>
-          
+
           <div className="admin-profile-badge">
             <div className="profile-info">
               <span className="profile-name">{user.name || 'Super Admin'}</span>
               <span className="profile-role">{user.role === 'admin' ? 'Super Administrator' : 'Forensic Officer'}</span>
             </div>
             <div className="profile-avatar-ring">
-              <img 
-                src={getAvatarUrl(user)} 
-                alt="Admin" 
-                style={{ width: '100%', height: '100%', borderRadius: '12px', objectFit: 'cover' }} 
+              <img
+                src={getAvatarUrl(user)}
+                alt="Admin"
+                style={{ width: '100%', height: '100%', borderRadius: '12px', objectFit: 'cover' }}
               />
             </div>
           </div>
@@ -460,8 +460,8 @@ const AdminDashboard = () => {
             { label: 'Ongoing Cases', value: stats.ongoingCases || 0, icon: <Shield />, colorClass: 'orange', action: () => { setActiveTab('police'); handleMarkAllPoliceRead(); } },
             { label: 'Total Messages', value: stats.messages || 0, icon: <Mail />, colorClass: 'purple', action: () => { setActiveTab('messages'); handleMarkAllMessagesRead(); } }
           ].map((item, i) => (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className={`stat-card ${item.colorClass}`}
               onClick={item.action}
             >
@@ -503,12 +503,12 @@ const AdminDashboard = () => {
                     <Cell fill="#f59e0b" stroke="rgba(255,255,255,0.1)" />
                     <Cell fill="#10b981" stroke="rgba(255,255,255,0.1)" />
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ background: 'rgba(10,10,15,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px' }}
                     itemStyle={{ color: '#fff' }}
                   />
-                  <Legend 
-                    verticalAlign="bottom" 
+                  <Legend
+                    verticalAlign="bottom"
                     height={36}
                     formatter={(value, entry) => {
                       const item = entry.payload;
@@ -527,26 +527,26 @@ const AdminDashboard = () => {
             </h3>
             <div style={{ flex: 1, minHeight: 0 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={recentActivity.topArticles?.map(art => ({ 
+                <BarChart
+                  data={recentActivity.topArticles?.map(art => ({
                     fullName: art._id,
-                    name: art._id.length > 15 ? art._id.substring(0, 12) + '...' : art._id, 
-                    count: art.count 
+                    name: art._id.length > 15 ? art._id.substring(0, 12) + '...' : art._id,
+                    count: art.count
                   })) || []}
                   margin={{ top: 20, bottom: 40 }}
                 >
-                  <XAxis 
-                    dataKey="name" 
-                    stroke="#888" 
-                    fontSize={10} 
-                    tickLine={false} 
+                  <XAxis
+                    dataKey="name"
+                    stroke="#888"
+                    fontSize={10}
+                    tickLine={false}
                     axisLine={false}
                     angle={-25}
                     textAnchor="end"
                     interval={0}
                   />
                   <YAxis stroke="#888" fontSize={10} tickLine={false} axisLine={false} />
-                  <Tooltip 
+                  <Tooltip
                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                     contentStyle={{ background: 'rgba(10,10,15,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px' }}
                     formatter={(value, name, props) => [value, 'Reads']}
@@ -693,97 +693,107 @@ const AdminDashboard = () => {
           {articles
             .filter(a => articleFilter === 'all' || a.authorRole === articleFilter)
             .map(a => (
-            <div 
-              key={a._id} 
-              className="glass" 
-              style={{ 
-                padding: '1rem', 
-                borderRadius: '15px', 
-                position: 'relative', 
-                opacity: a.isHidden ? 0.6 : 1, 
-                display: 'flex', 
-                flexDirection: 'column',
-                border: `1px solid ${a.authorRole === 'police' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0, 210, 255, 0.2)'}`,
-                boxShadow: a.authorRole === 'police' ? '0 4px 15px rgba(16, 185, 129, 0.05)' : '0 4px 15px rgba(0, 210, 255, 0.05)'
-              }}
-            >
-              <div style={{ position: 'relative' }}>
-                <img 
-                  src={a.image} 
-                  style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px' }} 
-                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800'; }} 
-                />
-                <span style={{ 
-                  position: 'absolute', 
-                  top: '10px', 
-                  right: '10px', 
-                  background: a.authorRole === 'police' ? '#10b981' : '#00d2ff', 
-                  color: 'black', 
-                  fontSize: '0.6rem', 
-                  fontWeight: 'bold', 
-                  padding: '2px 8px', 
-                  borderRadius: '5px',
-                  textTransform: 'uppercase'
-                }}>
-                  {a.authorRole}
-                </span>
-              </div>
-              <h4 style={{ margin: '1rem 0 0.5rem 0', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.title}</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{a.category} {a.isHidden && <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>(Hidden)</span>}</p>
+              <div
+                key={a._id}
+                className="glass"
+                style={{
+                  padding: '1rem',
+                  borderRadius: '15px',
+                  position: 'relative',
+                  opacity: a.isHidden ? 0.6 : 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  border: `1px solid ${a.authorRole === 'police' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0, 210, 255, 0.2)'}`,
+                  boxShadow: a.authorRole === 'police' ? '0 4px 15px rgba(16, 185, 129, 0.05)' : '0 4px 15px rgba(0, 210, 255, 0.05)'
+                }}
+              >
+                <div style={{ position: 'relative' }}>
+                  <img
+                    src={a.image}
+                    style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px' }}
+                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800'; }}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: a.authorRole === 'police' ? '#10b981' : '#00d2ff',
+                    color: 'black',
+                    fontSize: '0.6rem',
+                    fontWeight: 'bold',
+                    padding: '2px 8px',
+                    borderRadius: '5px',
+                    textTransform: 'uppercase'
+                  }}>
+                    {a.authorRole}
+                  </span>
+                </div>
+                <h4 style={{ margin: '1rem 0 0.5rem 0', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.title}</h4>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>{a.category} {a.isHidden && <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>(Hidden)</span>}</p>
 
-              <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                <button
-                  onClick={() => { setSelectedArticleComments(a); setShowCommentModal(true); }}
-                  style={{ marginRight: 'auto', background: 'rgba(0, 210, 255, 0.1)', border: 'none', color: '#00d2ff', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                  title="Moderate Comments"
-                >
-                  <MessageSquare size={14} />
-                  {a.comments?.length > 0 && <span style={{ fontSize: '0.65rem', marginLeft: '4px', fontWeight: 'bold' }}>{a.comments.length}</span>}
-                </button>
-                <button
-                  onClick={() => handleToggleFeatured(a._id)}
-                  style={{ background: a.isFeatured ? 'rgba(255, 215, 0, 0.1)' : 'rgba(255,255,255,0.05)', border: 'none', color: a.isFeatured ? '#ffd700' : '#888', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                  title={a.isFeatured ? "Featured - Shown in Slideshow" : "Not Featured"}
-                >
-                  <Star size={14} fill={a.isFeatured ? "#ffd700" : "none"} />
-                </button>
-                <button
-                  onClick={() => handleToggleVisibility(a._id)}
-                  style={{ background: a.isHidden ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', border: 'none', color: a.isHidden ? '#ef4444' : '#10b981', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                  title={a.isHidden ? "Hidden - Click to Show" : "Public - Click to Hide"}
-                >
-                  {a.isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-                <button
-                  onClick={() => openEditArticle(a)}
-                  style={{ background: 'rgba(0, 210, 255, 0.1)', border: 'none', color: '#00d2ff', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                >
-                  <Edit2 size={14} />
-                </button>
-                <button
-                  onClick={() => handleDeleteArticle(a._id)}
-                  style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                >
-                  <Trash2 size={14} />
-                </button>
+                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <button
+                    onClick={() => { setSelectedArticleComments(a); setShowCommentModal(true); }}
+                    style={{ marginRight: 'auto', background: 'rgba(0, 210, 255, 0.1)', border: 'none', color: '#00d2ff', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    title="Moderate Comments"
+                  >
+                    <MessageSquare size={14} />
+                    {a.comments?.length > 0 && <span style={{ fontSize: '0.65rem', marginLeft: '4px', fontWeight: 'bold' }}>{a.comments.length}</span>}
+                  </button>
+                  <button
+                    onClick={() => handleToggleFeatured(a._id)}
+                    style={{ background: a.isFeatured ? 'rgba(255, 215, 0, 0.1)' : 'rgba(255,255,255,0.05)', border: 'none', color: a.isFeatured ? '#ffd700' : '#888', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    title={a.isFeatured ? "Featured - Shown in Slideshow" : "Not Featured"}
+                  >
+                    <Star size={14} fill={a.isFeatured ? "#ffd700" : "none"} />
+                  </button>
+                  <button
+                    onClick={() => handleToggleVisibility(a._id)}
+                    style={{ background: a.isHidden ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', border: 'none', color: a.isHidden ? '#ef4444' : '#10b981', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    title={a.isHidden ? "Hidden - Click to Show" : "Public - Click to Hide"}
+                  >
+                    {a.isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                  <button
+                    onClick={() => openEditArticle(a)}
+                    style={{ background: 'rgba(0, 210, 255, 0.1)', border: 'none', color: '#00d2ff', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteArticle(a._id)}
+                    style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', padding: '6px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     );
   }
 
-  const handleDeleteMessage = async (id) => {
-    if (!window.confirm('Delete this message permanently?')) return;
+  async function handleDeleteMessage(id) {
+
+    // Removed window.confirm because it might be blocked by the browser
     try {
       const res = await fetch(`/api/admin/messages/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${user.token}` }
       });
-      if (res.ok) fetchDashboardData();
+      if (res.ok) {
+        toast.success('Message purged successfully.');
+        setMessages(messages.filter(m => m._id !== id));
+        fetchDashboardData();
+      } else {
+        const errText = await res.text();
+        console.error('Delete failed:', res.status, errText);
+        toast.error(`Delete failed: ${res.status}`);
+      }
     } catch (error) {
       console.error('Error deleting message', error);
+      toast.error('Network error deleting message.');
     }
   };
 
@@ -804,9 +814,9 @@ const AdminDashboard = () => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {feedbacks.map(f => (
-            <div key={f._id} style={{ 
-              padding: '1.8rem', 
-              borderRadius: '16px', 
+            <div key={f._id} style={{
+              padding: '1.8rem',
+              borderRadius: '16px',
               background: '#0d0e15',
               border: '1px solid rgba(255, 255, 255, 0.03)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
@@ -831,13 +841,13 @@ const AdminDashboard = () => {
                   "{f.text}"
                 </p>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.8rem' }}>
-                  <span style={{ 
-                    fontSize: '0.7rem', 
-                    padding: '3px 10px', 
-                    borderRadius: '6px', 
+                  <span style={{
+                    fontSize: '0.7rem',
+                    padding: '3px 10px',
+                    borderRadius: '6px',
                     fontWeight: '700',
                     letterSpacing: '0.5px',
-                    background: f.status === 'approved' ? 'rgba(16, 185, 129, 0.12)' : (f.status === 'rejected' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.12)'), 
+                    background: f.status === 'approved' ? 'rgba(16, 185, 129, 0.12)' : (f.status === 'rejected' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.12)'),
                     color: f.status === 'approved' ? '#10b981' : (f.status === 'rejected' ? '#ef4444' : '#f59e0b'),
                     border: `1px solid ${f.status === 'approved' ? 'rgba(16, 185, 129, 0.2)' : (f.status === 'rejected' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)')}`
                   }}>
@@ -850,10 +860,10 @@ const AdminDashboard = () => {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flexShrink: 0 }}>
                 {f.status !== 'approved' && (
-                  <button 
-                    onClick={() => handleUpdateFeedbackStatus(f._id, 'approved')} 
-                    style={{ 
-                      padding: '0.75rem 1.25rem', 
+                  <button
+                    onClick={() => handleUpdateFeedbackStatus(f._id, 'approved')}
+                    style={{
+                      padding: '0.75rem 1.25rem',
                       borderRadius: '10px',
                       background: 'rgba(16, 185, 129, 0.1)',
                       border: '1px solid rgba(16, 185, 129, 0.4)',
@@ -872,10 +882,10 @@ const AdminDashboard = () => {
                   </button>
                 )}
                 {f.status !== 'rejected' && (
-                  <button 
-                    onClick={() => handleUpdateFeedbackStatus(f._id, 'rejected')} 
-                    style={{ 
-                      padding: '0.75rem 1.25rem', 
+                  <button
+                    onClick={() => handleUpdateFeedbackStatus(f._id, 'rejected')}
+                    style={{
+                      padding: '0.75rem 1.25rem',
                       borderRadius: '10px',
                       background: 'rgba(239, 68, 68, 0.1)',
                       border: '1px solid rgba(239, 68, 68, 0.4)',
@@ -924,10 +934,9 @@ const AdminDashboard = () => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {messages?.map(m => (
-            <div key={m?._id} style={{ 
-              padding: '1.8rem', 
-              borderRadius: '16px', 
-              borderLeft: '4px solid #00d2ff', 
+            <div key={m?._id} style={{
+              padding: '1.8rem',
+              borderRadius: '16px',
               background: '#0d0e15',
               borderTop: '1px solid rgba(255,255,255,0.02)',
               borderRight: '1px solid rgba(255,255,255,0.02)',
@@ -944,14 +953,14 @@ const AdminDashboard = () => {
                   <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)', background: 'rgba(255, 255, 255, 0.03)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)', fontFamily: 'monospace' }}>
                     {m?.createdAt ? new Date(m.createdAt).toLocaleString() : ''}
                   </div>
-                  <button 
-                    onClick={() => handleDeleteMessage(m?._id)} 
-                    style={{ 
-                      background: 'rgba(239, 68, 68, 0.08)', 
-                      border: '1px solid rgba(239, 68, 68, 0.2)', 
-                      color: '#ef4444', 
-                      padding: '8px', 
-                      borderRadius: '8px', 
+                  <button
+                    onClick={() => handleDeleteMessage(m?._id)}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      color: '#ef4444',
+                      padding: '8px',
+                      borderRadius: '8px',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -966,12 +975,12 @@ const AdminDashboard = () => {
                   </button>
                 </div>
               </div>
-              <div style={{ 
-                background: 'rgba(0,0,0,0.2)', 
-                padding: '1.2rem', 
-                borderRadius: '12px', 
-                fontSize: '0.95rem', 
-                lineHeight: '1.7', 
+              <div style={{
+                background: 'rgba(0,0,0,0.2)',
+                padding: '1.2rem',
+                borderRadius: '12px',
+                fontSize: '0.95rem',
+                lineHeight: '1.7',
                 color: 'rgba(255, 255, 255, 0.8)',
                 border: '1px solid rgba(255,255,255,0.04)',
                 whiteSpace: 'pre-line'
@@ -1106,10 +1115,10 @@ const AdminDashboard = () => {
                 )}
               </select>
             </div>
-            <button 
-              type="submit" 
-              className="btn-primary" 
-              style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', opacity: addingUser ? 0.7 : 1, cursor: addingUser ? 'not-allowed' : 'pointer' }} 
+            <button
+              type="submit"
+              className="btn-primary"
+              style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', opacity: addingUser ? 0.7 : 1, cursor: addingUser ? 'not-allowed' : 'pointer' }}
               disabled={addingUser}
             >
               {addingUser ? 'Processing...' : 'Create Account'}
@@ -1183,12 +1192,12 @@ const AdminDashboard = () => {
             </div>
 
             <div className="form-group" style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 id="isFeatured"
-                checked={newArticle.isFeatured} 
-                onChange={e => setNewArticle({ ...newArticle, isFeatured: e.target.checked })} 
-                style={{ width: '20px', height: '20px', cursor: 'pointer' }} 
+                checked={newArticle.isFeatured}
+                onChange={e => setNewArticle({ ...newArticle, isFeatured: e.target.checked })}
+                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
               />
               <label htmlFor="isFeatured" style={{ cursor: 'pointer', fontSize: '0.95rem', fontWeight: 'bold', color: '#00d2ff' }}>
                 Feature this article in the Home Slideshow
@@ -1216,7 +1225,7 @@ const AdminDashboard = () => {
       <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, backdropFilter: 'blur(8px)' }}>
         <div className="glass modern-scroll-container" style={{ padding: '2.5rem', borderRadius: '30px', width: '700px', maxHeight: '85vh', overflowY: 'auto', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
           <button onClick={() => { setShowCommentModal(false); setSelectedArticleComments(null); }} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={20} /></button>
-          
+
           <h3 style={{ fontSize: '1.6rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             <MessageSquare className="text-[#00d2ff]" /> Comment Moderation
           </h3>
@@ -1226,7 +1235,7 @@ const AdminDashboard = () => {
             {!selectedArticleComments.comments || selectedArticleComments.comments.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>No comments detected on this transmission.</div>
             ) : (
-              [...selectedArticleComments.comments].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).map(comment => (
+              [...selectedArticleComments.comments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(comment => (
                 <div key={comment._id} className="glass" style={{ padding: '1.5rem', borderRadius: '15px', border: comment.isHidden ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(0, 210, 255, 0.1)', opacity: comment.isHidden ? 0.7 : 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -1237,14 +1246,14 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <button 
+                      <button
                         onClick={() => handleToggleCommentVisibility(selectedArticleComments._id, comment._id)}
                         style={{ background: comment.isHidden ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: 'none', color: comment.isHidden ? '#10b981' : '#ef4444', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}
                         title={comment.isHidden ? "Unhide" : "Hide"}
                       >
                         {comment.isHidden ? <Eye size={16} /> : <EyeOff size={16} />}
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteCommentAdmin(selectedArticleComments._id, comment._id)}
                         style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}
                         title="Purge"
