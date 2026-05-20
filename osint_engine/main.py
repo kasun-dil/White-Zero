@@ -286,94 +286,87 @@ async def health_check():
 
 @app.post("/search_username")
 async def search_username(query: UsernameQuery):
-    # 1. Multi-Engine Discovery phase
-    # Query raw username and targeted social media platform dorks in parallel for optimal discovery
-    dork_query = f'"{query.username}" (site:facebook.com OR site:instagram.com OR site:x.com OR site:linkedin.com OR site:reddit.com OR site:github.com)'
-    discovery_tasks = [
-        get_ddg_results(query.username),
-        get_ddg_results(dork_query),
-        get_google_results(query.username),
-        get_google_results(dork_query),
-        get_yahoo_results(query.username),
-        get_yahoo_results(dork_query)
-    ]
-    
-    discovery_results = await asyncio.gather(*discovery_tasks)
-    
-    # Flatten and build consensus
-    all_links = []
-    url_map = {} # normalized_url -> {original_url, sources: set(), title, snippet}
-    
-    for engine_results in discovery_results:
-        for res in engine_results:
-            norm = normalize_url(res["link"])
-            if norm not in url_map:
-                url_map[norm] = {
-                    "link": res["link"],
-                    "title": res["title"],
-                    "snippet": res["snippet"],
-                    "sources": {res["source"]}
-                }
-            else:
-                url_map[norm]["sources"].add(res["source"])
-
-    # Convert map to sorted results based on consensus
-    final_results = []
-    found_platforms = set()
-    
-    for norm, data in url_map.items():
-        score = (len(data["sources"]) / 3) * 100
-        
-        # Identify platform
-        platform_name = "Unknown"
-        for p_name, p_data in PLATFORMS.items():
-            if p_name.lower() in norm:
-                platform_name = p_name
-                found_platforms.add(p_name)
-                break
-        
-        final_results.append({
-            "platform": platform_name,
-            "status": "Found",
-            "link": data["link"],
-            "title": data["title"],
-            "snippet": data["snippet"],
-            "confidence": f"{round(score, 1)}%",
-            "sources": list(data["sources"])
-        })
-
-    # 2. Direct Verification phase (Check platforms NOT found by search engines)
+    # 1. Direct Profile Verification (Guaranteed Exact Footprints)
     direct_tasks = []
     platform_items = list(PLATFORMS.items())
     scan_list = platform_items if query.deep_scan else platform_items[:9]
     
     for platform, data in scan_list:
-        if platform not in found_platforms:
-            url = data["url"].format(query.username)
-            if data["type"] == "http":
-                direct_tasks.append(check_http(platform, url))
-            else:
-                direct_tasks.append(check_browser(platform, url))
+        url = data["url"].format(query.username)
+        if data["type"] == "http":
+            direct_tasks.append(check_http(platform, url))
+        else:
+            direct_tasks.append(check_browser(platform, url))
+
+    # 2. Multi-Engine Discovery phase (For Related/Alternative footprints)
+    dork_query = f'"{query.username}" (site:facebook.com OR site:instagram.com OR site:x.com OR site:linkedin.com OR site:reddit.com OR site:github.com)'
+    discovery_tasks = [
+        get_ddg_results(query.username),
+        get_ddg_results(dork_query),
+        get_yahoo_results(query.username)
+        # Google search temporarily reduced to increase smoothness and prevent CAPTCHA blocks
+    ]
     
-    if direct_tasks:
-        direct_results = await asyncio.gather(*direct_tasks)
-        for res in direct_results:
-            if res["status"] == "Found":
+    # Run both phases concurrently for maximum speed
+    direct_results, *discovery_results = await asyncio.gather(
+        asyncio.gather(*direct_tasks),
+        *discovery_tasks
+    )
+    
+    final_results = []
+    exact_urls = set()
+    
+    # Process Direct Results (These will natively go to Exact Footprint tab)
+    for res in direct_results:
+        if res["status"] == "Found":
+            exact_urls.add(normalize_url(res["link"]))
+            final_results.append({
+                "platform": res["platform"],
+                "status": "Found",
+                "link": res["link"],
+                "title": f"@{query.username}", # Ensures frontend isExact === true
+                "snippet": f"Verified active profile on {res['platform']}.",
+                "confidence": "100%",
+                "sources": ["Direct Verification"]
+            })
+
+    # Process Discovery Results (These go to Related tab)
+    for engine_results in discovery_results:
+        for res in engine_results:
+            norm = normalize_url(res["link"])
+            # Don't duplicate exact profiles found by discovery
+            if norm not in exact_urls:
+                # Prevent frontend from falsely marking this as exact via title match
+                title = res["title"]
+                if title.lower().strip() == query.username.lower():
+                    title += " (Related Match)"
+                
+                # Try to identify platform from URL
+                platform_name = "Web Search"
+                for p_name in PLATFORMS.keys():
+                    if p_name.lower() in norm:
+                        platform_name = p_name
+                        break
+                        
                 final_results.append({
-                    **res,
-                    "confidence": "33.3%", # Direct hit but not in top search results
-                    "sources": ["Direct Probe"]
+                    "platform": platform_name,
+                    "status": "Found",
+                    "link": res["link"],
+                    "title": title,
+                    "snippet": res["snippet"],
+                    "confidence": "Possible Match",
+                    "sources": [res["source"]]
                 })
 
-    # Sort results: high confidence first, then identified platforms
-    final_results.sort(key=lambda x: (float(x["confidence"].strip('%')), x["platform"] != "Unknown"), reverse=True)
+    # Sort results: Exact matches first, then alphabetically by platform
+    final_results.sort(key=lambda x: (x["confidence"] != "100%", x["platform"]))
 
     return {
         "username": query.username, 
         "results": final_results, 
         "deep_scan": query.deep_scan,
         "discovery_metrics": {
-            "engines_queried": ["Google", "DuckDuckGo", "Yahoo"],
+            "engines_queried": ["Direct Probe", "DuckDuckGo", "Yahoo"],
             "total_matches": len(final_results)
         }
     }

@@ -35,7 +35,7 @@ const FloatingAI = () => {
         role: m.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: m.content }]
       }));
-      
+
       const data = await chatWithAI(text, history);
       const aiResponse = { role: 'assistant', content: data.content };
       setMessages(prev => [...prev, aiResponse]);
@@ -58,16 +58,16 @@ const FloatingAI = () => {
       {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20, filter: 'blur(10px)' }}
             animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, scale: 0.9, y: 20, filter: 'blur(10px)' }}
-            className="glass" 
-            style={{ 
-              position: 'absolute', 
-              bottom: '7rem', 
-              right: '0', 
-              width: 'min(calc(100vw - 4rem), 400px)', 
+            className="glass"
+            style={{
+              position: 'absolute',
+              bottom: '7rem',
+              right: '0',
+              width: 'min(calc(100vw - 4rem), 400px)',
               height: 'min(calc(100vh - 10rem), 550px)',
               borderRadius: '24px',
               display: 'flex',
@@ -95,8 +95,8 @@ const FloatingAI = () => {
             {/* Messages */}
             <div className="custom-scrollbar" style={{ flex: 1, padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
               {messages.map((msg, idx) => (
-                <div key={idx} style={{ 
-                  display: 'flex', 
+                <div key={idx} style={{
+                  display: 'flex',
                   flexDirection: 'column',
                   alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
                   width: '100%'
@@ -107,9 +107,9 @@ const FloatingAI = () => {
                       <span style={{ fontSize: '0.6rem', fontWeight: '800', color: '#00d2ff', letterSpacing: '1px' }}>INTEL OPS</span>
                     </div>
                   )}
-                  <div className="ai-message-content" style={{ 
-                    padding: '0.8rem 1rem', 
-                    borderRadius: '16px', 
+                  <div className="ai-message-content" style={{
+                    padding: '0.8rem 1rem',
+                    borderRadius: '16px',
                     background: msg.role === 'user' ? 'rgba(0, 210, 255, 0.12)' : 'rgba(255, 255, 255, 0.02)',
                     color: 'rgba(255,255,255,0.95)',
                     fontSize: '0.9rem',
@@ -120,14 +120,14 @@ const FloatingAI = () => {
                     border: '1px solid rgba(255,255,255,0.03)',
                     maxWidth: '92%'
                   }}>
-                    <ReactMarkdown 
+                    <ReactMarkdown
                       components={{
-                        p: ({node, ...props}) => <p style={{ margin: '0 0 0.6rem 0' }} {...props} />,
-                        ul: ({node, ...props}) => <ul style={{ margin: '0.6rem 0', paddingLeft: '1rem' }} {...props} />,
-                        ol: ({node, ...props}) => <ol style={{ margin: '0.6rem 0', paddingLeft: '1rem' }} {...props} />,
-                        li: ({node, ...props}) => <li style={{ marginBottom: '0.4rem' }} {...props} />,
-                        h3: ({node, ...props}) => <h3 style={{ fontSize: '1rem', margin: '0.8rem 0 0.4rem 0', color: '#00d2ff', fontWeight: '700' }} {...props} />,
-                        strong: ({node, ...props}) => <strong style={{ color: '#00d2ff', fontWeight: '600' }} {...props} />
+                        p: ({ node, ...props }) => <p style={{ margin: '0 0 0.6rem 0' }} {...props} />,
+                        ul: ({ node, ...props }) => <ul style={{ margin: '0.6rem 0', paddingLeft: '1rem' }} {...props} />,
+                        ol: ({ node, ...props }) => <ol style={{ margin: '0.6rem 0', paddingLeft: '1rem' }} {...props} />,
+                        li: ({ node, ...props }) => <li style={{ marginBottom: '0.4rem' }} {...props} />,
+                        h3: ({ node, ...props }) => <h3 style={{ fontSize: '1rem', margin: '0.8rem 0 0.4rem 0', color: '#00d2ff', fontWeight: '700' }} {...props} />,
+                        strong: ({ node, ...props }) => <strong style={{ color: '#00d2ff', fontWeight: '600' }} {...props} />
                       }}
                     >
                       {msg.content}
@@ -147,8 +147,8 @@ const FloatingAI = () => {
             {messages.length === 1 && !loading && (
               <div style={{ padding: '0.4rem 1rem', display: 'flex', gap: '0.4rem', overflowX: 'auto', scrollbarWidth: 'none' }} className="custom-scrollbar">
                 {presetQuestions.map((q, i) => (
-                  <button 
-                    key={i} 
+                  <button
+                    key={i}
                     onClick={() => handleSend(q.text)}
                     style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.7rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '15px', color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', cursor: 'pointer' }}
                   >
@@ -161,16 +161,16 @@ const FloatingAI = () => {
             {/* Input Area */}
             <div style={{ padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
               <div style={{ display: 'flex', gap: '0.4rem' }}>
-                <input 
-                  type="text" 
-                  placeholder="Intelligence query..." 
+                <input
+                  type="text"
+                  placeholder="Intelligence query..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                   style={{ flex: 1, padding: '0.7rem', borderRadius: '12px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.08)', color: 'white', fontSize: '0.85rem', outline: 'none' }}
                 />
-                <button 
-                  onClick={() => handleSend()} 
+                <button
+                  onClick={() => handleSend()}
                   disabled={loading}
                   style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#00d2ff', border: 'none', color: 'black', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
@@ -183,14 +183,14 @@ const FloatingAI = () => {
       </AnimatePresence>
 
       {/* Floating Button */}
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        style={{ 
-          position: 'absolute', 
-          bottom: '0', 
-          right: isOpen ? 'calc(50% - 45px)' : '0', 
-          width: '90px', 
-          height: '90px', 
+        style={{
+          position: 'absolute',
+          bottom: '0',
+          right: isOpen ? 'calc(50% - 45px)' : '0',
+          width: '110px',
+          height: '110px',
           cursor: 'pointer',
           background: 'none',
           border: 'none',
@@ -205,13 +205,13 @@ const FloatingAI = () => {
       >
         {/* Main Icon Core */}
         <motion.div
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.15, filter: 'drop-shadow(0 0 25px rgba(0, 210, 255, 0.6))' }}
+          whileTap={{ scale: 0.95 }}
           style={{
             width: '100%',
             height: '100%',
             borderRadius: '50%',
-            background: 'transparent',
+            background: 'radial-gradient(circle at center, rgba(0, 210, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -226,70 +226,21 @@ const FloatingAI = () => {
             initial={{ opacity: 0, scale: 0.5, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.5 }}
-            style={{ zIndex: 2, position: 'relative', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ zIndex: 2, position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            {/* Custom CSS Animated Robot */}
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              style={{ position: 'relative', width: '60px', height: '50px' }}
-            >
-              {/* Head Container */}
-              <div style={{ 
-                width: '100%', 
-                height: '100%', 
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(200, 200, 255, 0.3))', 
-                borderRadius: '16px',
-                border: '2px solid rgba(255, 255, 255, 0.8)',
-                boxShadow: '0 0 20px rgba(255, 255, 255, 0.2)',
-                position: 'relative',
-                backdropFilter: 'blur(5px)'
-              }}>
-                {/* Eyes Area */}
-                <div style={{ position: 'absolute', top: '35%', left: '0', right: '0', display: 'flex', justifyContent: 'space-around', padding: '0 12px' }}>
-                  <motion.div 
-                    animate={{ 
-                      scaleY: [1, 1, 0.1, 1, 1],
-                      boxShadow: ['0 0 8px #ffffff', '0 0 15px #ffffff', '0 0 8px #ffffff']
-                    }}
-                    transition={{ duration: 4, repeat: Infinity, times: [0, 0.45, 0.5, 0.55, 1] }}
-                    style={{ width: '10px', height: '10px', background: '#ffffff', borderRadius: '50%' }} 
-                  />
-                  <motion.div 
-                    animate={{ 
-                      scaleY: [1, 1, 0.1, 1, 1],
-                      boxShadow: ['0 0 8px #ffffff', '0 0 15px #ffffff', '0 0 8px #ffffff']
-                    }}
-                    transition={{ duration: 4, repeat: Infinity, times: [0, 0.45, 0.5, 0.55, 1] }}
-                    style={{ width: '10px', height: '10px', background: '#ffffff', borderRadius: '50%' }} 
-                  />
-                </div>
-                
-                {/* Telemetry Light */}
-                <motion.div 
-                  animate={{ opacity: [0.3, 1, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  style={{ position: 'absolute', bottom: '15%', left: '50%', transform: 'translateX(-50%)', width: '20px', height: '3px', background: 'rgba(255, 255, 255, 0.6)', borderRadius: '10px' }} 
-                />
-              </div>
-
-              {/* Antennas */}
-              <div style={{ position: 'absolute', top: '-15px', left: '15px', width: '2px', height: '15px', background: 'rgba(255, 255, 255, 0.8)' }}>
-                <motion.div 
-                  animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  style={{ position: 'absolute', top: '-4px', left: '-3px', width: '8px', height: '8px', background: '#ffffff', borderRadius: '50%', boxShadow: '0 0 10px #ffffff' }} 
-                />
-              </div>
-              <div style={{ position: 'absolute', top: '-10px', right: '15px', width: '2px', height: '10px', background: 'rgba(255, 255, 255, 0.5)' }} />
-              
-              {/* Bobbing Shadow underneath */}
-              <motion.div 
-                animate={{ scale: [1, 0.8, 1], opacity: [0.3, 0.1, 0.3] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                style={{ position: 'absolute', bottom: '-20px', left: '10%', right: '10%', height: '4px', background: 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0.4) 0%, transparent 70%)', borderRadius: '50%' }}
-              />
-            </motion.div>
+            {/* Lottie Animated Robot */}
+            <iframe
+              src="https://lottie.host/embed/c1c0d5b2-7d25-4e0d-91e7-a34c76dc8fa4/tEkdPACc0L.lottie"
+              style={{
+                width: '140px',
+                height: '140px',
+                border: 'none',
+                background: 'transparent',
+                pointerEvents: 'none',
+                filter: 'drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.8))'
+              }}
+              title="AI Assistant Icon"
+            ></iframe>
           </motion.div>
         </motion.div>
       </button>

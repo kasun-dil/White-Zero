@@ -69,7 +69,7 @@ const ReportCrime = () => {
   const navigate = useNavigate();
   const [reportType, setReportType] = useState(null); // 'social' or 'police'
   const [step, setStep] = useState(1);
-  
+
   // Social Platform Data
   const [formData, setFormData] = useState({
     victimName: '',
@@ -100,7 +100,7 @@ const ReportCrime = () => {
   const [generatedReport, setGeneratedReport] = useState('');
   const [isPolishing, setIsPolishing] = useState(false);
   const [reportRefId] = useState(`WZ-INC-${Math.floor(Math.random() * 900000) + 100000}`);
-  
+
   // OTP States
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
@@ -221,7 +221,7 @@ const ReportCrime = () => {
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
       const token = userInfo?.token;
-      
+
       const res = await fetch('/api/police-reports', {
         method: 'POST',
         headers: {
@@ -230,7 +230,7 @@ const ReportCrime = () => {
         },
         body: JSON.stringify(policeData)
       });
-      
+
       if (res.ok) {
         window.dispatchEvent(new Event('reportSubmitted'));
         toast.success('Report Submitted Successfully.');
@@ -289,7 +289,7 @@ Official Documentation by White Zero Intelligence Framework
     const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Forensic Report</title></head><body>";
     const footer = "</body></html>";
     const sourceHTML = header + content.replace(/\n/g, '<br>') + footer;
-    
+
     const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
     const fileDownload = document.createElement("a");
     document.body.appendChild(fileDownload);
@@ -300,13 +300,13 @@ Official Documentation by White Zero Intelligence Framework
   };
 
   const handleDownloadDoc = () => {
-    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
-            "xmlns:w='urn:schemas-microsoft-com:office:word' "+
-            "xmlns='http://www.w3.org/TR/REC-html40'>"+
-            "<head><meta charset='utf-8'><title>Forensic Report</title></head><body>";
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+      "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+      "xmlns='http://www.w3.org/TR/REC-html40'>" +
+      "<head><meta charset='utf-8'><title>Forensic Report</title></head><body>";
     const footer = "</body></html>";
     const sourceHTML = header + `<pre style="font-family: 'Courier New', Courier, monospace; font-size: 10pt;">${generatedReport}</pre>` + footer;
-    
+
     const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
     const fileLink = document.createElement("a");
     document.body.appendChild(fileLink);
@@ -481,7 +481,7 @@ Official Documentation by White Zero Intelligence Framework
             <div key={num} className={`step-node ${step >= num ? 'active' : ''} ${step > num ? 'completed' : ''}`}>
               <div className="node-circle">{step > num ? <CheckCircle size={18} /> : num}</div>
               <span className="node-label">
-                {reportType === 'social' 
+                {reportType === 'social'
                   ? (num === 1 ? 'Profile' : num === 2 ? 'Details' : num === 3 ? 'Evidence' : 'Workplace')
                   : (num === 1 ? 'Contact' : num === 2 ? 'Verify' : num === 3 ? 'Details' : 'Confirm')
                 }
@@ -489,7 +489,7 @@ Official Documentation by White Zero Intelligence Framework
             </div>
           ))}
           <div className="step-line">
-            <div className="step-line-progress" style={{ width: `${((step - 1) / 3) * 100}%` }}></div>
+            <div className="step-line-progress" style={{ width: `${((step - 1) / 4) * 100}%` }}></div>
           </div>
         </div>
 
@@ -503,7 +503,7 @@ Official Documentation by White Zero Intelligence Framework
                   <div className="form-grid">
                     <div className="input-group"><label>Full Name <span style={{ color: '#ef4444' }}>*</span></label><input type="text" name="victimName" value={formData.victimName} onChange={handleChange} placeholder="Legal Name" required /></div>
                     <div className="input-group"><label>Email <span style={{ color: '#ef4444' }}>*</span></label><input type="email" name="victimEmail" value={formData.victimEmail} onChange={handleChange} placeholder="Contact Email" required /></div>
-                    
+
                     <div className="input-group">
                       <label>Platform <span style={{ color: '#ef4444' }}>*</span></label>
                       <select name="platform" value={formData.platform} onChange={handleChange} required>
@@ -601,7 +601,7 @@ Official Documentation by White Zero Intelligence Framework
               {step === 2 && (
                 <div className="wizard-step-content">
                   <div className="step-title"><Shield color="#00d2ff" /><h2>Identity Verification</h2></div>
-                  
+
                   <div className="verification-container glass">
                     {!otpSent ? (
                       <div className="verification-prompt">
@@ -625,14 +625,14 @@ Official Documentation by White Zero Intelligence Framework
                         </div>
                         <h3>{otpVerified ? 'Identity Confirmed' : 'Enter Forensic Token'}</h3>
                         <p>A 6-digit verification code has been transmitted to your email.</p>
-                        
+
                         <div className="otp-input-wrapper">
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             maxLength="6"
-                            placeholder="000000" 
-                            value={otpCode} 
-                            onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))} 
+                            placeholder="000000"
+                            value={otpCode}
+                            onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
                             disabled={otpVerified}
                             className={`otp-main-input ${otpVerified ? 'verified' : ''}`}
                           />
@@ -647,7 +647,7 @@ Official Documentation by White Zero Intelligence Framework
                             <Sparkles size={16} /> Access Granted: Forensic Session Active
                           </div>
                         )}
-                        
+
                         {!otpVerified && (
                           <div style={{ marginTop: '1rem', textAlign: 'center' }}>
                             <button className="btn-link" onClick={() => setOtpSent(false)} style={{ fontSize: '0.8rem' }}>
@@ -670,7 +670,7 @@ Official Documentation by White Zero Intelligence Framework
                 <div className="wizard-step-content">
                   <div className="step-title"><FileText color="#f59e0b" /><h2>Incident Details</h2></div>
                   <div className="form-group"><label>Report Title / Case Subject <span style={{ color: '#ef4444' }}>*</span></label><input type="text" name="title" value={policeData.title} onChange={handleChange} placeholder="e.g. Identity Theft via Social Media" required /></div>
-                  
+
                   <div className="form-grid" style={{ marginBottom: '1.5rem' }}>
                     <div className="input-group">
                       <label>Platform Affected <span style={{ color: '#ef4444' }}>*</span></label>
@@ -687,12 +687,12 @@ Official Documentation by White Zero Intelligence Framework
                     </div>
                     <div className="input-group">
                       <label>Incident Date <span style={{ color: '#ef4444' }}>*</span></label>
-                      <input 
-                        type="date" 
-                        name="incidentDate" 
-                        value={policeData.incidentDate} 
-                        onChange={handleChange} 
-                        required 
+                      <input
+                        type="date"
+                        name="incidentDate"
+                        value={policeData.incidentDate}
+                        onChange={handleChange}
+                        required
                         onClick={(e) => e.target.showPicker?.()}
                         onFocus={(e) => e.target.showPicker?.()}
                       />
@@ -726,15 +726,15 @@ Official Documentation by White Zero Intelligence Framework
                       <div style={{ fontSize: '0.9rem' }}><strong>Status:</strong> Awaiting Verified Submission</div>
                     </div>
                   </div>
-                  <button 
-                    className="btn-nav-next" 
-                    style={{ 
-                      width: '100%', 
-                      marginTop: '2rem', 
-                      background: isSubmitting ? '#555' : '#ef4444', 
+                  <button
+                    className="btn-nav-next"
+                    style={{
+                      width: '100%',
+                      marginTop: '2rem',
+                      background: isSubmitting ? '#555' : '#ef4444',
                       color: 'white',
                       cursor: isSubmitting ? 'not-allowed' : 'pointer'
-                    }} 
+                    }}
                     onClick={submitPoliceReport}
                     disabled={isSubmitting}
                   >

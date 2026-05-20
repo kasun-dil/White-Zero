@@ -92,9 +92,29 @@ const Hero = () => {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}>
-                {slides[current].title}
+                {slides[current].title.split('').map((char, index) => (
+                  <motion.span
+                    key={`${slides[current].id}-${index}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 + index * 0.05, duration: 0.05 }}
+                  >
+                    {char}
+                  </motion.span>
+                ))}
               </h1>
-              <p>{slides[current].subtitle}</p>
+              <p>
+                {slides[current].subtitle.split('').map((char, index) => (
+                  <motion.span
+                    key={`${slides[current].id}-sub-${index}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.5 + index * 0.008, duration: 0.02 }}
+                  >
+                    {char}
+                  </motion.span>
+                ))}
+              </p>
               <div className="hero-btns">
                 <Link 
                   to={slides[current].link} 

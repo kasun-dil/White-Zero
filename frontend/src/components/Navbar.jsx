@@ -206,7 +206,7 @@ const Navbar = () => {
                 Police Portal
               </Link>
             )}
-            {user && user.role === 'user' && totalCount > 0 && (
+            {user?.role === 'user' && (
               <Link to="/my-reports" className={`nav-link ${location.pathname === '/my-reports' ? 'active' : ''}`} style={{ color: '#00d2ff' }}>
                 My Reports
               </Link>
@@ -365,7 +365,7 @@ const Navbar = () => {
                 <span>Police Portal</span>
               </Link>
             )}
-            {user && (
+            {user?.role === 'user' && (
               <Link to="/my-reports" className="drawer-link portal-link-user" onClick={() => setIsOpen(false)}>
                 <span style={{ marginRight: '1rem', color: '#00d2ff' }}><FileText size={18} /></span>
                 <span>My Reports</span>

@@ -274,7 +274,7 @@ const OSINTDashboard = () => {
               <button className={searchType === 'username' ? 'active' : ''} onClick={() => setSearchType('username')}>
                 <User size={16} /> Username
               </button>
-              <button className={searchType === 'phone' ? 'active' : ''} onClick={() => setSearchType('phone')}>
+              <button className="disabled-btn" title="This forensic module is currently pending integration.">
                 <Phone size={16} /> Phone
               </button>
             </div>
@@ -336,19 +336,19 @@ const OSINTDashboard = () => {
               let handle = '';
               try {
                 const urlParts = res.link.split('/');
-                handle = urlParts.pop() || urlParts.pop(); 
+                handle = urlParts.pop() || urlParts.pop();
                 handle = handle.split('?')[0].replace(/^@/, '').replace(/^in\//, '').replace(/^u\//, '');
               } catch (e) {
                 handle = '';
               }
-              
+
               const lastUsernameLower = lastUsername.toLowerCase();
               const handleLower = handle.toLowerCase();
               const titleLower = (res.title || '').toLowerCase().trim();
 
               const isExact = handleLower === lastUsernameLower || titleLower === lastUsernameLower;
               const isRelated = !isExact && (
-                handleLower.includes(lastUsernameLower) || 
+                handleLower.includes(lastUsernameLower) ||
                 lastUsernameLower.includes(handleLower) ||
                 titleLower.includes(lastUsernameLower)
               );
@@ -388,7 +388,7 @@ const OSINTDashboard = () => {
                 border: '1px solid rgba(255, 255, 255, 0.05)',
                 width: 'fit-content'
               }}>
-                <button 
+                <button
                   onClick={() => setActiveResultsTab('exact')}
                   style={{
                     padding: '0.6rem 1.2rem',
@@ -409,7 +409,7 @@ const OSINTDashboard = () => {
                 >
                   <User size={14} /> Exact Footprint ({exactMatches.length})
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveResultsTab('related')}
                   style={{
                     padding: '0.6rem 1.2rem',
@@ -480,7 +480,7 @@ const OSINTDashboard = () => {
                     <FadeInSection key={i} delay={i * 0.05} direction="up">
                       <div className={`platform-card glass ${res.status.toLowerCase()}`}>
                         <div className="platform-header">
-                          <div 
+                          <div
                             className={`platform-icon-box ${res.status.toLowerCase()}`}
                             style={{ background: '#000', border: `1px solid ${getPlatformIconData(res.platform).color}` }}
                           >
@@ -534,7 +534,7 @@ const OSINTDashboard = () => {
             </div>
           );
         })()
-        : phoneResults ? (
+          : phoneResults ? (
             <div className="username-investigation">
               <FadeInSection direction="down">
                 <div className="dashboard-header glass">
@@ -584,10 +584,10 @@ const OSINTDashboard = () => {
                     <FadeInSection key={i} delay={i * 0.05} direction="up">
                       <div className="forensic-entry glass">
                         <div className="entry-header">
-                          <div 
+                          <div
                             className="entry-icon"
-                            style={{ 
-                              background: '#000', 
+                            style={{
+                              background: '#000',
                               border: `1px solid ${getPlatformIconData(res.platform).color}`,
                               width: '40px',
                               height: '40px',
@@ -622,129 +622,129 @@ const OSINTDashboard = () => {
                 )}
               </div>
             </div>
-        ) : !selectedEntity && posts.length === 0 ? (
-          <FadeInSection>
-            <div className="empty-state">
-              <Search size={64} className="text-[#00d2ff] opacity-20" />
-              <h2>OSINT CENTRAL COMMAND</h2>
-              <p>Initialize a search to begin forensic data extraction from social networks.</p>
-            </div>
-          </FadeInSection>
-        ) : (
-          <div className="entity-dashboard">
-            <FadeInSection direction="down">
-              <div className="dashboard-header glass">
-                <div className="entity-meta">
-                  {selectedEntity ? (
-                    <>
-                      <img src={selectedEntity.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedEntity.name)}&background=00d2ff&color=fff`} alt="" />
-                      <div>
-                        <h1>{selectedEntity.name}</h1>
-                        <p>{selectedEntity.type.toUpperCase()} • Forensic Analysis Profile</p>
-                      </div>
-                    </>
-                  ) : (
-                    <div>
-                      <h1>Keyword: {query}</h1>
-                      <p>POST SEARCH RESULTS • Global Public Content</p>
-                    </div>
-                  )}
-                </div>
-                <div className="header-actions">
-                  <button className="btn-outline"><ExternalLink size={16} /> View Source</button>
-                  <button className="btn-primary">Generate Report</button>
-                </div>
+          ) : !selectedEntity && posts.length === 0 ? (
+            <FadeInSection>
+              <div className="empty-state">
+                <Search size={64} className="text-[#00d2ff] opacity-20" />
+                <h2>OSINT CENTRAL COMMAND</h2>
+                <p>Initialize a search to begin forensic data extraction from social networks.</p>
               </div>
             </FadeInSection>
-
-            <div className="posts-grid">
-              {posts.map((post, i) => (
-                <FadeInSection key={post.id} delay={i * 0.1} direction="up">
-                  <div className="post-card glass forensic-card" onClick={() => setSelectedPost(post)}>
-                    <div className="card-forensic-header">
-                      <span className={`risk-dot ${post.risk_level?.toLowerCase()}`}></span>
-                      <span className="trust-percent">{Math.round(post.trust_score * 100)}% Match</span>
-                    </div>
-                    <p className="post-text">{post.content || post.text}</p>
-                    <div className="post-stats">
-                      <span><ThumbsUp size={14} /> {post.likes}</span>
-                      <span><MessageSquare size={14} /> {post.comments}</span>
-                      <span><Calendar size={14} /> {post.date || post.timestamp}</span>
-                    </div>
-                    <div className="card-footer">
-                      <span className="forensic-id">ID: {post.id}</span>
-                      <span className="risk-label">{post.risk_level} Risk</span>
-                    </div>
+          ) : (
+            <div className="entity-dashboard">
+              <FadeInSection direction="down">
+                <div className="dashboard-header glass">
+                  <div className="entity-meta">
+                    {selectedEntity ? (
+                      <>
+                        <img src={selectedEntity.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedEntity.name)}&background=00d2ff&color=fff`} alt="" />
+                        <div>
+                          <h1>{selectedEntity.name}</h1>
+                          <p>{selectedEntity.type.toUpperCase()} • Forensic Analysis Profile</p>
+                        </div>
+                      </>
+                    ) : (
+                      <div>
+                        <h1>Keyword: {query}</h1>
+                        <p>POST SEARCH RESULTS • Global Public Content</p>
+                      </div>
+                    )}
                   </div>
-                </FadeInSection>
-              ))}
-            </div>
-
-            {selectedPost && (
-              <div className="modal-backdrop" onClick={() => setSelectedPost(null)}>
-                <FadeInSection>
-                  <div className="post-detail-modal forensic-modal" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header">
-                      <h3>FORENSIC POST ANALYSIS</h3>
-                      <button onClick={() => setSelectedPost(null)}>×</button>
-                    </div>
-                    <div className="modal-body">
-                      <div className="forensic-meta-grid">
-                        <div className="meta-box">
-                          <label>Timestamp</label>
-                          <p>{selectedPost.date || selectedPost.timestamp}</p>
-                        </div>
-                        <div className="meta-box">
-                          <label>Trust Score</label>
-                          <p className="text-[#00d2ff]">{Math.round(selectedPost.trust_score * 100)}%</p>
-                        </div>
-                        <div className="meta-box">
-                          <label>Risk Level</label>
-                          <p className={`risk-${selectedPost.risk_level?.toLowerCase()}`}>{selectedPost.risk_level}</p>
-                        </div>
-                        <div className="meta-box">
-                          <label>Interaction Rate</label>
-                          <p>{selectedPost.likes + selectedPost.comments} total</p>
-                        </div>
-                      </div>
-
-                      <div className="content-analysis-box">
-                        <h4>RAW CONTENT</h4>
-                        <p className="full-text">{selectedPost.content || selectedPost.text}</p>
-                      </div>
-
-                      <div className="comment-analysis">
-                        <h4>SENTIMENT & KEYWORD SCANNING</h4>
-                        <div className="filter-input">
-                          <input type="text" placeholder="Scanning for disinformation patterns..." readOnly />
-                          <Search size={16} className="animate-pulse" />
-                        </div>
-                        <div className="comments-list">
-                          <div className="comment-item forensic">
-                            <div className="comment-header">
-                              <strong>NODE_ALPHA</strong>
-                              <span className="sentiment positive">Positive</span>
-                            </div>
-                            This information aligns with established datasets.
-                            <span>2024-04-20 10:30 AM</span>
-                          </div>
-                          <div className="comment-item forensic">
-                            <div className="comment-header">
-                              <strong>NODE_BETA</strong>
-                              <span className="sentiment negative">Suspicious</span>
-                            </div>
-                            Patterns of coordinated inauthentic behavior detected.
-                            <span>2024-04-20 11:15 AM</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="header-actions">
+                    <button className="btn-outline"><ExternalLink size={16} /> View Source</button>
+                    <button className="btn-primary">Generate Report</button>
                   </div>
-                </FadeInSection>
+                </div>
+              </FadeInSection>
+
+              <div className="posts-grid">
+                {posts.map((post, i) => (
+                  <FadeInSection key={post.id} delay={i * 0.1} direction="up">
+                    <div className="post-card glass forensic-card" onClick={() => setSelectedPost(post)}>
+                      <div className="card-forensic-header">
+                        <span className={`risk-dot ${post.risk_level?.toLowerCase()}`}></span>
+                        <span className="trust-percent">{Math.round(post.trust_score * 100)}% Match</span>
+                      </div>
+                      <p className="post-text">{post.content || post.text}</p>
+                      <div className="post-stats">
+                        <span><ThumbsUp size={14} /> {post.likes}</span>
+                        <span><MessageSquare size={14} /> {post.comments}</span>
+                        <span><Calendar size={14} /> {post.date || post.timestamp}</span>
+                      </div>
+                      <div className="card-footer">
+                        <span className="forensic-id">ID: {post.id}</span>
+                        <span className="risk-label">{post.risk_level} Risk</span>
+                      </div>
+                    </div>
+                  </FadeInSection>
+                ))}
               </div>
-            )}
-          </div>
-        )}
+
+              {selectedPost && (
+                <div className="modal-backdrop" onClick={() => setSelectedPost(null)}>
+                  <FadeInSection>
+                    <div className="post-detail-modal forensic-modal" onClick={e => e.stopPropagation()}>
+                      <div className="modal-header">
+                        <h3>FORENSIC POST ANALYSIS</h3>
+                        <button onClick={() => setSelectedPost(null)}>×</button>
+                      </div>
+                      <div className="modal-body">
+                        <div className="forensic-meta-grid">
+                          <div className="meta-box">
+                            <label>Timestamp</label>
+                            <p>{selectedPost.date || selectedPost.timestamp}</p>
+                          </div>
+                          <div className="meta-box">
+                            <label>Trust Score</label>
+                            <p className="text-[#00d2ff]">{Math.round(selectedPost.trust_score * 100)}%</p>
+                          </div>
+                          <div className="meta-box">
+                            <label>Risk Level</label>
+                            <p className={`risk-${selectedPost.risk_level?.toLowerCase()}`}>{selectedPost.risk_level}</p>
+                          </div>
+                          <div className="meta-box">
+                            <label>Interaction Rate</label>
+                            <p>{selectedPost.likes + selectedPost.comments} total</p>
+                          </div>
+                        </div>
+
+                        <div className="content-analysis-box">
+                          <h4>RAW CONTENT</h4>
+                          <p className="full-text">{selectedPost.content || selectedPost.text}</p>
+                        </div>
+
+                        <div className="comment-analysis">
+                          <h4>SENTIMENT & KEYWORD SCANNING</h4>
+                          <div className="filter-input">
+                            <input type="text" placeholder="Scanning for disinformation patterns..." readOnly />
+                            <Search size={16} className="animate-pulse" />
+                          </div>
+                          <div className="comments-list">
+                            <div className="comment-item forensic">
+                              <div className="comment-header">
+                                <strong>NODE_ALPHA</strong>
+                                <span className="sentiment positive">Positive</span>
+                              </div>
+                              This information aligns with established datasets.
+                              <span>2024-04-20 10:30 AM</span>
+                            </div>
+                            <div className="comment-item forensic">
+                              <div className="comment-header">
+                                <strong>NODE_BETA</strong>
+                                <span className="sentiment negative">Suspicious</span>
+                              </div>
+                              Patterns of coordinated inauthentic behavior detected.
+                              <span>2024-04-20 11:15 AM</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </FadeInSection>
+                </div>
+              )}
+            </div>
+          )}
       </div>
     </div>
   );

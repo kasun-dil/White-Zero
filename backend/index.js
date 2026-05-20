@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
-const sgMail = require('@sendgrid/mail');
+const nodemailer = require('nodemailer');
 
 const twilio = require('twilio');
 const { OAuth2Client } = require('google-auth-library');
@@ -28,6 +28,14 @@ const OTP = require('./models/OTP');
 const { protect, admin, police, policeOrAdmin } = require('./middleware/authMiddleware');
 
 dotenv.config();
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
 
 const OSINT_URL = process.env.OSINT_ENGINE_URL || 'http://localhost:8001';
 
@@ -804,7 +812,7 @@ app.post('/api/chat', async (req, res) => {
     let text;
     // Initialize model with System Instruction for permanent context
     const modelWithInstructions = genAI.getGenerativeModel({ 
-      model: "gemini-flash-latest",
+      model: "gemini-2.5-flash",
       systemInstruction: {
         parts: [{ text: systemPrompt }]
       }
@@ -1086,8 +1094,7 @@ app.delete('/api/users/profile/clear-history', protect, async (req, res) => {
 // OTP & VERIFICATION ROUTES
 // =======================
 
-// Initialize SendGrid
-sgMail.setApiKey(process.env.SENDGRID_API_KEY || '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');
+// Nodemailer transporter initialized at the top of the file
 
 const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) 
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN) 
@@ -1116,10 +1123,10 @@ app.post('/api/otp/send', async (req, res) => {
 
     console.log(`[OTP DISPATCH] Attempting transmission via SendGrid API to ${email}...`);
     
-    // Send email using SendGrid API
+    // Send email using Nodemailer
     const msg = {
       to: email,
-      from: 'whitezero.lk@gmail.com', // MUST match your verified SendGrid sender
+      from: process.env.EMAIL_USER,
       subject: 'White Zero - Secure Verification Code',
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 40px; background-color: #050505; color: #ffffff; border-radius: 20px; border: 1px solid #10b981;">
@@ -1145,9 +1152,9 @@ app.post('/api/otp/send', async (req, res) => {
       `,
     };
 
-    sgMail.send(msg)
-      .then(() => console.log(`[SENDGRID SUCCESS] OTP sent to ${email}`))
-      .catch(err => console.error(`[SENDGRID ERROR] ${err.message}`));
+    transporter.sendMail(msg)
+      .then(() => console.log(`[NODEMAILER SUCCESS] OTP sent to ${email}`))
+      .catch(err => console.error(`[NODEMAILER ERROR] ${err.message}`));
 
     // Always return success so the frontend continues
     res.json({ 
@@ -1220,15 +1227,15 @@ app.post('/api/police-reports', protect, async (req, res) => {
     };
     
     try {
-      await sgMail.send({
+      await transporter.sendMail({
         to: victimEmail,
-        from: 'whitezero.lk@gmail.com',
+        from: process.env.EMAIL_USER,
         subject: `[CONFIRMED] Intelligence Submission: ${referenceId}`,
         html: mailOptions.html
       });
-      console.log(`[SENDGRID] Confirmation sent to reporter: ${victimEmail}`);
+      console.log(`[NODEMAILER] Confirmation sent to reporter: ${victimEmail}`);
     } catch (err) {
-      console.error('[SENDGRID ERROR] Reporter confirmation failed:', err.message);
+      console.error('[NODEMAILER ERROR] Reporter confirmation failed:', err.message);
     }
 
     // Notify Police Team
@@ -1251,15 +1258,15 @@ app.post('/api/police-reports', protect, async (req, res) => {
       `
     };
     try {
-      await sgMail.send({
-        to: 'whitezero.lk@gmail.com',
-        from: 'whitezero.lk@gmail.com',
+      await transporter.sendMail({
+        to: process.env.EMAIL_USER,
+        from: process.env.EMAIL_USER,
         subject: `[NEW CASE] Forensic Investigation Initialized: ${referenceId}`,
         html: policeMailOptions.html
       });
-      console.log(`[SENDGRID] Intelligence alert sent to Police: whitezero.lk@gmail.com`);
+      console.log(`[NODEMAILER] Intelligence alert sent to Police: ${process.env.EMAIL_USER}`);
     } catch (err) {
-      console.error('[SENDGRID ERROR] Police notification failed:', err.message);
+      console.error('[NODEMAILER ERROR] Police notification failed:', err.message);
     }
 
     res.status(201).json(report);
@@ -1309,12 +1316,12 @@ app.post('/api/police/reports/:id/respond', protect, policeOrAdmin, async (req, 
           </div>
         `
       };
-      sgMail.send({
+      transporter.sendMail({
         to: report.victimEmail,
-        from: 'whitezero.lk@gmail.com',
+        from: process.env.EMAIL_USER,
         subject: `New Update: Case ${report.referenceId}`,
         html: mailOptions.html
-      }).catch(err => console.error('SendGrid failed:', err));
+      }).catch(err => console.error('Nodemailer failed:', err));
       
       res.json(report);
     } else {
