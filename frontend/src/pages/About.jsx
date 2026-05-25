@@ -29,7 +29,7 @@ const FeatureDetailSection = ({ title, desc, image, color, reverse = false, link
             </Link>
             {howToLink && (
               <Link to={howToLink} className="btn-secondary-how" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.8rem', padding: '1rem 2rem', border: '1px solid rgba(0, 210, 255, 0.4)', color: '#00d2ff', borderRadius: '50px', background: 'transparent', transition: 'all 0.3s ease', textDecoration: 'none', fontWeight: '600' }}>
-                <BookOpen size={18} /> HOW TO USE
+                <BookOpen size={18} /> HOW TO USE OUT TECH STACKS
               </Link>
             )}
           </div>
